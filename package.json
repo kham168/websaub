@@ -17,8 +17,10 @@
     "nuxt": "^3.17.6",
     "sass": "^1.89.2",
     "sass-loader": "^13.3.3",
+    "sweetalert2": "^11.26.3",
     "vue": "^3.5.17",
     "vue-router": "^4.5.1",
+    "vue-sonner": "^0.4.4",
     "vuetify": "^3.8.12"
   }
 }
