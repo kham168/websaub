@@ -1109,9 +1109,7 @@ function handleImageError(event) {
   }
 }
 
-.zoom-arrow {
-  margin: 0 16px;
-}
+
 
 /* 🎨 Beautiful Dialog Zoom Styles */
 .zoom-dialog-card {

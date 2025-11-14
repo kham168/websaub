@@ -122,53 +122,10 @@
 
               <!-- Title/Description -->
               <p v-if="item.title" class="text-body-2 text-grey-darken-1 mb-3">
-                {{ item.title }}
+                {{ item.detail }}
               </p>
 
               <!-- Rating -->
-              <div v-if="item.rating" class="d-flex align-center mb-3">
-                <v-rating
-                  :model-value="item.rating"
-                  density="compact"
-                  size="small"
-                  color="amber"
-                  half-increments
-                  readonly
-                />
-                <span class="text-caption text-grey-darken-1 ml-1">
-                  ({{ item.reviewCount || 0 }})
-                </span>
-              </div>
-
-              <!-- Price Section -->
-              <div v-if="item.price" class="pricing-section mb-3">
-                <div v-if="item.discount" class="mb-2">
-                  <v-chip
-                    size="small"
-                    color="red"
-                    text-color="white"
-                    class="font-weight-bold"
-                  >
-                    -{{ item.discount }}% OFF
-                  </v-chip>
-                </div>
-                <div class="d-flex align-center mb-1">
-                  <span class="price-symbol">$</span>
-                  <span class="price-whole">{{ getPriceWhole(item.price) }}</span>
-                  <span class="price-decimal">{{ getPriceDecimal(item.price) }}</span>
-                </div>
-                <div v-if="item.originalPrice" class="text-caption text-grey">
-                  ລາຄາເດີມ:
-                  <span class="text-decoration-line-through">
-                    ${{ item.originalPrice }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Delivery Info -->
-              <div v-if="item.price" class="text-caption text-grey-darken-2">
-                ຈັດສົ່ງພາຍໃນ <strong>{{ getDeliveryDate() }}</strong>
-              </div>
             </v-card-text>
 
             <!-- Actions -->
@@ -191,8 +148,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 
@@ -201,26 +158,26 @@ const { channels, fetchChannels, loading, error } = useChannel();
 
 onMounted(async () => {
   await fetchChannels();
-  console.log('Channels loaded:', channels.value);
+  console.log("Channels loaded:", channels.value);
 });
 
 // Navigation function with FIXED routes
 const navigateToProduct = (index) => {
   const routes = [
-  '/muag_cream/home_muagcreams',
-  '/hoob_xauj/home_hoobXauj',       // ✅ Fixed
-  '/tsev_xauj/home_tsevXauj',
-  '/muag_alaij_khoTsheb/home_alaij',
-  '/muag_av/home_muagav',
-  '/muag_tshuaj/home_muagtshuaj',
-  '/taxi/home_taxi',                 // ✅ Fixed
-];
+    "/muag_cream/home_muagcreams",
+    "/hoob_xauj/home_hoobXauj",
+    "/tsev_xauj/home_tsevXauj",
+    "/muag_alaij_khoTsheb/home_alaij",
+    "/muag_av/home_muagav",
+    "/muag_tshuaj/home_muagtshuaj",
+    "/taxi/home_taxi",
+  ];
 
   if (routes[index]) {
-    console.log('Navigating to:', routes[index]);
+    console.log("Navigating to:", routes[index]);
     router.push(routes[index]);
   } else {
-    console.warn('No route found for index:', index);
+    console.warn("No route found for index:", index);
   }
 };
 
@@ -245,8 +202,8 @@ const getPriceDecimal = (price) => {
 const getDeliveryDate = () => {
   const date = new Date();
   date.setDate(date.getDate() + 3);
-  const options = { weekday: 'short', month: 'short', day: 'numeric' };
-  return date.toLocaleDateString('lo-LA', options);
+  const options = { weekday: "short", month: "short", day: "numeric" };
+  return date.toLocaleDateString("lo-LA", options);
 };
 </script>
 
@@ -254,10 +211,6 @@ const getDeliveryDate = () => {
 /* Hero Carousel */
 .hero-carousel {
   border-radius: 0;
-}
-
-.carousel-item {
-  cursor: pointer;
 }
 
 /* Category Cards */
@@ -329,35 +282,6 @@ const getDeliveryDate = () => {
 .category-card:hover .channel-name {
   color: #1565c0;
 }
-
-.pricing-section {
-  border-left: 3px solid #1976d2;
-  padding-left: 12px;
-}
-
-.price-symbol {
-  font-size: 14px;
-  vertical-align: top;
-  margin-top: 4px;
-  font-weight: 600;
-  color: #0f1111;
-}
-
-.price-whole {
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1;
-  color: #0f1111;
-}
-
-.price-decimal {
-  font-size: 14px;
-  vertical-align: top;
-  margin-top: 4px;
-  font-weight: 600;
-  color: #0f1111;
-}
-
 /* Responsive */
 @media (max-width: 600px) {
   .category-card {

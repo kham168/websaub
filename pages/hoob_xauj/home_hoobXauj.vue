@@ -25,6 +25,81 @@
       </v-carousel>
     </v-container>
     <v-divider class="my-4"></v-divider>
+    <v-container class="pa-4">
+      <v-row justify="center">
+        <v-col cols="12" md="10" lg="8">
+          <!-- Search Bar -->
+          <v-text-field
+            v-model="searchQuery"
+            placeholder="Search by name, type, location..."
+            variant="outlined"
+            density="comfortable"
+            prepend-inner-icon="mdi-magnify"
+            clearable
+            hide-details
+            class="search-field mb-3"
+          >
+            <template #append>
+              <v-btn
+                color="primary"
+                size="large"
+                @click="handleSearch"
+                class="text-none"
+              >
+                <v-icon class="mr-1">mdi-magnify</v-icon>
+                Search
+              </v-btn>
+            </template>
+          </v-text-field>
+
+          <!-- Location Filters -->
+          <v-row class="mt-2">
+            <v-col cols="12" sm="4">
+              <v-select
+                v-model="selectedProvince"
+                :items="provinces"
+                label="Select Province"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-map-marker"
+                clearable
+                hide-details
+                @update:model-value="onProvinceChange"
+              ></v-select>
+            </v-col>
+
+            <v-col cols="12" sm="4">
+              <v-select
+                v-model="selectedDistrict"
+                :items="districts"
+                label="Select District"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-map-marker-outline"
+                clearable
+                hide-details
+                :disabled="!selectedProvince"
+                @update:model-value="onDistrictChange"
+              ></v-select>
+            </v-col>
+
+            <v-col cols="12" sm="4">
+              <v-select
+                v-model="selectedVillage"
+                :items="villages"
+                label="Select Village"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-home-map-marker"
+                clearable
+                hide-details
+                :disabled="!selectedDistrict"
+              ></v-select>
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
+    </v-container>
 
     <!-- show all brand -->
     <v-container fluid class="pa-4">
@@ -80,8 +155,9 @@
                   Tsev:<span class="text-red ml-1">{{ item.type || "-" }}</span>
                 </div>
                 <div>
-                  Muaj:<span class="text-red ml-1">{{ item.totalroom || "-"}} </span
-                  >
+                  Muaj:<span class="text-red ml-1"
+                    >{{ item.totalroom || "-" }}
+                  </span>
                 </div>
                 <div>
                   <v-icon icon color="grey"> mdi-map-marker</v-icon>
@@ -224,9 +300,11 @@
                 <div class="mb-0">
                   <strong>Details:</strong>
                   <v-divider></v-divider>
-                 <div> <span class="ml-2 text-red font-weight-bold">
-                    {{ detailItem.moredetail }}
-                  </span></div>
+                  <div>
+                    <span class="ml-2 text-red font-weight-bold">
+                      {{ detailItem.moredetail }}
+                    </span>
+                  </div>
                 </div>
               </v-col>
               <v-col cols="12" v-if="detailItem.title">

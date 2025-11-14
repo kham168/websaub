@@ -1,204 +1,83 @@
-
 <template>
-    <v-app fluid>
-      <!-- Top Auto Carousel -->
-      <v-container class="pa-4 bg-grey-lighten-3">
+  <v-app>
+    <!-- Hero Carousel Section -->
+    <section class="hero-section">
+      <v-container fluid class="pa-0">
         <v-carousel
           cycle
-          show-arrows
+          show-arrows="hover"
           hide-delimiters
-          interval="4000"
+          interval="5000"
+          height="500"
+          class="hero-carousel"
         >
-          <v-carousel-item v-for="(item, index) in items" :key="index">
-            <v-img
-              :src="item.image[0] || '/placeholder.jpg'"
-              class="fill-height"
-              cover
-            >
-              <template v-slot:default>
-                <v-sheet
-                  class="d-flex align-center justify-center"
-                  color="rgba(0,0,0,0.4)"
-                  height="100%"
-                >
-                  <h2 class="text-white text-h4 text-center px-4">
-                    {{ item.title || item.channel }}
-                  </h2>
-                </v-sheet>
-              </template>
-            </v-img>
+          <v-carousel-item
+            v-for="(item, index) in items"
+            :key="`carousel-${index}`"
+          >
+            <div class="carousel-item-wrapper">
+              <v-img
+                :src="item.image[0] || '/placeholder.jpg'"
+                cover
+                class="carousel-image"
+                gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+              >
+                <div class="carousel-content">
+                  <v-container>
+                    <div class="carousel-text-wrapper">
+                      <v-chip
+                        v-if="item.isBestSeller"
+                        color="error"
+                        size="small"
+                        class="mb-4 bestseller-chip"
+                      >
+                        <v-icon start>mdi-star</v-icon>
+                        Best Seller
+                      </v-chip>
+                      <h1 class="carousel-title">
+                        {{ item.title || item.name }}
+                      </h1>
+                      <p class="carousel-subtitle">
+                        {{ item.channel }}
+                      </p>
+                      <div class="carousel-price">
+                        <span class="price-label">Starting from</span>
+                        <div class="price-display">
+                          <span class="currency">LAK</span>
+                          <span class="amount">{{ item.Price2 }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </v-container>
+                </div>
+              </v-img>
+            </div>
           </v-carousel-item>
         </v-carousel>
       </v-container>
-      <v-divider class="my-4"></v-divider>
-      <!-- show all brand -->
-      <v-container fluid class="pa-4">
-        <!-- Main Slideshow Display at Top -->
-        <v-row v-if="selectedItem" class="mb-6">
-          <v-col cols="12">
-            <v-card elevation="3" class="slideshow-card">
-              <v-card-title class="d-flex justify-space-between align-center">
-                <div>
-                  <div class="text-h5 font-weight-bold">
-                    {{ selectedItem.channel }}
-                  </div>
-                  <div class="text-subtitle-1 text-grey">
-                    {{ selectedItem.title || selectedItem.name }}
-                  </div>
-                </div>
-                <v-btn
-                  icon="mdi-close"
-                  variant="text"
-                  @click="selectedItem = null"
-                />
-              </v-card-title>
-  
-              <v-divider />
-  
-              <!-- Large Slideshow -->
-              <div class="slideshow-container">
-                <v-window v-model="selectedItem.slide" show-arrows>
-                  <template v-slot:prev="{ props }">
-                    <v-btn
-                      icon="mdi-chevron-left"
-                      size="large"
-                      v-bind="props"
-                      class="slideshow-arrow"
-                      color="primary"
-                    />
-                  </template>
-                  <template v-slot:next="{ props }">
-                    <v-btn
-                      icon="mdi-chevron-right"
-                      size="large"
-                      v-bind="props"
-                      class="slideshow-arrow"
-                      color="primary"
-                    />
-                  </template>
-  
-                  <v-window-item
-                    v-for="(img, i) in selectedItem.image"
-                    :key="`slideshow-${i}`"
-                  >
-                    <v-img
-                      :src="img"
-                      height="500"
-                      contain
-                      class="slideshow-image"
-                    />
-                  </v-window-item>
-                </v-window>
-  
-                <!-- Thumbnail Navigation -->
-                <div class="thumbnail-nav">
-                  <v-btn
-                    v-for="(img, i) in selectedItem.image"
-                    :key="`thumb-${i}`"
-                    :class="[
-                      'thumbnail-btn',
-                      { active: selectedItem.slide === i },
-                    ]"
-                    @click="selectedItem.slide = i"
-                    variant="flat"
-                  >
-                    <v-img
-                      :src="img"
-                      height="80"
-                      width="80"
-                      cover
-                      class="thumbnail-image"
-                    />
-                  </v-btn>
-                </div>
-              </div>
-  
-              <!-- Slideshow Info -->
-              <v-card-text>
-                <v-row>
-                  <v-col cols="12" md="8">
-                    <div class="d-flex align-center mb-3">
-                      <v-rating
-                        v-if="selectedItem.rating"
-                        :model-value="selectedItem.rating"
-                        density="compact"
-                        color="amber"
-                        half-increments
-                        readonly
-                      />
-                      <span class="text-body-2 ml-2 text-grey-darken-1">
-                        {{ selectedItem.reviewCount || 0 }} reviews
-                      </span>
-                    </div>
-  
-                    <div class="text-body-1 mb-2">
-                      {{
-                        selectedItem.description || "No description available."
-                      }}
-                    </div>
-                  </v-col>
-  
-                  <v-col cols="12" md="4">
-                    <v-card variant="outlined" class="pa-4">
-                      <div class="mb-3">
-                        <div v-if="selectedItem.discount" class="mb-2">
-                          <v-chip
-                            size="small"
-                            color="red"
-                            text-color="white"
-                            class="font-weight-bold"
-                          >
-                            -{{ selectedItem.discount }}% OFF
-                          </v-chip>
-                        </div>
-                        <div class="d-flex align-center">
-                          <span class="price-symbol-large">$</span>
-                          <span class="price-whole-large">{{
-                            getPriceWhole(selectedItem.price)
-                          }}</span>
-                          <span class="price-decimal-large">{{
-                            getPriceDecimal(selectedItem.price)
-                          }}</span>
-                        </div>
-                        <div
-                          v-if="selectedItem.originalPrice"
-                          class="text-body-2 text-grey"
-                        >
-                          List Price:
-                          <span class="text-decoration-line-through"
-                            >${{ selectedItem.originalPrice }}</span
-                          >
-                        </div>
-                      </div>
-  
-                      <v-btn
-                        block
-                        color="green"
-                        size="large"
-                        variant="flat"
-                        class="text-none font-weight-bold mb-2"
-                        prepend-icon="mdi-book-open-page-variant"
-                        @click="viewDetails(selectedItem)"
-                      >
-                        Read Now
-                      </v-btn>
-  
-                      <div class="text-caption text-center text-grey-darken-1">
-                        Get it by <strong>{{ getDeliveryDate() }}</strong>
-                      </div>
-                    </v-card>
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-  
+    </section>
+
+    <!-- Products Section -->
+    <section class="products-section">
+      <v-container fluid class="px-4 px-md-8 py-12">
+        <!-- Section Header -->
+        <div class="section-header text-center mb-8">
+          <h2 class="section-title">Featured Products</h2>
+          <p class="section-subtitle">
+            Discover our exclusive collection of premium items
+          </p>
+          <v-divider
+            class="mx-auto mt-4"
+            style="max-width: 100px; border-width: 3px"
+            color="primary"
+          ></v-divider>
+        </div>
+
         <!-- Product Grid -->
-        <v-row>
+        <v-row class="product-grid">
           <v-col
             v-for="(item, index) in items"
-            :key="index"
+            :key="`product-${index}`"
             cols="12"
             sm="6"
             md="4"
@@ -206,42 +85,76 @@
             xl="2"
           >
             <v-card
-              class="product-card d-flex flex-column"
-              elevation="1"
-              hover
+              class="product-card"
+              elevation="0"
               @click="selectItem(item)"
             >
-              <!-- Image Preview -->
-              <div class="image-container position-relative">
+              <!-- Image Section -->
+              <div class="image-wrapper">
                 <v-img
                   :src="item.image[0]"
                   aspect-ratio="1"
                   cover
                   class="product-image"
-                  height="200"
-                />
-  
-                <!-- Image Count Badge -->
-                <div v-if="item.image.length > 1" class="image-count-badge">
-                  <v-icon size="small" class="mr-1">mdi-camera</v-icon>
-                  {{ item.image.length }}
+                >
+                  <template v-slot:placeholder>
+                    <div class="d-flex align-center justify-center fill-height">
+                      <v-progress-circular
+                        indeterminate
+                        color="primary"
+                      ></v-progress-circular>
+                    </div>
+                  </template>
+                </v-img>
+
+                <!-- Badges -->
+                <div class="badges-container">
+                  <v-chip
+                    v-if="item.discount"
+                    color="error"
+                    size="small"
+                    class="discount-badge"
+                  >
+                    -{{ item.discount }}%
+                  </v-chip>
+                  <v-chip
+                    v-if="item.isBestSeller"
+                    color="warning"
+                    size="x-small"
+                    class="bestseller-badge"
+                  >
+                    #1
+                  </v-chip>
                 </div>
-  
-                <!-- Best Seller Badge -->
-                <div v-if="item.isBestSeller" class="best-seller-badge">
-                  #1 Best Seller
+
+                <!-- Image Count -->
+                <div v-if="item.image.length > 1" class="image-count">
+                  <v-icon size="x-small">mdi-camera</v-icon>
+                  <span>{{ item.image.length }}</span>
+                </div>
+
+                <!-- Hover Overlay -->
+                <div class="hover-overlay">
+                  <v-btn icon size="large" color="white" class="view-btn">
+                    <v-icon>mdi-eye</v-icon>
+                  </v-btn>
                 </div>
               </div>
-  
+
               <!-- Product Info -->
-              <v-card-text class="flex-grow-1 pa-3">
-                <!-- Channel/Brand Name -->
-                <div class="text-caption text-primary mb-1 font-weight-medium">
+              <v-card-text class="product-info pa-4">
+                <!-- Brand -->
+                <div class="brand-name">
                   {{ item.channel }}
                 </div>
-  
+
+                <!-- Product Name -->
+                <h3 class="product-name">
+                  {{ item.name }}
+                </h3>
+
                 <!-- Rating -->
-                <div v-if="item.rating" class="d-flex align-center mb-2">
+                <div v-if="item.rating" class="rating-section">
                   <v-rating
                     :model-value="item.rating"
                     density="compact"
@@ -250,266 +163,433 @@
                     half-increments
                     readonly
                   />
-                  <span class="text-caption text-grey-darken-1 ml-1">
-                    {{ item.reviewCount || 0 }}
+                  <span class="review-count">
+                    ({{ item.reviewCount || 0 }})
                   </span>
                 </div>
-  
-                <!-- Price Section -->
-                <div class="mb-2">
-                  <div v-if="item.discount" class="mb-1">
-                    <v-chip
-                      size="x-small"
-                      color="red"
-                      text-color="white"
-                      class="font-weight-bold"
-                    >
-                      -{{ item.discount }}%
-                    </v-chip>
+
+                <!-- Price -->
+                <div class="price-section">
+                  <div v-if="item.Price1" class="original-price text-red">
+                    <span>LAK {{ formatPrice(item.Price1) }}</span>
                   </div>
-                  <div class="d-flex align-center">
-                    <span class="price-symbol">$</span>
-                    <span class="price-whole">{{
-                      getPriceWhole(item.Price1rice)
-                    }}</span>
-                    <span class="price-decimal">{{
-                      getPriceDecimal(item.Price2rice)
-                    }}</span>
-                  </div>
-                  <div v-if="item.originalPrice" class="text-caption text-grey">
-                    List:
-                    <span class="text-decoration-line-through"
-                      >${{ item.originalPrice }}</span
-                    >
+                  <div class="current-price">
+                    <span class="currency">LAK</span>
+                    <span class="price">{{ formatPrice(item.Price2) }}</span>
                   </div>
                 </div>
-  
-                <!-- Delivery Info -->
-                <div class="text-caption text-grey-darken-2 mb-1">
-                  Get it as soon as <strong>{{ getDeliveryDate() }}</strong>
+
+                <!-- Details -->
+                <p v-if="item.detail" class="product-detail">
+                  {{ item.detail }}
+                </p>
+
+                <!-- Contact -->
+                <div v-if="item.tel" class="contact-info">
+                  <v-icon size="small" color="primary">mdi-phone</v-icon>
+                  <span class="text-primary">{{ item.tel }}</span>
+                </div>
+
+                <!-- Delivery -->
+                <div class="delivery-info">
+                  <v-icon size="small" color="success">mdi-truck-fast</v-icon>
+                  <span
+                    >Get it by <strong>{{ getDeliveryDate() }}</strong></span
+                  >
                 </div>
               </v-card-text>
-  
-              <!-- Click to View Badge -->
-              <v-card-actions class="pa-3 pt-0">
+
+              <!-- Action Button -->
+              <v-card-actions class="pa-4 pt-0">
                 <v-btn
                   block
                   color="primary"
-                  variant="outlined"
-                  class="text-none font-weight-medium"
-                  size="small"
+                  variant="flat"
+                  size="large"
+                  class="view-gallery-btn"
                 >
-                  <v-icon size="small" class="mr-1">mdi-eye</v-icon>
                   View Gallery
+                  <v-icon end>mdi-arrow-right</v-icon>
                 </v-btn>
               </v-card-actions>
             </v-card>
           </v-col>
         </v-row>
       </v-container>
-    </v-app>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted } from "vue";
-const { fetchMuagTshuaj, items, topData, pagination } = useMuagTshuaj();  
-  const selectedItem = ref(null);
-  
-  onMounted(async () => {
-    await fetchMuagTshuaj();
-    console.log("allDatamuagtshuaj:", items.value);
+    </section>
 
+    <!-- Product Detail Component -->
+    <MuagTshuajComponent
+      :selected-item="selectedItem"
+      :channels="items"
+      @update:selected-item="selectedItem = $event"
+    />
+  </v-app>
+</template>
+
+<script setup>
+const { fetchMuagTshuaj, items, topData, pagination } = useMuagTshuaj();
+const selectedItem = ref(null);
+
+onMounted(async () => {
+  await fetchMuagTshuaj();
+  console.log("Products loaded:", items.value);
+});
+
+const selectItem = (item) => {
+  selectedItem.value = { ...item, slide: 0 };
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+const getDeliveryDate = () => {
+  const date = new Date();
+  date.setDate(date.getDate() + 3);
+  const options = { weekday: "short", month: "short", day: "numeric" };
+  return date.toLocaleDateString("en-US", options);
+};
+function formatPrice(price) {
+  if (!price) return "0.00";
+  return Number(price).toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   });
-  
-  const selectItem = (item) => {
-    selectedItem.value = { ...item, slide: 0 };
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-  
-  const getPriceWhole = (price) => {
-    return Math.floor(price || 0);
-  };
-  
-  const getPriceDecimal = (price) => {
-    const decimal = ((price || 0) % 1).toFixed(2).substring(1);
-    return decimal;
-  };
-  
-  const getDeliveryDate = () => {
-    const date = new Date();
-    date.setDate(date.getDate() + 3);
-    const options = { weekday: "short", month: "short", day: "numeric" };
-    return date.toLocaleDateString("en-US", options);
-  };
-  
-  const viewDetails = (item) => {
-    window.location.href = `/${item.path}`;
-  };
-  </script>
-  
-  <style scoped>
-  /* Slideshow Styles */
-  .slideshow-card {
-    border-radius: 12px;
-    overflow: hidden;
+}
+</script>
+
+<style scoped>
+/* Hero Section */
+.hero-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-carousel {
+  border-radius: 0;
+}
+
+.carousel-item-wrapper {
+  height: 100%;
+  width: 100%;
+}
+
+.carousel-image {
+  height: 100%;
+}
+
+.carousel-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 60px 0;
+}
+
+.carousel-text-wrapper {
+  max-width: 700px;
+}
+
+.bestseller-chip {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.carousel-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  color: white;
+  margin-bottom: 16px;
+  line-height: 1.2;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+}
+
+.carousel-subtitle {
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 24px;
+  font-weight: 500;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
+}
+
+.carousel-price {
+  display: inline-flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 16px 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.price-label {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.price-display {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.price-display .currency {
+  font-size: 1rem;
+  color: white;
+  font-weight: 600;
+}
+
+.price-display .amount {
+  font-size: 2rem;
+  color: white;
+  font-weight: 700;
+}
+
+/* Products Section */
+.products-section {
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+  min-height: 100vh;
+}
+
+.section-header {
+  margin-bottom: 48px;
+}
+
+.section-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+}
+
+.section-subtitle {
+  font-size: 1.125rem;
+  color: #666;
+  font-weight: 400;
+}
+
+/* Product Card */
+.product-grid {
+  gap: 24px 0;
+}
+
+.product-card {
+  height: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: 1px solid #e0e0e0;
+  background: white;
+}
+
+.product-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  border-color: #1976d2;
+}
+
+/* Image Section */
+.image-wrapper {
+  position: relative;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.product-image {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.08);
+}
+
+.badges-container {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 2;
+}
+
+.discount-badge {
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.bestseller-badge {
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.image-count {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 2;
+}
+
+.hover-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.product-card:hover .hover-overlay {
+  opacity: 1;
+}
+
+.view-btn {
+  transform: scale(0.8);
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover .view-btn {
+  transform: scale(1);
+}
+
+/* Product Info */
+.product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.brand-name {
+  font-size: 0.75rem;
+  color: #1976d2;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.product-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.8em;
+}
+
+.rating-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.review-count {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.price-section {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 8px 0;
+}
+
+.current-price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.current-price .currency {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.current-price .price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.original-price {
+  font-size: 0.875rem;
+  color: #999;
+  text-decoration: line-through;
+}
+
+.product-detail {
+  font-size: 0.875rem;
+  color: #666;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 4px 0;
+}
+
+.contact-info,
+.delivery-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.813rem;
+  color: #666;
+  margin: 4px 0;
+}
+
+.delivery-info {
+  color: #2e7d32;
+}
+
+/* Action Button */
+.view-gallery-btn {
+  text-transform: none;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  border-radius: 8px;
+  height: 44px;
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+  .carousel-content {
+    padding: 40px 0;
   }
-  
-  .slideshow-container {
-    background: #f5f5f5;
-    position: relative;
+
+  .carousel-title {
+    font-size: 2rem;
   }
-  
-  .slideshow-image {
-    background: white;
+
+  .section-title {
+    font-size: 2rem;
   }
-  
-  .slideshow-arrow {
-    margin: 0 16px;
+}
+
+@media (max-width: 600px) {
+  .carousel-content {
+    padding: 24px 0;
   }
-  
-  .thumbnail-nav {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    padding: 16px;
-    background: white;
-    flex-wrap: wrap;
+
+  .product-grid {
+    gap: 16px 0;
   }
-  
-  .thumbnail-btn {
-    padding: 4px !important;
-    min-width: 80px !important;
-    height: auto !important;
-    border: 2px solid transparent;
-    border-radius: 8px;
-    transition: all 0.2s;
-  }
-  
-  .thumbnail-btn.active {
-    border-color: #1976d2;
-    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
-  }
-  
-  .thumbnail-btn:hover {
-    border-color: #90caf9;
-  }
-  
-  .thumbnail-image {
-    border-radius: 4px;
-  }
-  
-  .price-symbol-large {
-    font-size: 16px;
-    vertical-align: top;
-    margin-top: 4px;
-    font-weight: 500;
-  }
-  
-  .price-whole-large {
-    font-size: 36px;
-    font-weight: 600;
-    line-height: 1;
-  }
-  
-  .price-decimal-large {
-    font-size: 16px;
-    vertical-align: top;
-    margin-top: 4px;
-    font-weight: 500;
-  }
-  
-  /* Product Card Styles */
-  .product-card {
-    height: 100%;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-    cursor: pointer;
-  }
-  
-  .product-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-    transform: translateY(-2px);
-  }
-  
-  .image-container {
-    background: #f8f8f8;
-    overflow: hidden;
-    position: relative;
-    border-radius: 8px 8px 0 0;
-  }
-  
-  .product-image {
-    transition: transform 0.3s ease;
-  }
-  
-  .product-card:hover .product-image {
-    transform: scale(1.05);
-  }
-  
-  .image-count-badge {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 4px 8px;
-    font-size: 12px;
-    font-weight: 600;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    z-index: 2;
-  }
-  
-  .best-seller-badge {
-    position: absolute;
-    bottom: 8px;
-    left: 8px;
-    background: #ff6b35;
-    color: white;
-    padding: 4px 10px;
-    font-size: 11px;
-    font-weight: 600;
-    border-radius: 4px;
-    z-index: 2;
-  }
-  
-  .product-title {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.4;
-    min-height: 2.8em;
-    color: #0066c0;
-    font-weight: 400;
-  }
-  
-  .product-title:hover {
-    color: #c45500;
-    text-decoration: underline;
-  }
-  
-  .price-symbol {
-    font-size: 13px;
-    vertical-align: top;
-    margin-top: 3px;
-    font-weight: 500;
-    color: #0f1111;
-  }
-  
-  .price-whole {
-    font-size: 28px;
-    font-weight: 500;
-    line-height: 1;
-    color: #0f1111;
-  }
-  
-  .price-decimal {
-    font-size: 13px;
-    vertical-align: top;
-    margin-top: 3px;
-    font-weight: 500;
-    color: #0f1111;
-  }
-  </style>
+}
+</style>
