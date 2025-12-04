@@ -1,5 +1,5 @@
-
 import { defineStore } from "pinia";
+import Swal from "sweetalert2";
 import { ref, computed } from "vue";
 // import type { BrandCreamItem } from "~/services/types/brand_cream-type";
 
@@ -27,13 +27,14 @@ export interface Product {
   name: string;
   price?: number;
   quantity?: number;
-  Price1?: string;
-  Price2?: string;
-  Price3?: string;
+  price1?: string;
+  price2?: string;
+  price3?: string;
   tel?: string;
   detail?: string;
   donation?: string;
   image?: string[];
+  qrimage?: string;
 }
 
 // ----------------------------
@@ -44,18 +45,39 @@ export const useProductSellStore = defineStore("productSell", () => {
 
   // ➕ Add product to cart
   const addToCart = (product: Product) => {
-    const existing = cartItems.value.find((p) => p.id === product.id);
-    if (existing) {
-      existing.quantity = (existing.quantity || 0) + 1;
+    if (cartItems.value.length > 0) {
+      const existing = cartItems.value.find((p) => p.id === product.id);
+      const duplicateChannel = cartItems.value.find(
+        (p) => p.tel === product.tel
+      );
+      if (existing) {
+        existing.quantity = (existing.quantity || 0) + 1;
+      } else if (duplicateChannel) {
+        cartItems.value.push({ ...product });
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title:
+            "Cannot add different channels's product together.please order this prudct first before adding other channels's products one.",
+          showConfirmButton: false,
+          timer: 5000,
+        });
+      }
     } else {
-      cartItems.value.push({ ...product, quantity: 1 });
+      cartItems.value.push({ ...product });
     }
+    // console.log('dfghjkl=====',product);
+    // const existing = cartItems.value.find((p) => p.id === product.id);
+    // if (existing) {
+    //   existing.quantity = (existing.quantity || 0) + 1;
+    // } else {
+    //   cartItems.value.push({ ...product});
+    //   // cartItems.value=product;
+    // }
   };
   const totalPrice = computed(() => {
     return cartItems.value.reduce((total, item) => {
-      const price = Number(
-        item.Price3 || item.Price1 || item.Price2 || item.price || 0
-      );
+      const price = Number(item.price);
       const qty = Number(item.quantity || 0);
       return total + price * qty;
     }, 0);

@@ -212,7 +212,20 @@
             <p class="text-body-1 text-grey mt-2">ກະລຸນາລອງຄົ້ນຫາໃໝ່</p>
           </v-col>
         </v-row>
+        <v-row v-if="loading" class="text-center py-16">
+          <v-col cols="12">
+            <v-progress-circular indeterminate color="primary" size="64" />
+            <p class="mt-4 text-h6">ກຳລັງໂຫລດ...</p>
+          </v-col>
+        </v-row>
 
+        <!-- Error State -->
+        <v-row v-else-if="error" class="text-center py-16">
+          <v-col cols="12">
+            <v-icon size="64" color="error">mdi-alert-circle</v-icon>
+            <p class="mt-4 text-h6 text-error">{{ error }}</p>
+          </v-col>
+        </v-row>
         <!-- Taxi Cards -->
         <v-row v-else>
           <v-col
@@ -278,7 +291,7 @@
                           ></v-progress-circular>
                         </v-row>
                       </template>
-                      
+
                       <!-- Image counter badge -->
                       <div class="image-counter">
                         <v-icon size="small" class="mr-1">mdi-camera</v-icon>
@@ -300,7 +313,181 @@
                 <div class="pricing-section mb-3">
                   <v-chip color="success" variant="flat" class="mb-2">
                     <v-icon start size="small">mdi-cash</v-icon>
-                    {{ Number(taxi.Price1).toLocaleString() }} ₭
+                    {{ Number(taxi.price1).toLocaleString() }} ₭
+                  </v-chip>
+                  <p class="text-caption text-grey-darken-1">
+                    ລາຄາສາມາດລົມໄດ້ຕາມໄລຍະທາງ
+                  </p>
+                </div>
+
+                <!-- Contact Info -->
+                <v-list class="bg-transparent pa-0 mb-3">
+                  <v-list-item class="px-0" density="compact">
+                    <template v-slot:prepend>
+                      <v-icon color="primary" size="small">mdi-phone</v-icon>
+                    </template>
+                    <v-list-item-title>
+                      <a
+                        :href="`tel:${taxi.tel}`"
+                        class="contact-link text-primary"
+                      >
+                        {{ taxi.tel }}
+                      </a>
+                    </v-list-item-title>
+                  </v-list-item>
+                </v-list>
+
+                <!-- Details (collapsible) -->
+                <v-expand-transition>
+                  <div v-if="taxi.showDetails" class="details-expanded">
+                    <v-divider class="mb-3" />
+                    <p class="text-body-2 text-grey-darken-2">
+                      {{ taxi.detail }}
+                    </p>
+                  </div>
+                </v-expand-transition>
+              </v-card-text>
+
+              <!-- Card Actions -->
+              <v-card-actions class="pa-4 pt-0">
+                <v-btn
+                  variant="text"
+                  color="primary"
+                  size="small"
+                  @click="taxi.showDetails = !taxi.showDetails"
+                >
+                  {{ taxi.showDetails ? "ຫຼຸດລົງ" : "ລາຍລະອຽດເພີ່ມ" }}
+                  <v-icon end>
+                    {{
+                      taxi.showDetails ? "mdi-chevron-up" : "mdi-chevron-down"
+                    }}
+                  </v-icon>
+                </v-btn>
+
+                <v-spacer />
+
+                <v-btn
+                  color="success"
+                  variant="flat"
+                  size="small"
+                  @click="addToCart(taxi)"
+                  prepend-icon="mdi-whatsapp"
+                >
+                  WhatsApp
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+          <v-divider class="my-4"></v-divider>
+          <v-col>
+            <h1 class="font-weight-bold mb-4 text-center">ແນະນຳເບຣນດອື່ນๆ</h1>
+          </v-col>
+          <v-divider class="my-4"></v-divider>
+          <v-container class="pa-4 bg-grey-lighten-3">
+            <v-carousel
+              cycle
+              show-arrows
+              hide-delimiters
+              interval="3000"
+              width="90px"
+              height="300px"
+            >
+              <v-carousel-item v-for="(item, index) in topData" :key="index">
+                <v-img
+                  :src="item.image[0] || '/placeholder.jpg'"
+                  class="fill-height"
+                  cover
+                >
+                </v-img>
+              </v-carousel-item>
+            </v-carousel>
+          </v-container>
+          <v-col
+            v-for="(taxi, index) in topData"
+            :key="taxi.id || index"
+            cols="12"
+            sm="6"
+            md="4"
+            lg="3"
+          >
+            <v-card class="taxi-card" elevation="2" hover>
+              <!-- Image Carousel -->
+              <div class="image-carousel-wrapper">
+                <v-carousel
+                  v-model="taxi.currentSlide"
+                  height="250"
+                  hide-delimiter-background
+                  show-arrows="hover"
+                  class="image-carousel"
+                >
+                  <template v-slot:prev="{ props }">
+                    <v-btn
+                      icon="mdi-chevron-left"
+                      size="small"
+                      v-bind="props"
+                      class="carousel-arrow"
+                      color="white"
+                      elevation="2"
+                    />
+                  </template>
+                  <template v-slot:next="{ props }">
+                    <v-btn
+                      icon="mdi-chevron-right"
+                      size="small"
+                      v-bind="props"
+                      class="carousel-arrow"
+                      color="white"
+                      elevation="2"
+                    />
+                  </template>
+
+                  <v-carousel-item
+                    v-for="(img, i) in taxi.image"
+                    :key="`img-${index}-${i}`"
+                  >
+                    <v-img
+                      :src="img.startsWith('http') ? img : imageBaseUrl + img"
+                      aspect-ratio="1.5"
+                      cover
+                      class="taxi-image"
+                      @click="openZoom(taxi, i)"
+                      @error="handleImageError"
+                    >
+                      <template v-slot:placeholder>
+                        <v-row
+                          class="fill-height ma-0"
+                          align="center"
+                          justify="center"
+                        >
+                          <v-progress-circular
+                            indeterminate
+                            color="grey-lighten-5"
+                          ></v-progress-circular>
+                        </v-row>
+                      </template>
+
+                      <!-- Image counter badge -->
+                      <div class="image-counter">
+                        <v-icon size="small" class="mr-1">mdi-camera</v-icon>
+                        {{ i + 1 }}/{{ taxi.image.length }}
+                      </div>
+                    </v-img>
+                  </v-carousel-item>
+                </v-carousel>
+              </div>
+
+              <!-- Card Content -->
+              <v-card-text class="pa-4">
+                <!-- Taxi Name -->
+                <h4 class="text-h6 font-weight-bold mb-3 taxi-name">
+                  {{ taxi.name }}
+                </h4>
+
+                <!-- Pricing -->
+                <div class="pricing-section mb-3">
+                  <v-chip color="success" variant="flat" class="mb-2">
+                    <v-icon start size="small">mdi-cash</v-icon>
+                    {{ Number(taxi.price1).toLocaleString() }} ₭
                   </v-chip>
                   <p class="text-caption text-grey-darken-1">
                     ລາຄາສາມາດລົມໄດ້ຕາມໄລຍະທາງ
@@ -415,8 +602,8 @@
       </v-dialog>
 
       <!-- 🔍 Image Zoom Dialog -->
-      <v-dialog 
-        v-model="zoomDialog" 
+      <v-dialog
+        v-model="zoomDialog"
         max-width="1200"
         transition="dialog-transition"
       >
@@ -437,26 +624,17 @@
                     class="mr-2"
                   >
                     <v-icon start size="small">mdi-cash</v-icon>
-                    {{ Number(zoomItem.Price1 || 0).toLocaleString() }} ₭
+                    {{ Number(zoomItem.price1 || 0).toLocaleString() }} ₭
                   </v-chip>
-                  <v-chip
-                    color="primary"
-                    variant="flat"
-                    size="small"
-                  >
+                  <v-chip color="primary" variant="flat" size="small">
                     <v-icon start size="small">mdi-phone</v-icon>
                     {{ zoomItem.tel }}
                   </v-chip>
                 </div>
               </div>
             </div>
-            
-            <v-btn
-              icon
-              @click="zoomDialog = false"
-              size="large"
-              variant="text"
-            >
+
+            <v-btn icon @click="zoomDialog = false" size="large" variant="text">
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-card-title>
@@ -503,8 +681,8 @@
                 v-for="(img, i) in zoomItem.image"
                 :key="`zoom-${i}`"
               >
-                <v-img 
-                  :src="img.startsWith('http') ? img : imageBaseUrl + img" 
+                <v-img
+                  :src="img.startsWith('http') ? img : imageBaseUrl + img"
                   height="600"
                   cover
                   class="zoom-image-main"
@@ -523,7 +701,7 @@
                       ></v-progress-circular>
                     </v-row>
                   </template>
-                  
+
                   <!-- Image counter overlay -->
                   <div class="zoom-image-counter">
                     <v-chip
@@ -536,7 +714,7 @@
                       {{ i + 1 }} / {{ zoomItem.image?.length || 0 }}
                     </v-chip>
                   </div>
-                  
+
                   <!-- Play/Pause control -->
                   <div class="zoom-play-control">
                     <v-btn
@@ -546,7 +724,9 @@
                       elevation="2"
                       @click.stop="toggleZoomAutoplay"
                     >
-                      <v-icon>{{ isZoomPlaying ? 'mdi-pause' : 'mdi-play' }}</v-icon>
+                      <v-icon>{{
+                        isZoomPlaying ? "mdi-pause" : "mdi-play"
+                      }}</v-icon>
                     </v-btn>
                   </div>
                 </v-img>
@@ -578,7 +758,11 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 
-// ✅ Props are now optional
+// Use the composable - this is your main data source
+const { items, allitems, topData, pagination, loading, error, fetchTaxi } =
+  useTaxi();
+
+// Props
 defineProps({
   store: {
     type: Object,
@@ -588,11 +772,9 @@ defineProps({
 });
 
 // API Configuration
-const apiUrl = "http://localhost:5151/api/taxi/selectall";
 const imageBaseUrl = "http://localhost:5151/";
 
-// State
-const data = ref([]);
+// State - use composable data instead of separate fetch
 const filteredData = ref([]);
 const searchQuery = ref("");
 
@@ -643,217 +825,176 @@ const videoSrcs = computed(() => {
   });
 });
 
-// ✅ Helper function to parse image data
+// Helper function to parse image data
 function parseImageArray(imageData) {
   if (!imageData) {
-    console.log("⚠️ No image data provided");
-    return ['placeholder.jpg']; // Return placeholder if no image
+    return ["placeholder.jpg"];
   }
-  
-  // If it's already an array, return it
+
   if (Array.isArray(imageData)) {
-    console.log("✅ Image is already array:", imageData);
-    return imageData.length > 0 ? imageData : ['placeholder.jpg'];
+    return imageData.length > 0 ? imageData : ["placeholder.jpg"];
   }
-  
-  // If it's a string, try to parse it
-  if (typeof imageData === 'string') {
+
+  if (typeof imageData === "string") {
     try {
-      // Try parsing as JSON array
       const parsed = JSON.parse(imageData);
-      console.log("✅ Parsed JSON image:", parsed);
       return Array.isArray(parsed) ? parsed : [imageData];
     } catch {
-      // If not JSON, split by comma or return as single item
-      const result = imageData.includes(',') 
-        ? imageData.split(',').map(s => s.trim()).filter(s => s)
+      const result = imageData.includes(",")
+        ? imageData
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => s)
         : [imageData];
-      console.log("✅ Split string image:", result);
-      return result.length > 0 ? result : ['placeholder.jpg'];
+      return result.length > 0 ? result : ["placeholder.jpg"];
     }
   }
-  
-  console.log("⚠️ Unknown image format:", typeof imageData);
-  return ['placeholder.jpg'];
+
+  return ["placeholder.jpg"];
 }
 
-// ✅ FIXED: Fetch initial data using native fetch API
+// Process taxi items with images and additional properties
+function processTaxiItems(items) {
+  if (!items || !Array.isArray(items)) return [];
+
+  return items.map((item) => ({
+    ...item,
+    image: parseImageArray(item.image || item.images || item.photo),
+    currentSlide: 0,
+    showDetails: false,
+  }));
+}
+
+// Initialize data from composable
 onMounted(async () => {
+  await fetchTaxi(); // Fetch from composable
+  // Set filtered data from composable
+  if (allitems.value && allitems.value.length > 0) {
+    filteredData.value = processTaxiItems(allitems.value);
+    console.log("✅ Filtered data set:", filteredData.value.length, "items");
+  } else {
+    console.warn("⚠️ No items in allitems");
+  }
+
+  // ✅ Process topData if it exists
+  if (
+    topData.value &&
+    Array.isArray(topData.value) &&
+    topData.value.length > 0
+  ) {
+    console.log("✅ Processing topData items:", topData.value);
+    // topData is already an array, just process the images
+    topData.value = processTaxiItems(topData.value);
+    console.log("✅ ---------Processed topData:", topData.value);
+  } else {
+    console.warn("⚠️ No topData available - backend did not return topData");
+  }
+
+  // Fetch provinces
   try {
-    // Fetch all provinces
-    console.log("🔄 Fetching provinces...");
     const resProvince = await fetch(
       "http://localhost:5151/api/province/selectall"
     );
-    
-    if (!resProvince.ok) {
+    if (!resProvince.ok)
       throw new Error(`Province API failed: ${resProvince.status}`);
-    }
-    
+
     const provinceData = await resProvince.json();
-    console.log("📊 Province API Response:", provinceData);
-    
-    // Try different possible response structures
     let provinceList = [];
+
     if (Array.isArray(provinceData)) {
       provinceList = provinceData;
     } else if (provinceData.data && Array.isArray(provinceData.data)) {
       provinceList = provinceData.data;
-    } else if (provinceData.result && Array.isArray(provinceData.result)) {
-      provinceList = provinceData.result;
     }
-    
+
     if (provinceList.length > 0) {
       provinces.value = provinceList.map((p) => ({
         code: p.provinceid || p.id || p.code,
         name: p.province || p.name || p.province_name,
       }));
-      console.log("✅ Provinces loaded:", provinces.value);
-    } else {
-      console.error("❌ No provinces found in response");
-    }
-
-    // Fetch all taxis
-    console.log("🔄 Fetching taxis...");
-    const resTaxi = await fetch(apiUrl);
-    
-    if (!resTaxi.ok) {
-      throw new Error(`Taxi API failed: ${resTaxi.status}`);
-    }
-    
-    const taxiData = await resTaxi.json();
-    console.log("📊 Taxi API Response:", taxiData);
-    
-    // Sample first item to see structure
-    if (taxiData.data && taxiData.data.length > 0) {
-      console.log("🔍 First taxi item:", taxiData.data[0]);
-    }
-    
-    if (taxiData.status && Array.isArray(taxiData.data)) {
-      const taxis = taxiData.data.map((item) => {
-        const images = parseImageArray(item.image || item.images || item.photo || item.photos);
-        console.log(`🖼️ ${item.name}: images =`, images);
-        
-        return {
-          ...item,
-          image: images,
-          currentSlide: 0,
-          showDetails: false,
-        };
-      });
-      data.value = taxis;
-      filteredData.value = taxis;
-      console.log("✅ Taxis loaded:", taxis.length);
-    } else {
-      console.error("❌ Invalid taxi data structure");
     }
   } catch (err) {
-    console.error("❌ Failed to fetch initial data:", err);
-    alert("ເກີດຂໍ້ຜິດພາດໃນການໂຫຼດຂໍ້ມູນ: " + err.message);
+    console.error("❌ Failed to fetch provinces:", err);
   }
 });
 
-// ✅ FIXED: Watch province selection using fetch
+// Watch for changes in allitems from composable
+watch(
+  allitems,
+  (newItems) => {
+    if (newItems && newItems.length > 0) {
+      filteredData.value = processTaxiItems(newItems);
+    }
+  },
+  { deep: true }
+);
+
+// Fetch districts when province changes
 watch(selectedProvince, async (provinceId) => {
   selectedDistrict.value = null;
   districtsForSelectedProvince.value = [];
   if (!provinceId) return;
 
   try {
-    console.log("🔄 Fetching districts for province:", provinceId);
-    
     const res = await fetch(
       "http://localhost:5151/api/district/selectbyprovinceid",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          provinceid: provinceId,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provinceid: provinceId }),
       }
     );
-    
-    if (!res.ok) {
-      throw new Error(`District API failed: ${res.status}`);
-    }
-    
+
+    if (!res.ok) throw new Error(`District API failed: ${res.status}`);
+
     const districtData = await res.json();
-    console.log("📊 District API Response:", districtData);
-    
-    // Try different possible response structures
     let districtList = [];
+
     if (Array.isArray(districtData)) {
       districtList = districtData;
     } else if (districtData.data && Array.isArray(districtData.data)) {
       districtList = districtData.data;
-    } else if (districtData.result && Array.isArray(districtData.result)) {
-      districtList = districtData.result;
     }
-    
+
     if (districtList.length > 0) {
       districtsForSelectedProvince.value = districtList.map((d) => ({
         code: d.districtid || d.id || d.code,
         name: d.district || d.name || d.district_name,
       }));
-      console.log("✅ Districts loaded:", districtsForSelectedProvince.value);
-    } else {
-      console.warn("⚠️ No districts found for province:", provinceId);
     }
   } catch (err) {
     console.error("❌ Failed to fetch districts:", err);
-    alert("ເກີດຂໍ້ຜິດພາດໃນການໂຫຼດເມືອງ: " + err.message);
   }
 });
 
-// ✅ FIXED: Query by location using fetch
+// Query by location
 async function queryByLocation() {
   if (!selectedProvince.value || !selectedDistrict.value) return;
 
   try {
-    console.log("🔄 Searching taxis for:", {
-      province: selectedProvince.value,
-      district: selectedDistrict.value
-    });
-    
     const res = await fetch(
       "http://localhost:5151/api/taxi/selectbyprovinceanddistrictid",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provinceid: selectedProvince.value,
           districtid: selectedDistrict.value,
         }),
       }
     );
-    
-    if (!res.ok) {
-      throw new Error(`Search API failed: ${res.status}`);
-    }
-    
+
+    if (!res.ok) throw new Error(`Search API failed: ${res.status}`);
+
     const responseData = await res.json();
-    console.log("📊 Search Results:", responseData);
-    
+
     if (responseData.status && Array.isArray(responseData.data)) {
-      const taxis = responseData.data.map((item) => ({
-        ...item,
-        image: parseImageArray(item.image || item.images || item.photo),
-        currentSlide: 0,
-        showDetails: false,
-      }));
-      data.value = taxis;
-      filteredData.value = taxis;
-      console.log("✅ Found taxis:", taxis.length);
-      
-      if (taxis.length === 0) {
+      filteredData.value = processTaxiItems(responseData.data);
+
+      if (filteredData.value.length === 0) {
         alert("ບໍ່ພົບລົດແທັກຊີ່ໃນເຂດທີ່ເລືອກ");
       }
     } else {
-      console.warn("⚠️ No taxis found");
       filteredData.value = [];
     }
   } catch (err) {
@@ -862,32 +1003,25 @@ async function queryByLocation() {
   }
 }
 
-// ✅ FIXED: Search by name using fetch
+// Search by name
 watch(searchQuery, async (val) => {
   if (!val) {
-    filteredData.value = data.value;
+    // Reset to all items from composable
+    filteredData.value = processTaxiItems(allitems.value);
     return;
   }
 
   try {
     const res = await fetch("http://localhost:5151/api/taxi/searchbyname", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: val,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: val }),
     });
+
     const responseData = await res.json();
-    
+
     if (responseData.status && Array.isArray(responseData.data)) {
-      filteredData.value = responseData.data.map((item) => ({
-        ...item,
-        image: parseImageArray(item.image),
-        currentSlide: 0,
-        showDetails: false,
-      }));
+      filteredData.value = processTaxiItems(responseData.data);
     } else {
       filteredData.value = [];
     }
@@ -912,7 +1046,8 @@ function submitComment() {
   console.log("📞 Phone:", telephone.value);
   console.log("📝 Comment:", comment.value);
 
-  // Reset
+  // TODO: Send to API
+
   telephone.value = "";
   comment.value = "";
   commentDialog.value = false;
@@ -923,10 +1058,9 @@ function openZoom(item, index) {
   zoomItem.value = item;
   zoomSlide.value = index;
   zoomDialog.value = true;
-  isZoomPlaying.value = true; // Start autoplay when opened
+  isZoomPlaying.value = true;
 }
 
-// Toggle autoplay in zoom dialog
 function toggleZoomAutoplay() {
   isZoomPlaying.value = !isZoomPlaying.value;
 }
@@ -947,20 +1081,17 @@ function addToCart(item) {
 // Image error handler
 function handleImageError(event) {
   const imgSrc = event.target.src;
-  console.error("❌ Failed to load image:", imgSrc);
-  
-  // Try alternative formats
-  if (!imgSrc.includes('/uploads/')) {
-    event.target.src = imageBaseUrl + 'uploads/' + imgSrc.split('/').pop();
-  } else if (!imgSrc.includes('/images/')) {
-    event.target.src = imageBaseUrl + 'images/' + imgSrc.split('/').pop();
+
+  if (!imgSrc.includes("/uploads/")) {
+    event.target.src = imageBaseUrl + "uploads/" + imgSrc.split("/").pop();
+  } else if (!imgSrc.includes("/images/")) {
+    event.target.src = imageBaseUrl + "images/" + imgSrc.split("/").pop();
   } else {
-    // Use placeholder
-    event.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23ddd" width="400" height="300"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="20"%3ENo Image%3C/text%3E%3C/svg%3E';
+    event.target.src =
+      'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23ddd" width="400" height="300"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="20"%3ENo Image%3C/text%3E%3C/svg%3E';
   }
 }
 </script>
-
 <style scoped>
 .video-hero-section {
   position: relative;
@@ -1109,8 +1240,6 @@ function handleImageError(event) {
   }
 }
 
-
-
 /* 🎨 Beautiful Dialog Zoom Styles */
 .zoom-dialog-card {
   border-radius: 16px !important;
@@ -1180,12 +1309,12 @@ function handleImageError(event) {
   .zoom-carousel-wrapper {
     padding: 16px !important;
   }
-  
+
   .zoom-header {
     flex-direction: column;
     align-items: flex-start !important;
   }
-  
+
   .zoom-header .v-avatar {
     margin-bottom: 12px;
   }
@@ -1195,12 +1324,12 @@ function handleImageError(event) {
   .zoom-carousel-wrapper {
     padding: 12px !important;
   }
-  
+
   .zoom-image-counter {
     top: 12px;
     right: 12px;
   }
-  
+
   .zoom-image-counter .v-chip {
     font-size: 0.75rem;
   }

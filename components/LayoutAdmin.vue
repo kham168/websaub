@@ -1,499 +1,1850 @@
 <template>
-    <div class="min-h-screen bg-gray-50">
-      <!-- Sidebar -->
-      <aside
-        :class="[
-          'fixed top-0 left-0 z-40 h-screen transition-transform',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-          'w-64 bg-white border-r border-gray-200'
-        ]"
-      >
-        <!-- Logo -->
-        <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200">
-          <h1 class="text-xl font-bold text-gray-800">Admin Panel</h1>
-          <button
-            @click="sidebarOpen = false"
-            class="lg:hidden text-gray-500 hover:text-gray-700"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+  <v-app>
+    <v-navigation-drawer
+      v-model="drawer"
+      app
+      :rail="rail"
+      permanent
+      color="primary"
+      theme="dark"
+    >
+      <div class="d-flex align-center justify-space-between pa-3">
+        <div v-if="!rail" class="d-flex align-center">
+          <v-icon class="mr-2">mdi-view-dashboard</v-icon>
+          <span class="text-h6 font-weight-bold">Admin Panel</span>
         </div>
-  
-        <!-- Navigation -->
-        <nav class="p-4 space-y-1">
-          <NuxtLink
-            v-for="item in menuItems"
-            :key="item.name"
-            :to="item.path"
-            @click="sidebarOpen = false"
-            :class="[
-              'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-              $route.path === item.path
-                ? 'bg-blue-50 text-blue-600'
-                : 'text-gray-700 hover:bg-gray-100'
-            ]"
-          >
-            <component :is="item.icon" class="w-5 h-5 mr-3" />
-            {{ item.name }}
-          </NuxtLink>
-        </nav>
-      </aside>
-  
-      <!-- Main Content -->
-      <div class="lg:ml-64">
-        <!-- Top Bar -->
-        <header class="sticky top-0 z-30 bg-white border-b border-gray-200">
-          <div class="flex items-center justify-between h-16 px-6">
-            <button
-              @click="sidebarOpen = true"
-              class="lg:hidden text-gray-500 hover:text-gray-700"
+        <v-btn icon variant="text" @click="rail = !rail" size="small">
+          <v-icon>{{ rail ? "mdi-chevron-right" : "mdi-chevron-left" }}</v-icon>
+        </v-btn>
+      </div>
+
+      <v-divider></v-divider>
+
+      <v-list density="compact" nav>
+        <v-list-item
+          v-for="item in menuItems"
+          :key="item.id"
+          :prepend-icon="item.icon"
+          :title="item.name"
+          :value="item.id"
+          :active="activeTab === item.id"
+          @click="activeTab = item.id"
+          rounded="xl"
+        ></v-list-item>
+      </v-list>
+
+      <template v-slot:append>
+        <div class="pa-2" v-if="!rail">
+          <v-list-item
+            prepend-icon="mdi-account-circle"
+            title="Admin User"
+            subtitle="admin@company.com"
+          ></v-list-item>
+        </div>
+      </template>
+    </v-navigation-drawer>
+
+    <v-app-bar color="primary" elevation="2" prominent>
+      <template v-slot:prepend>
+        <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
+      </template>
+
+      <v-app-bar-title class="text-h5 font-weight-bold">
+        <v-icon class="mr-2">{{ currentMenuItem?.icon }}</v-icon>
+        {{ currentMenuItem?.name }}
+      </v-app-bar-title>
+
+      <v-spacer></v-spacer>
+
+      <v-text-field
+        v-model="searchQuery"
+        prepend-inner-icon="mdi-magnify"
+        placeholder="Search..."
+        hide-details
+        density="compact"
+        variant="solo"
+        flat
+        class="mr-4"
+        style="max-width: 350px"
+        bg-color="rgba(255, 255, 255, 0.2)"
+        rounded="lg"
+      ></v-text-field>
+
+      <v-btn icon variant="text">
+        <v-badge color="error" content="5">
+          <v-icon>mdi-bell-outline</v-icon>
+        </v-badge>
+      </v-btn>
+
+      <v-btn icon variant="text" class="mx-2">
+        <v-icon>mdi-email-outline</v-icon>
+        <v-badge color="success" content="12" floating></v-badge>
+      </v-btn>
+
+      <v-divider vertical class="mx-3"></v-divider>
+
+      <v-menu offset-y>
+        <template v-slot:activator="{ props }">
+          <v-btn v-bind="props" variant="text" class="text-none">
+            <v-avatar color="white" size="40" class="mr-2">
+              <v-icon color="primary">mdi-account</v-icon>
+            </v-avatar>
+            <div class="text-left d-none d-sm-block">
+              <div class="text-body-2 font-weight-bold">Admin User</div>
+              <div class="text-caption">Administrator</div>
+            </div>
+            <v-icon class="ml-2">mdi-chevron-down</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item
+            prepend-icon="mdi-account-circle"
+            title="My Profile"
+            subtitle="View your profile"
+          ></v-list-item>
+          <v-list-item
+            prepend-icon="mdi-cog"
+            title="Settings"
+            subtitle="Account settings"
+          ></v-list-item>
+          <v-list-item
+            prepend-icon="mdi-help-circle"
+            title="Help & Support"
+          ></v-list-item>
+          <v-divider></v-divider>
+          <v-list-item
+            prepend-icon="mdi-logout"
+            title="Logout"
+            class="text-error"
+          ></v-list-item>
+        </v-list>
+      </v-menu>
+
+      <template v-slot:extension>
+        <v-tabs v-model="activeTab" align-tabs="start" color="white">
+          <v-tab value="dashboard">
+            <v-icon start>mdi-view-dashboard</v-icon>
+            Dashboard
+          </v-tab>
+          <v-tab value="sales">
+            <v-icon start>mdi-chart-line</v-icon>
+            Sales
+          </v-tab>
+          <v-tab value="products">
+            <v-icon start>mdi-package-variant</v-icon>
+            Products
+          </v-tab>
+          <v-tab value="orders">
+            <v-icon start>mdi-cart</v-icon>
+            Orders
+          </v-tab>
+          <v-tab value="customers">
+            <v-icon start>mdi-account-group</v-icon>
+            Customers
+          </v-tab>
+        </v-tabs>
+      </template>
+    </v-app-bar>
+
+    <v-main>
+      <v-container fluid>
+        <!-- Dashboard View -->
+        <div v-if="activeTab === 'dashboard'">
+          <v-row>
+            <v-col
+              v-for="stat in stats"
+              :key="stat.label"
+              cols="12"
+              sm="6"
+              md="3"
             >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-  
-            <div class="flex-1 max-w-md mx-4">
-              <input
-                v-model="searchQuery"
-                type="search"
-                placeholder="Search..."
-                class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-  
-            <div class="flex items-center space-x-4">
-              <button class="relative text-gray-500 hover:text-gray-700">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              <div class="flex items-center space-x-3 cursor-pointer">
-                <img
-                  src="https://ui-avatars.com/api/?name=Admin+User&background=3b82f6&color=fff"
-                  alt="User"
-                  class="w-8 h-8 rounded-full"
-                />
-                <span class="hidden md:block text-sm font-medium text-gray-700">Admin User</span>
-              </div>
-            </div>
-          </div>
-        </header>
-  
-        <!-- Page Content -->
-        <main class="p-6">
-          <slot>
-            <!-- Default Dashboard Content -->
-            
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 gap-6 mb-6 md:grid-cols-2 lg:grid-cols-4">
-              <div
-                v-for="stat in stats"
-                :key="stat.label"
-                class="bg-white rounded-lg shadow-sm p-6 border border-gray-200"
-              >
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-sm font-medium text-gray-600">{{ stat.label }}</p>
-                    <p class="text-2xl font-bold text-gray-900 mt-2">{{ stat.value }}</p>
-                    <p class="text-sm text-green-600 mt-2">{{ stat.change }}</p>
+              <v-card :color="stat.color" theme="dark" elevation="3">
+                <v-card-text>
+                  <div class="d-flex justify-space-between align-center">
+                    <div>
+                      <div class="text-overline mb-1">{{ stat.label }}</div>
+                      <div class="text-h4 font-weight-bold">
+                        {{ stat.value }}
+                      </div>
+                      <div class="text-caption mt-2">
+                        <v-icon size="small" color="success"
+                          >mdi-trending-up</v-icon
+                        >
+                        {{ stat.change }}
+                      </div>
+                    </div>
+                    <v-avatar size="60" :color="stat.avatarColor">
+                      <v-icon size="30">{{ stat.icon }}</v-icon>
+                    </v-avatar>
                   </div>
-                  <div :class="['w-12 h-12 rounded-full flex items-center justify-center', stat.bgColor]">
-                    <component :is="stat.icon" :class="['w-6 h-6', stat.iconColor]" />
-                  </div>
-                </div>
-              </div>
-            </div>
-  
-            <!-- Image Upload Section -->
-            <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-200">
-              <h2 class="text-lg font-semibold text-gray-900 mb-4">Upload Images</h2>
-              
-              <div
-                @click="triggerFileInput"
-                @drop.prevent="handleDrop"
-                @dragover.prevent="dragOver = true"
-                @dragleave.prevent="dragOver = false"
-                :class="[
-                  'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors',
-                  dragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
-                ]"
-              >
-                <svg class="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                <p class="text-sm text-gray-600 mb-2">
-                  <span class="font-semibold text-blue-600">Click to upload</span> or drag and drop
-                </p>
-                <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
-              </div>
-  
-              <input
-                ref="fileInput"
-                type="file"
-                multiple
-                accept="image/*"
-                @change="handleFileSelect"
-                class="hidden"
-              />
-  
-              <!-- Preview Uploaded Images -->
-              <div v-if="uploadedImages.length" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                <div
-                  v-for="(img, idx) in uploadedImages"
-                  :key="idx"
-                  class="relative group"
-                >
-                  <img
-                    :src="img"
-                    alt="Uploaded"
-                    class="w-full h-32 object-cover rounded-lg border border-gray-200"
-                  />
-                  <button
-                    @click="removeImage(idx)"
-                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <v-row class="mt-4">
+            <v-col cols="12" md="6">
+              <v-card elevation="2">
+                <v-card-title class="text-h6 font-weight-bold">
+                  📊 Weekly Sales Overview
+                </v-card-title>
+                <v-card-text>
+                  <canvas ref="weeklySalesChart" height="300"></canvas>
+                </v-card-text>
+              </v-card>
+            </v-col>
+
+            <v-col cols="12" md="6">
+              <v-card elevation="2">
+                <v-card-title class="text-h6 font-weight-bold">
+                  📈 Sales by Category
+                </v-card-title>
+                <v-card-text>
+                  <canvas ref="categoryPieChart" height="300"></canvas>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <v-row class="mt-4">
+            <v-col cols="12">
+              <v-card elevation="2">
+                <v-card-title class="d-flex justify-space-between align-center">
+                  <span class="text-h6 font-weight-bold"
+                    >🏆 Best Selling Products</span
                   >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-  
-            <!-- Data Table -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div class="p-6 border-b border-gray-200">
-                <div class="flex items-center justify-between flex-wrap gap-4">
-                  <h2 class="text-lg font-semibold text-gray-900">Users Management</h2>
-                  <button 
-                    @click="showAddModal = true"
-                    class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <span class="flex items-center">
-                      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                      </svg>
-                      Add New User
-                    </span>
-                  </button>
-                </div>
-              </div>
-  
-              <div class="overflow-x-auto">
-                <table class="w-full">
-                  <thead class="bg-gray-50 border-b border-gray-200">
+                  <v-btn color="primary" variant="text">View All</v-btn>
+                </v-card-title>
+                <v-divider></v-divider>
+                <v-table>
+                  <thead>
                     <tr>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <input type="checkbox" v-model="selectAll" @change="toggleSelectAll" class="rounded border-gray-300" />
-                      </th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th>Rank</th>
+                      <th>Product</th>
+                      <th>Units Sold</th>
+                      <th>Revenue</th>
+                      <th>Trend</th>
                     </tr>
                   </thead>
-                  <tbody class="bg-white divide-y divide-gray-200">
+                  <tbody>
                     <tr
-                      v-for="user in paginatedUsers"
-                      :key="user.id"
-                      class="hover:bg-gray-50 transition-colors"
+                      v-for="(product, index) in bestSellingProducts"
+                      :key="product.id"
                     >
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <input type="checkbox" v-model="user.selected" class="rounded border-gray-300" />
+                      <td>
+                        <v-avatar
+                          :color="
+                            index === 0
+                              ? 'yellow-darken-2'
+                              : index === 1
+                              ? 'grey'
+                              : index === 2
+                              ? 'orange'
+                              : 'grey-lighten-1'
+                          "
+                          size="40"
+                        >
+                          <span class="text-white font-weight-bold">{{
+                            index + 1
+                          }}</span>
+                        </v-avatar>
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                          <img
-                            :src="`https://ui-avatars.com/api/?name=${user.name}&background=random`"
-                            class="w-10 h-10 rounded-full"
-                            :alt="user.name"
-                          />
-                          <div class="ml-4">
-                            <div class="text-sm font-medium text-gray-900">{{ user.name }}</div>
-                            <div class="text-sm text-gray-500">ID: {{ user.id }}</div>
-                          </div>
+                      <td>
+                        <div class="d-flex align-center">
+                          <span class="text-h6 mr-3">{{ product.image }}</span>
+                          <span class="font-weight-medium">{{
+                            product.name
+                          }}</span>
                         </div>
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">{{ user.email }}</div>
+                      <td>{{ product.sold }}</td>
+                      <td class="font-weight-bold">
+                        ${{ product.revenue.toLocaleString() }}
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <span
-                          :class="[
-                            'px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full',
-                            user.role === 'Admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-                          ]"
-                        >
-                          {{ user.role }}
-                        </span>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <span
-                          :class="[
-                            'px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full',
-                            user.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          ]"
-                        >
-                          {{ user.status }}
-                        </span>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <button @click="editUser(user)" class="text-blue-600 hover:text-blue-900 transition-colors">Edit</button>
-                        <button @click="deleteUser(user.id)" class="text-red-600 hover:text-red-900 transition-colors">Delete</button>
+                      <td>
+                        <v-chip color="success" size="small">{{
+                          product.trend
+                        }}</v-chip>
                       </td>
                     </tr>
                   </tbody>
-                </table>
-              </div>
-  
-              <!-- Pagination -->
-              <div class="px-6 py-4 border-t border-gray-200">
-                <div class="flex items-center justify-between flex-wrap gap-4">
-                  <div class="text-sm text-gray-700">
-                    Showing <span class="font-medium">{{ startIndex + 1 }}</span> to <span class="font-medium">{{ endIndex }}</span> of{' '}
-                    <span class="font-medium">{{ tableData.length }}</span> results
+                </v-table>
+              </v-card>
+            </v-col>
+          </v-row>
+        </div>
+
+        <!-- Sales Report View -->
+        <div v-if="activeTab === 'sales'">
+          <v-row>
+            <v-col cols="12">
+              <v-card elevation="2">
+                <v-card-title class="text-h6 font-weight-bold">
+                  💰 Detailed Sales Report
+                </v-card-title>
+                <v-card-text>
+                  <canvas ref="salesBarChart" height="400"></canvas>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <v-row class="mt-4">
+            <v-col cols="12" md="4">
+              <v-card color="blue-lighten-5" elevation="2">
+                <v-card-text>
+                  <div class="text-overline text-grey-darken-1">
+                    Average Order Value
                   </div>
-                  <div class="flex space-x-2">
-                    <button 
-                      @click="currentPage--" 
-                      :disabled="currentPage === 1"
-                      :class="[
-                        'px-3 py-1 border rounded-md text-sm transition-colors',
-                        currentPage === 1 ? 'border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300 hover:bg-gray-50'
-                      ]"
-                    >
-                      Previous
-                    </button>
-                    <button 
-                      v-for="page in totalPages" 
-                      :key="page"
-                      @click="currentPage = page"
-                      :class="[
-                        'px-3 py-1 rounded-md text-sm transition-colors',
-                        currentPage === page ? 'bg-blue-600 text-white' : 'border border-gray-300 hover:bg-gray-50'
-                      ]"
-                    >
-                      {{ page }}
-                    </button>
-                    <button 
-                      @click="currentPage++" 
-                      :disabled="currentPage === totalPages"
-                      :class="[
-                        'px-3 py-1 border rounded-md text-sm transition-colors',
-                        currentPage === totalPages ? 'border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300 hover:bg-gray-50'
-                      ]"
-                    >
-                      Next
-                    </button>
+                  <div class="text-h4 font-weight-bold mt-2">$89.50</div>
+                  <div class="text-body-2 text-success mt-2">
+                    <v-icon size="small">mdi-trending-up</v-icon> +4.3% from
+                    last week
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-card color="green-lighten-5" elevation="2">
+                <v-card-text>
+                  <div class="text-overline text-grey-darken-1">
+                    Conversion Rate
+                  </div>
+                  <div class="text-h4 font-weight-bold mt-2">3.24%</div>
+                  <div class="text-body-2 text-success mt-2">
+                    <v-icon size="small">mdi-trending-up</v-icon> +0.5% from
+                    last week
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-card color="purple-lighten-5" elevation="2">
+                <v-card-text>
+                  <div class="text-overline text-grey-darken-1">
+                    Total Transactions
+                  </div>
+                  <div class="text-h4 font-weight-bold mt-2">1,543</div>
+                  <div class="text-body-2 text-success mt-2">
+                    <v-icon size="small">mdi-trending-up</v-icon> +12% from last
+                    week
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+        </div>
+
+        <!-- Products View -->
+        <div v-if="activeTab === 'products'">
+          <v-row>
+            <v-col cols="12" class="d-flex justify-end">
+              <v-btn
+                color="primary"
+                size="large"
+                prepend-icon="mdi-plus"
+                @click="showProductModal = true"
+              >
+                Add New Product
+              </v-btn>
+            </v-col>
+          </v-row>
+
+          <!-- <v-row class="mt-2">-->
+
+          <v-row class="mt-2" dense>
+            <v-col
+              v-for="product in sampleProducts"
+              :key="product.id"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+            >
+              <v-card class="pa-3 d-flex flex-column h-100" elevation="3">
+                <!-- Image -->
+                <v-avatar
+                  size="120"
+                  class="mx-auto mb-3"
+                  color="grey-lighten-3"
+                >
+                  <span class="text-h4">{{ product.image }}</span>
+                </v-avatar>
+
+                <!-- Title -->
+                <div class="text-center font-weight-bold text-h6 mb-2">
+                  {{ product.name }}
+                </div>
+
+                <!-- Category + Phone -->
+                <div class="text-center mb-3">
+                  <v-chip
+                    size="small"
+                    color="success"
+                    variant="tonal"
+                    class="mr-2"
+                  >
+                    {{ product.category }}
+                  </v-chip>
+                  <v-chip size="small" color="info" variant="tonal">
+                    <v-icon start size="small">mdi-phone</v-icon>
+                    {{ product.phone }}
+                  </v-chip>
+                </div>
+                <!-- Chips -->
+                <div class="d-flex flex-wrap gap-2 mb-3 justify-center">
+                  <v-chip
+                    size="x-small"
+                    prepend-icon="mdi-map-marker"
+                    color="primary"
+                    class="mr-2"
+                  >
+                    {{ product.province }}
+                  </v-chip>
+                  <v-chip
+                    size="x-small"
+                    prepend-icon="mdi-office-building"
+                    color="primary"
+                    class="mr-2"
+                  >
+                    {{ product.district }}
+                  </v-chip>
+                  <v-chip
+                    size="x-small"
+                    prepend-icon="mdi-home-group"
+                    color="primary"
+                  >
+                    {{ product.village }}
+                  </v-chip>
+                </div>
+                <!-- Price & Stock -->
+                <div class="d-flex justify-space-around my-2">
+                  <div class="text-center">
+                    <div class="text-caption text-grey">Price</div>
+                    <div class="font-weight-bold text-h6">
+                      ${{ product.price }}
+                    </div>
+                  </div>
+
+                  <div class="text-center">
+                    <div class="text-caption text-grey">Stock</div>
+                    <div class="font-weight-bold text-h6">
+                      {{ product.stock }}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </slot>
-        </main>
-      </div>
-  
-      <!-- Overlay for mobile -->
-      <div
-        v-if="sidebarOpen"
-        @click="sidebarOpen = false"
-        class="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden transition-opacity"
-      ></div>
-  
-      <!-- Add User Modal -->
-      <div
-        v-if="showAddModal"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
-        @click.self="showAddModal = false"
-      >
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">Add New User</h3>
-          <p class="text-sm text-gray-600 mb-4">This is a demo modal. Implement your form here.</p>
-          <div class="flex justify-end space-x-3">
-            <button
-              @click="showAddModal = false"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-            >
-              Cancel
-            </button>
-            <button
-              @click="showAddModal = false"
-              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-            >
-              Add User
-            </button>
-          </div>
+
+                <v-divider class="my-3"></v-divider>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-center gap-2 flex-wrap">
+                  <v-btn
+                    color="purple"
+                    variant="tonal"
+                    size="small"
+                    :href="product.videoPath"
+                    target="_blank"
+                  >
+                    <v-icon start>mdi-video</v-icon> Video
+                  </v-btn>
+
+                  <v-btn
+                    class="ml-2"
+                    color="red"
+                    variant="tonal"
+                    size="small"
+                    :href="product.mapUrl"
+                    target="_blank"
+                  >
+                    <v-icon start>mdi-map</v-icon> Map
+                  </v-btn>
+                </div>
+
+                <!-- Edit + Delete Buttons -->
+                <div class="d-flex justify-center gap-2 mt-3">
+                  <v-btn
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                    @click="editProduct(product)"
+                  >
+                    <v-icon>mdi-pencil</v-icon>
+                  </v-btn>
+                  <v-btn
+                    class="ml-2"
+                    color="error"
+                    variant="outlined"
+                    size="small"
+                    @click="deleteProduct(product.id)"
+                  >
+                    <v-icon>mdi-delete</v-icon>
+                  </v-btn>
+                </div>
+              </v-card>
+            </v-col>
+          </v-row>
         </div>
-      </div>
-    </div>
-  </template>
-  
-  <script setup>
-  import { ref, computed } from 'vue';
-  
-  // Icons as inline SVG components
-  const DashboardIcon = {
-    template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>`
-  };
-  
-  const UsersIcon = {
-    template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>`
-  };
-  
-  const ProductsIcon = {
-    template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>`
-  };
-  
-  const OrdersIcon = {
-    template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>`
-  };
-  
-  const AnalyticsIcon = {
-    template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>`
-  };
-  
-  const SettingsIcon = {
-    template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`
-  };
-  
-  const TrendingUpIcon = {
-    template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>`
-  };
-  
-  // State
-  const sidebarOpen = ref(false);
-  const dragOver = ref(false);
-  const uploadedImages = ref([]);
-  const fileInput = ref(null);
-  const searchQuery = ref('');
-  const showAddModal = ref(false);
-  const selectAll = ref(false);
-  const currentPage = ref(1);
-  const itemsPerPage = 5;
-  
-  // Menu Items
-  const menuItems = [
-    { name: 'Dashboard', icon: DashboardIcon, path: '/admin' },
-    { name: 'Users', icon: UsersIcon, path: '/admin/users' },
-    { name: 'Products', icon: ProductsIcon, path: '/admin/products' },
-    { name: 'Orders', icon: OrdersIcon, path: '/admin/orders' },
-    { name: 'Analytics', icon: AnalyticsIcon, path: '/admin/analytics' },
-    { name: 'Settings', icon: SettingsIcon, path: '/admin/settings' }
-  ];
-  
-  // Stats
-  const stats = [
-    {
-      label: 'Total Users',
-      value: '2,543',
-      change: '+12.5% from last month',
-      icon: UsersIcon,
-      bgColor: 'bg-blue-100',
-      iconColor: 'text-blue-600'
-    },
-    {
-      label: 'Revenue',
-      value: '$45,231',
-      change: '+8.2% from last month',
-      icon: TrendingUpIcon,
-      bgColor: 'bg-green-100',
-      iconColor: 'text-green-600'
-    },
-    {
-      label: 'Orders',
-      value: '1,234',
-      change: '+15.3% from last month',
-      icon: OrdersIcon,
-      bgColor: 'bg-purple-100',
-      iconColor: 'text-purple-600'
-    },
-    {
-      label: 'Products',
-      value: '456',
-      change: '+5.7% from last month',
-      icon: ProductsIcon,
-      bgColor: 'bg-yellow-100',
-      iconColor: 'text-yellow-600'
-    }
-  ];
-  
-  // Table Data
-  const tableData = ref([
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin', status: 'Active', selected: false },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'User', status: 'Active', selected: false },
-    { id: 3, name: 'Bob Johnson', email: 'bob@example.com', role: 'User', status: 'Inactive', selected: false },
-    { id: 4, name: 'Alice Brown', email: 'alice@example.com', role: 'Admin', status: 'Active', selected: false },
-    { id: 5, name: 'Charlie Wilson', email: 'charlie@example.com', role: 'User', status: 'Active', selected: false },
-    { id: 6, name: 'Emma Davis', email: 'emma@example.com', role: 'User', status: 'Active', selected: false },
-    { id: 7, name: 'Frank Miller', email: 'frank@example.com', role: 'User', status: 'Inactive', selected: false },
-    { id: 8, name: 'Grace Lee', email: 'grace@example.com', role: 'Admin', status: 'Active', selected: false },
-    { id: 9, name: 'Henry Taylor', email: 'henry@example.com', role: 'User', status: 'Active', selected: false },
-    { id: 10, name: 'Iris White', email: 'iris@example.com', role: 'User', status: 'Inactive', selected: false },
-    { id: 11, name: 'Jack Black', email: 'jack@example.com', role: 'Admin', status: 'Active', selected: false },
-    { id: 12, name: 'Kelly Green', email: 'kelly@example.com', role: 'User', status: 'Active', selected: false }
-  ]);
-  
-  // Pagination
-  const totalPages = computed(() => Math.ceil(tableData.value.length / itemsPerPage));
-  const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage);
-  const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage, tableData.value.length));
-  const paginatedUsers = computed(() => tableData.value.slice(startIndex.value, endIndex.value));
-  
-  // Functions
-  const toggleSelectAll = () => {
-    paginatedUsers.value.forEach(user => {
-      user.selected = selectAll.value;
+
+        <!-- Other Tabs Placeholder -->
+        <div
+          v-if="
+            ['orders', 'customers', 'analytics', 'settings'].includes(activeTab)
+          "
+        >
+          <v-card elevation="2">
+            <v-card-title class="text-h6 font-weight-bold">
+              {{ currentMenuItem?.name }}
+            </v-card-title>
+            <v-card-text>
+              <v-alert type="info" variant="tonal">
+                This section is under development...
+              </v-alert>
+            </v-card-text>
+          </v-card>
+        </div>
+      </v-container>
+    </v-main>
+
+    <!-- Add Product Modal -->
+    <v-dialog v-model="showProductModal" max-width="800px" persistent>
+      <v-card>
+        <v-card-title
+          class="text-h5 font-weight-bold d-flex justify-space-between align-center"
+        >
+          <span>Add New Product</span>
+          <v-btn icon variant="text" @click="closeAddModal">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-divider></v-divider>
+
+        <v-card-text class="pt-6">
+          <v-form ref="productForm">
+            <v-row>
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="newProduct.province"
+                  label="Province"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-map-marker"
+                  placeholder="e.g., Vientiane"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="newProduct.district"
+                  label="District"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-office-building"
+                  placeholder="e.g., Chanthabouly"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="newProduct.village"
+                  label="Village"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-home-group"
+                  placeholder="e.g., Phonxay"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="newProduct.name"
+                  label="Product Name"
+                  variant="outlined"
+                  required
+                  prepend-inner-icon="mdi-package-variant"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-select
+                  v-model="newProduct.type"
+                  :items="types"
+                  label="Type"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-shape"
+                ></v-select>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="newProduct.price"
+                  label="Price ($)"
+                  type="number"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-currency-usd"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="newProduct.stock"
+                  label="Stock Quantity"
+                  type="number"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-package-variant-closed"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="newProduct.phone"
+                  label="Phone Number"
+                  type="tel"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-phone"
+                  placeholder="+856 20 5555 1234"
+                ></v-text-field>
+              </v-col>
+              <v-divider></v-divider>
+              <v-col cols="12">
+                <h4>
+                  +
+                  <v-span class="text-primary text-decoration-underline">
+                    Donation Money</v-span
+                  >
+                </h4>
+              </v-col>
+
+              <v-col cols="12" md="5">
+                <v-text-field
+                  v-model="newProduct.donation_Money"
+                  label="Donation Money"
+                  type="number"
+                  variant="outlined"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-menu
+                  v-model="startMenu"
+                  :close-on-content-click="false"
+                  transition="scale-transition"
+                  offset-y
+                >
+                  <template #activator="{ props }">
+                    <v-text-field
+                      v-bind="props"
+                      v-model="newProduct.startDate"
+                      label="Start Date"
+                      variant="outlined"
+                      prepend-inner-icon="mdi-calendar"
+                      readonly
+                    ></v-text-field>
+                  </template>
+
+                  <v-date-picker
+                    v-model="startRaw"
+                    @update:model-value="(date) => selectStartDate(date)"
+                    show-adjacent-months
+                    color="primary"
+                  ></v-date-picker>
+                </v-menu>
+              </v-col>
+              <v-span class="mt-6 text-blue font-weight-bold">to</v-span>
+              <v-col cols="12" md="3">
+                <v-menu
+                  v-model="endMenu"
+                  :close-on-content-click="false"
+                  transition="scale-transition"
+                  offset-y
+                >
+                  <template #activator="{ props }">
+                    <v-text-field
+                      v-bind="props"
+                      v-model="newProduct.endDate"
+                      label="End Date"
+                      variant="outlined"
+                      prepend-inner-icon="mdi-calendar"
+                      readonly
+                    ></v-text-field>
+                  </template>
+
+                  <v-date-picker
+                    v-model="endRaw"
+                    @update:model-value="(date) => selectEndDate(date)"
+                    show-adjacent-months
+                    color="primary"
+                  ></v-date-picker>
+                </v-menu>
+              </v-col>
+              <v-col cols="12">
+                <v-select
+                  v-model="newProduct.Detail_Donation_Money"
+                  :items="details_Donations"
+                  label="Please select your Donation "
+                  variant="outlined"
+                  prepend-inner-icon="mdi-shape"
+                ></v-select>
+              </v-col>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="newProduct.videoPath"
+                  label="Video URL"
+                  type="url"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-video"
+                  placeholder="https://example.com/video.mp4"
+                  hint="Enter the full URL to the product video"
+                  persistent-hint
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12">
+                <v-text-field
+                  v-model="newProduct.mapUrl"
+                  label="Google Maps URL"
+                  type="url"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-map"
+                  placeholder="https://maps.google.com/?q=17.9757,102.6331"
+                  hint="Enter Google Maps link or coordinates"
+                  persistent-hint
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="newProduct.name"
+                  label="Area"
+                  variant="outlined"
+                  required
+                  prepend-inner-icon="mdi-ruler-square"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <v-textarea
+                  v-model="newProduct.description"
+                  label="Description"
+                  variant="outlined"
+                  rows="4"
+                  prepend-inner-icon="mdi-text"
+                ></v-textarea>
+              </v-col>
+
+              <v-col cols="12">
+                <v-card variant="outlined" class="pa-4">
+                  <v-file-input
+                    v-model="productImages"
+                    label="Product Images"
+                    multiple
+                    accept="image/*"
+                    prepend-icon="mdi-camera"
+                    variant="outlined"
+                    show-size
+                    @change="handleFileSelect"
+                  ></v-file-input>
+
+                  <v-row v-if="uploadedImages.length" class="mt-2">
+                    <v-col
+                      v-for="(img, idx) in uploadedImages"
+                      :key="idx"
+                      cols="3"
+                    >
+                      <v-card>
+                        <v-img :src="img" height="100" cover></v-img>
+                        <v-card-actions>
+                          <v-btn
+                            size="small"
+                            color="error"
+                            block
+                            @click="removeImage(idx)"
+                          >
+                            Remove
+                          </v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-form>
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn color="grey" variant="text" @click="closeAddModal">
+            Cancel
+          </v-btn>
+          <v-btn color="primary" variant="elevated" @click="handleAddProduct">
+            Add Product
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Edit Product Modal -->
+    <!-- <v-dialog v-model="showEditModal" max-width="800px" persistent>
+      <v-card>
+        <v-card-title
+          class="text-h5 font-weight-bold d-flex justify-space-between align-center"
+        >
+          <span>Edit Product</span>
+          <v-btn icon variant="text" @click="closeEditModal">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-divider></v-divider>
+
+        <v-card-text class="pt-6" v-if="editingProduct">
+          <v-form ref="editProductForm">
+            <v-row>
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="editingProduct.province"
+                  label="Province"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-map-marker"
+                  placeholder="e.g., Vientiane"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="editingProduct.district"
+                  label="District"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-office-building"
+                  placeholder="e.g., Chanthabouly"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="editingProduct.village"
+                  label="Village"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-home-group"
+                  placeholder="e.g., Phonxay"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12">
+                <v-text-field
+                  v-model="editingProduct.name"
+                  label="Product Name"
+                  variant="outlined"
+                  required
+                  prepend-inner-icon="mdi-package-variant"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-select
+                  v-model="editingProduct.category"
+                  :items="categories"
+                  label="Category"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-shape"
+                ></v-select>
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="editingProduct.price"
+                  label="Price ($)"
+                  type="number"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-currency-usd"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="editingProduct.stock"
+                  label="Stock Quantity"
+                  type="number"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-package-variant-closed"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="editingProduct.phone"
+                  label="Phone Number"
+                  type="tel"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-phone"
+                  placeholder="+856 20 5555 1234"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12">
+                <v-text-field
+                  v-model="editingProduct.videoPath"
+                  label="Video URL"
+                  type="url"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-video"
+                  placeholder="https://example.com/video.mp4"
+                  hint="Enter the full URL to the product video"
+                  persistent-hint
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12">
+                <v-text-field
+                  v-model="editingProduct.mapUrl"
+                  label="Google Maps URL"
+                  type="url"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-map"
+                  placeholder="https://maps.google.com/?q=17.9757,102.6331"
+                  hint="Enter Google Maps link or coordinates"
+                  persistent-hint
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12">
+                <v-textarea
+                  v-model="editingProduct.description"
+                  label="Description"
+                  variant="outlined"
+                  rows="4"
+                  prepend-inner-icon="mdi-text"
+                ></v-textarea>
+              </v-col>
+
+              <!-- Image Section --
+              <v-col cols="12">
+                <v-card variant="outlined" class="pa-4">
+                  <!-- Existing Images (Read-only) --
+                  <div v-if="existingImages.length" class="mb-4">
+                    <div class="text-subtitle-2 mb-2 text-grey-darken-1">
+                      Current Images
+                    </div>
+                    <v-row>
+                      <v-col
+                        v-for="(img, idx) in existingImages"
+                        :key="'existing-' + idx"
+                        cols="3"
+                      >
+                        <v-card>
+                          <v-img :src="img" height="100" cover></v-img>
+                          <v-card-actions>
+                            <v-btn
+                              size="small"
+                              color="error"
+                              block
+                              @click="removeExistingImage(idx)"
+                            >
+                              Remove
+                            </v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </v-col>
+                    </v-row>
+                  </div>
+
+                  <!-- Add New Images --
+                  <v-file-input
+                    v-model="editProductImages"
+                    label="Add New Images"
+                    multiple
+                    accept="image/*"
+                    prepend-icon="mdi-camera-plus"
+                    variant="outlined"
+                    show-size
+                    @change="handleEditFileSelect"
+                  ></v-file-input>
+
+                  <!-- New Images Preview --
+                  <v-row v-if="newEditImages.length" class="mt-2">
+                    <v-col
+                      v-for="(img, idx) in newEditImages"
+                      :key="'new-' + idx"
+                      cols="3"
+                    >
+                      <v-card>
+                        <v-img :src="img" height="100" cover></v-img>
+                        <v-badge
+                          color="success"
+                          content="NEW"
+                          location="top right"
+                        >
+                        </v-badge>
+                        <v-card-actions>
+                          <v-btn
+                            size="small"
+                            color="error"
+                            block
+                            @click="removeNewEditImage(idx)"
+                          >
+                            Remove
+                          </v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-form>
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn color="grey" variant="text" @click="closeEditModal">
+            Cancel
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="elevated"
+            @click="handleUpdateProduct"
+          >
+            Update Product
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog> -->
+
+    <!-- Edit Product Modal -->
+    <v-dialog v-model="showEditModal" max-width="800px" persistent>
+      <v-card>
+        <v-card-title
+          class="text-h5 font-weight-bold d-flex justify-space-between align-center"
+        >
+          <span>Edit Product</span>
+          <v-btn icon variant="text" @click="closeEditModal">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-divider></v-divider>
+
+        <v-card-text class="pt-6" v-if="editingProduct">
+          <v-form ref="editProductForm">
+            <v-row>
+              <!-- Province / District / Village -->
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="editingProduct.province"
+                  label="Province"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-map-marker"
+                  placeholder="e.g., Vientiane"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="editingProduct.district"
+                  label="District"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-office-building"
+                  placeholder="e.g., Chanthabouly"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="editingProduct.village"
+                  label="Village"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-home-group"
+                  placeholder="e.g., Phonxay"
+                ></v-text-field>
+              </v-col>
+
+              <!-- Product Name / Type -->
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="editingProduct.name"
+                  label="Product Name"
+                  variant="outlined"
+                  required
+                  prepend-inner-icon="mdi-package-variant"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-select
+                  v-model="editingProduct.type"
+                  :items="types"
+                  label="Type"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-shape"
+                ></v-select>
+              </v-col>
+
+              <!-- Price / Stock -->
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="editingProduct.price"
+                  label="Price ($)"
+                  type="number"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-currency-usd"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="editingProduct.stock"
+                  label="Stock Quantity"
+                  type="number"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-package-variant-closed"
+                ></v-text-field>
+              </v-col>
+
+              <!-- Phone -->
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="editingProduct.phone"
+                  label="Phone Number"
+                  type="tel"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-phone"
+                  placeholder="+856 20 5555 1234"
+                ></v-text-field>
+              </v-col>
+
+              <!-- Donation Money Section -->
+              <v-divider></v-divider>
+              <v-col cols="12">
+                <h4>
+                  +
+                  <v-span class="text-primary text-decoration-underline">
+                    Donation Money
+                  </v-span>
+                </h4>
+              </v-col>
+              <v-col cols="12" md="5">
+                <v-text-field
+                  v-model="editingProduct.donation_Money"
+                  label="Donation Money"
+                  type="number"
+                  variant="outlined"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="3">
+                <v-menu
+                  v-model="startMenu"
+                  :close-on-content-click="false"
+                  transition="scale-transition"
+                  offset-y
+                >
+                  <template #activator="{ props }">
+                    <v-text-field
+                      v-bind="props"
+                      v-model="editingProduct.startDate"
+                      label="Start Date"
+                      variant="outlined"
+                      prepend-inner-icon="mdi-calendar"
+                      readonly
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    v-model="startRaw"
+                    @update:model-value="(date) => selectStartDate(date)"
+                    show-adjacent-months
+                    color="primary"
+                  ></v-date-picker>
+                </v-menu>
+              </v-col>
+              <v-span class="mt-6 text-blue font-weight-bold">to</v-span>
+              <v-col cols="12" md="3">
+                <v-menu
+                  v-model="endMenu"
+                  :close-on-content-click="false"
+                  transition="scale-transition"
+                  offset-y
+                >
+                  <template #activator="{ props }">
+                    <v-text-field
+                      v-bind="props"
+                      v-model="editingProduct.endDate"
+                      label="End Date"
+                      variant="outlined"
+                      prepend-inner-icon="mdi-calendar"
+                      readonly
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    v-model="endRaw"
+                    @update:model-value="(date) => selectEndDate(date)"
+                    show-adjacent-months
+                    color="primary"
+                  ></v-date-picker>
+                </v-menu>
+              </v-col>
+              <v-col cols="12">
+                <v-select
+                  v-model="editingProduct.Detail_Donation_Money"
+                  :items="details_Donations"
+                  label="Please select your Donation"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-shape"
+                ></v-select>
+              </v-col>
+
+              <!-- Video / Map / Area -->
+              <v-col cols="12">
+                <v-text-field
+                  v-model="editingProduct.videoPath"
+                  label="Video URL"
+                  type="url"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-video"
+                  placeholder="https://example.com/video.mp4"
+                  hint="Enter the full URL to the product video"
+                  persistent-hint
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="editingProduct.mapUrl"
+                  label="Google Maps URL"
+                  type="url"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-map"
+                  placeholder="https://maps.google.com/?q=17.9757,102.6331"
+                  hint="Enter Google Maps link or coordinates"
+                  persistent-hint
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="editingProduct.area"
+                  label="Area"
+                  variant="outlined"
+                  required
+                  prepend-inner-icon="mdi-ruler-square"
+                ></v-text-field>
+              </v-col>
+
+              <!-- Description -->
+              <v-col cols="12">
+                <v-textarea
+                  v-model="editingProduct.description"
+                  label="Description"
+                  variant="outlined"
+                  rows="4"
+                  prepend-inner-icon="mdi-text"
+                ></v-textarea>
+              </v-col>
+
+              <!-- Images Section -->
+              <v-col cols="12">
+                <v-card variant="outlined" class="pa-4">
+                  <!-- Existing Images -->
+                  <div v-if="existingImages.length" class="mb-4">
+                    <div class="text-subtitle-2 mb-2 text-grey-darken-1">
+                      Current Images
+                    </div>
+                    <v-row>
+                      <v-col
+                        v-for="(img, idx) in existingImages"
+                        :key="'existing-' + idx"
+                        cols="3"
+                      >
+                        <v-card>
+                          <v-img :src="img" height="100" cover></v-img>
+                          <v-card-actions>
+                            <v-btn
+                              size="small"
+                              color="error"
+                              block
+                              @click="removeExistingImage(idx)"
+                            >
+                              Remove
+                            </v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </v-col>
+                    </v-row>
+                  </div>
+
+                  <!-- Add New Images -->
+                  <v-file-input
+                    v-model="editProductImages"
+                    label="Add New Images"
+                    multiple
+                    accept="image/*"
+                    prepend-icon="mdi-camera-plus"
+                    variant="outlined"
+                    show-size
+                    @change="handleEditFileSelect"
+                  ></v-file-input>
+
+                  <!-- New Images Preview -->
+                  <v-row v-if="newEditImages.length" class="mt-2">
+                    <v-col
+                      v-for="(img, idx) in newEditImages"
+                      :key="'new-' + idx"
+                      cols="3"
+                    >
+                      <v-card>
+                        <v-img :src="img" height="100" cover></v-img>
+                        <v-badge
+                          color="success"
+                          content="NEW"
+                          location="top right"
+                        >
+                        </v-badge>
+                        <v-card-actions>
+                          <v-btn
+                            size="small"
+                            color="error"
+                            block
+                            @click="removeNewEditImage(idx)"
+                          >
+                            Remove
+                          </v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-form>
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn color="grey" variant="text" @click="closeEditModal">
+            Cancel
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="elevated"
+            @click="handleUpdateProduct"
+          >
+            Update Product
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-app>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, nextTick, watch } from "vue";
+
+let Chart = null;
+
+// State
+const drawer = ref(true);
+const rail = ref(false);
+const activeTab = ref("dashboard");
+const showProductModal = ref(false);
+const showEditModal = ref(false);
+const searchQuery = ref("");
+const productImages = ref([]);
+const uploadedImages = ref([]);
+const editingProduct = ref(null);
+
+// Edit image refs
+const editProductImages = ref([]);
+const existingImages = ref([]); // Original images from the product
+const newEditImages = ref([]); // New images being added
+
+// Chart refs
+const weeklySalesChart = ref(null);
+const categoryPieChart = ref(null);
+const salesBarChart = ref(null);
+
+// New product form
+const newProduct = ref({
+  name: "",
+  Detail_Donation_Money: "",
+  type: "",
+  price: "",
+  stock: "",
+  donation_Money: 0,
+  description: "",
+  province: "",
+  district: "",
+  village: "",
+  phone: "",
+  videoPath: "",
+  mapUrl: "",
+  image: "📦",
+  area: "",
+  startDate: "",
+  endDate: "",
+});
+// function date format
+const startMenu = ref(false);
+const endMenu = ref(false);
+const startRaw = ref(null);
+const endRaw = ref(null);
+function selectStartDate(date) {
+  const formatted = new Date(date).toDateString();
+
+  newProduct.startDate = formatted;
+  startMenu.value = false;
+}
+
+function selectEndDate(date) {
+  const formatted = new Date(date).toDateString();
+
+  newProduct.endDate = formatted;
+  endMenu.value = false;
+}
+
+const details_Donations = [
+  "Electronics",
+  "Accessories",
+  "Clothing",
+  "Home",
+  "Sports",
+];
+const types = ["Electronics", "Accessories", "Clothing", "Home", "Sports"];
+
+// Menu items
+const menuItems = [
+  { id: "dashboard", name: "Dashboard", icon: "mdi-view-dashboard" },
+  { id: "sales", name: "Sales Report", icon: "mdi-chart-line" },
+  { id: "products", name: "Products", icon: "mdi-package-variant" },
+  { id: "orders", name: "Orders", icon: "mdi-cart" },
+  { id: "customers", name: "Customers", icon: "mdi-account-group" },
+  { id: "analytics", name: "Analytics", icon: "mdi-chart-bar" },
+  { id: "settings", name: "Settings", icon: "mdi-cog" },
+];
+
+// Stats
+const stats = [
+  {
+    label: "Total Revenue",
+    value: "$124,563",
+    change: "+12%",
+    icon: "mdi-currency-usd",
+    color: "blue",
+    avatarColor: "blue-lighten-4",
+  },
+  {
+    label: "Total Orders",
+    value: "1,543",
+    change: "+8%",
+    icon: "mdi-cart",
+    color: "green",
+    avatarColor: "green-lighten-4",
+  },
+  {
+    label: "Products Sold",
+    value: "8,234",
+    change: "+15%",
+    icon: "mdi-package-variant",
+    color: "purple",
+    avatarColor: "purple-lighten-4",
+  },
+  {
+    label: "New Customers",
+    value: "456",
+    change: "+5%",
+    icon: "mdi-account-multiple",
+    color: "orange",
+    avatarColor: "orange-lighten-4",
+  },
+];
+
+// Best selling products
+const bestSellingProducts = [
+  {
+    id: 1,
+    name: "Wireless Headphones",
+    sold: 234,
+    revenue: 46800,
+    trend: "+12%",
+    image: "🎧",
+  },
+  {
+    id: 2,
+    name: "Smart Watch",
+    sold: 189,
+    revenue: 56700,
+    trend: "+8%",
+    image: "⌚",
+  },
+  {
+    id: 3,
+    name: "Laptop Stand",
+    sold: 156,
+    revenue: 15600,
+    trend: "+15%",
+    image: "💻",
+  },
+  {
+    id: 4,
+    name: "USB-C Cable",
+    sold: 312,
+    revenue: 9360,
+    trend: "+22%",
+    image: "🔌",
+  },
+  {
+    id: 5,
+    name: "Phone Case",
+    sold: 267,
+    revenue: 8010,
+    trend: "+5%",
+    image: "📱",
+  },
+];
+
+// Sample products
+const sampleProducts = ref([
+  {
+    id: 1,
+    name: "Wireless Headphones",
+    category: "Electronics",
+    price: 199,
+    stock: 45,
+    image: "🎧",
+    province: "Vientiane",
+    district: "Chanthabouly",
+    village: "Phonxay",
+    phone: "+856 20 5555 1234",
+    videoPath: "https://example.com/video1.mp4",
+    mapUrl: "https://maps.google.com/?q=17.9757,102.6331",
+    images: [],
+  },
+  {
+    id: 2,
+    name: "Smart Watch",
+    category: "Electronics",
+    price: 299,
+    stock: 32,
+    image: "⌚",
+    province: "Vientiane",
+    district: "Sisattanak",
+    village: "Nongbone",
+    phone: "+856 20 5555 5678",
+    videoPath: "https://example.com/video2.mp4",
+    mapUrl: "https://maps.google.com/?q=17.9689,102.6137",
+    images: [],
+  },
+  {
+    id: 3,
+    name: "Laptop Stand",
+    category: "Accessories",
+    price: 89,
+    stock: 67,
+    image: "💻",
+    province: "Vientiane",
+    district: "Xaysettha",
+    village: "Dongdok",
+    phone: "+856 20 5555 9012",
+    videoPath: "https://example.com/video3.mp4",
+    mapUrl: "https://maps.google.com/?q=18.0285,102.6428",
+    images: [],
+  },
+  {
+    id: 4,
+    name: "USB-C Cable",
+    category: "Accessories",
+    price: 29,
+    stock: 120,
+    image: "🔌",
+    province: "Vientiane",
+    district: "Hadxaifong",
+    village: "Dongpaina",
+    phone: "+856 20 5555 3456",
+    videoPath: "https://example.com/video4.mp4",
+    mapUrl: "https://maps.google.com/?q=18.0735,102.5644",
+    images: [],
+  },
+]);
+
+// Weekly data
+const weeklyData = [
+  { day: "Mon", sales: 4200, orders: 45 },
+  { day: "Tue", sales: 3800, orders: 38 },
+  { day: "Wed", sales: 5100, orders: 52 },
+  { day: "Thu", sales: 4600, orders: 48 },
+  { day: "Fri", sales: 6200, orders: 65 },
+  { day: "Sat", sales: 7500, orders: 78 },
+  { day: "Sun", sales: 5800, orders: 60 },
+];
+
+// Category data
+const categoryData = [
+  { name: "Electronics", value: 45231, color: "#3b82f6" },
+  { name: "Accessories", value: 32450, color: "#10b981" },
+  { name: "Clothing", value: 21890, color: "#f59e0b" },
+  { name: "Home", value: 18765, color: "#6366f1" },
+  { name: "Sports", value: 15432, color: "#ec4899" },
+];
+
+// Computed
+const currentMenuItem = computed(() => {
+  return menuItems.find((item) => item.id === activeTab.value);
+});
+
+// Chart instances
+let weeklyChartInstance = null;
+let categoryChartInstance = null;
+let salesChartInstance = null;
+
+// Initialize charts
+const initCharts = () => {
+  if (weeklySalesChart.value) {
+    if (weeklyChartInstance) weeklyChartInstance.destroy();
+
+    weeklyChartInstance = new Chart(weeklySalesChart.value, {
+      type: "line",
+      data: {
+        labels: weeklyData.map((d) => d.day),
+        datasets: [
+          {
+            label: "Sales ($)",
+            data: weeklyData.map((d) => d.sales),
+            borderColor: "#3b82f6",
+            backgroundColor: "rgba(59, 130, 246, 0.1)",
+            tension: 0.4,
+            fill: true,
+          },
+          {
+            label: "Orders",
+            data: weeklyData.map((d) => d.orders),
+            borderColor: "#10b981",
+            backgroundColor: "rgba(16, 185, 129, 0.1)",
+            tension: 0.4,
+            fill: true,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "top",
+          },
+        },
+      },
     });
-  };
-  
-  const editUser = (user) => {
-    console.log('Edit user:', user);
-    alert(`Edit user: ${user.name}`);
-  };
-  
-  const deleteUser = (id) => {
-    if (confirm('Are you sure you want to delete this user?')) {
-      const index = tableData.value.findIndex(u => u.id === id);
-      if (index !== -1) {
-        tableData.value.splice(index, 1);
-      }
-    }
-  };
-  
-  // Image Upload Functions
-  const triggerFileInput = () => {
-    fileInput.value?.click();
-  };
-  
-  const handleFileSelect = (event) => {
-    const files = event.target.files;
-    processFiles(files);
-  };
-  
-  const handleDrop = (event) => {
-    dragOver.value = false;
-    const files = event.dataTransfer.files;
-    processFiles(files);
-  };
-  
-  const processFiles = (files) => {
-    Array.from(files).forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          uploadedImages.value.push(e.target.result);
-        };
-        reader.readAsDataURL(file);
-      }
+  }
+
+  if (categoryPieChart.value) {
+    if (categoryChartInstance) categoryChartInstance.destroy();
+
+    categoryChartInstance = new Chart(categoryPieChart.value, {
+      type: "doughnut",
+      data: {
+        labels: categoryData.map((d) => d.name),
+        datasets: [
+          {
+            data: categoryData.map((d) => d.value),
+            backgroundColor: categoryData.map((d) => d.color),
+            borderWidth: 2,
+            borderColor: "#fff",
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "bottom",
+          },
+        },
+      },
     });
+  }
+
+  if (salesBarChart.value) {
+    if (salesChartInstance) salesChartInstance.destroy();
+
+    salesChartInstance = new Chart(salesBarChart.value, {
+      type: "bar",
+      data: {
+        labels: categoryData.map((d) => d.name),
+        datasets: [
+          {
+            label: "Sales Amount ($)",
+            data: categoryData.map((d) => d.value),
+            backgroundColor: "#3b82f6",
+            borderRadius: 8,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "top",
+          },
+        },
+      },
+    });
+  }
+};
+
+// File handling for Add Product
+const handleFileSelect = (event) => {
+  const files = productImages.value;
+  if (files && files.length) {
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        uploadedImages.value.push(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+};
+
+const removeImage = (index) => {
+  uploadedImages.value.splice(index, 1);
+};
+
+// File handling for Edit Product
+const handleEditFileSelect = (event) => {
+  const files = editProductImages.value;
+  if (files && files.length) {
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        newEditImages.value.push(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+};
+
+const removeExistingImage = (index) => {
+  existingImages.value.splice(index, 1);
+};
+
+const removeNewEditImage = (index) => {
+  newEditImages.value.splice(index, 1);
+};
+
+// Product functions
+const handleAddProduct = () => {
+  if (
+    newProduct.value.name &&
+    newProduct.value.price &&
+    newProduct.value.stock
+  ) {
+    const product = {
+      ...newProduct.value,
+      id: Date.now(),
+      price: parseFloat(newProduct.value.price),
+      stock: parseInt(newProduct.value.stock),
+      images: uploadedImages.value,
+    };
+    sampleProducts.value.push(product);
+    closeAddModal();
+  }
+};
+
+const editProduct = (product) => {
+  editingProduct.value = { ...product };
+
+  // Separate existing images from the product
+  if (product.images && Array.isArray(product.images)) {
+    existingImages.value = [...product.images];
+  } else {
+    existingImages.value = [];
+  }
+
+  // Clear new images
+  newEditImages.value = [];
+  editProductImages.value = [];
+  showEditModal.value = true;
+};
+
+const deleteProduct = (productId) => {
+  if (confirm("Are you sure you want to delete this product?")) {
+    const index = sampleProducts.value.findIndex((p) => p.id === productId);
+    if (index > -1) {
+      sampleProducts.value.splice(index, 1);
+    }
+  }
+};
+
+const handleUpdateProduct = () => {
+  if (editingProduct.value) {
+    const index = sampleProducts.value.findIndex(
+      (p) => p.id === editingProduct.value.id
+    );
+    if (index > -1) {
+      // Combine existing images with new images
+      const allImages = [...existingImages.value, ...newEditImages.value];
+
+      sampleProducts.value[index] = {
+        ...editingProduct.value,
+        images: allImages,
+      };
+    }
+    closeEditModal();
+  }
+};
+
+const closeAddModal = () => {
+  showProductModal.value = false;
+  newProduct.value = {
+    name: "",
+    category: "",
+    price: "",
+    stock: "",
+    description: "",
+    province: "",
+    district: "",
+    village: "",
+    phone: "",
+    videoPath: "",
+    mapUrl: "",
+    image: "📦",
   };
-  
-  const removeImage = (index) => {
-    uploadedImages.value.splice(index, 1);
-  };
-  </script>
+  uploadedImages.value = [];
+  productImages.value = [];
+};
+
+const closeEditModal = () => {
+  showEditModal.value = false;
+  editingProduct.value = null;
+  existingImages.value = [];
+  newEditImages.value = [];
+  editProductImages.value = [];
+};
+
+// Watch for tab changes and reinitialize charts
+watch(activeTab, async () => {
+  await nextTick();
+  initCharts();
+});
+
+// Lifecycle
+onMounted(async () => {
+  if (!window.Chart) {
+    await loadChartJS();
+  }
+  Chart = window.Chart;
+
+  nextTick(() => {
+    initCharts();
+  });
+});
+
+// Load Chart.js from CDN
+const loadChartJS = () => {
+  return new Promise((resolve, reject) => {
+    if (window.Chart) {
+      resolve();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src =
+      "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js";
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+};
+</script>
+
+<style scoped>
+.border-b {
+  border-bottom: 1px solid #e0e0e0;
+}
+</style>

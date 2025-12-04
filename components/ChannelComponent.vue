@@ -303,12 +303,6 @@
                       {{ selectedItem.reviewCount || 0 }} reviews
                     </span>
                   </div>
-
-                  <!-- <div class="text-body-1 mb-2 text-center">
-                    {{
-                      selectedItem.description || "No description available."
-                    }}
-                  </div> -->
                 </v-col>
                 <!-- it working  when using Mobile View or display d-sm -->
                 <v-col cols="12" class="d-md-none d-sm-block">
@@ -581,13 +575,7 @@
                           <div
                             class="text-body-2 text-grey-darken-1 text-truncate"
                             style="max-width: 100%"
-                          >
-                            <!-- {{
-                              channel?.detail.length > 30
-                                ? channel.detail.slice(0, 30) + "..."
-                                : channel.detail
-                            }} -->
-                          </div>
+                          ></div>
                         </div>
                       </v-card>
                     </v-col>
@@ -597,49 +585,6 @@
             </v-col>
           </v-container>
         </div>
-
-        <!-- <v-card-text>
-          <v-row>
-            <v-col cols="4" />
-            <v-col cols="12" md="4" class="text-center"> -->
-        <!-- <div class="mb-3">
-                  <v-btn
-                    v-for="(img, i) in selectedItem.images"
-                    :key="`thumb-${i}`"
-                    variant="flat"
-                    class="ma-1 pa-1"
-                    :class="{ 'thumbnail-active': selectedItem.slide === i }"
-                    @click="selectedItem.slide = i"
-                  >
-                    <v-img
-                      :src="img"
-                      height="40"
-                      width="40"
-                      cover
-                      class="rounded"
-                    />
-                  </v-btn>
-                </div> -->
-        <!-- <div class="d-flex align-center mb-3">
-                <v-rating
-                  v-if="selectedItem.rating"
-                  :model-value="selectedItem.rating"
-                  density="compact"
-                  color="amber"
-                  half-increments
-                  readonly
-                />
-                <span class="text-body-2 ml-2 text-grey-darken-1">
-                  {{ selectedItem.reviewCount || 0 }} reviews
-                </span>
-              </div>
-
-              <div class="text-body-1 mb-2">
-                {{ selectedItem.description || "No description available." }}
-              </div> -->
-        <!-- </v-col>
-          </v-row>
-        </v-card-text> -->
       </v-card>
     </v-dialog>
   </div>
@@ -677,13 +622,7 @@ const getPriceWhole = (price) => Math.floor(price);
 const getPriceDecimal = (price) => Math.round((price % 1) * 100);
 const getDeliveryDate = () => "Tomorrow";
 
-const closeDialog = () => {
-  emit("update:selectedItem", null);
-};
 
-const viewDetails = (item) => {
-  console.log("View details:", item);
-};
 
 const increase = () => {
   quantity.value++;
@@ -721,39 +660,13 @@ const validateQuantity = (event) => {
 };
 // Select a different channel
 const selectChannel = (channel) => {
-  console.log("Selected channel:", channel);
   emit("update:selectedItem", channel);
   carouselIndex.value = 0; // Reset carousel index if needed
 };
 </script>
 
 <style scoped>
-/* Text input centering */
-.v-text-field :deep(input) {
-  text-align: center !important;
-}
-
-/* Cursor pointer utility */
 .cursor-pointer {
   cursor: pointer;
-}
-
-/* Thumbnail active state */
-.thumbnail-active {
-  border: 2px solid green;
-}
-
-/* Circle icon hover effect */
-.v-sheet.cursor-pointer:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-/* Indicator dot hover and transition */
-.v-sheet.rounded-circle {
-  transition: all 0.3s ease;
-}
-
-.v-sheet.rounded-circle:hover {
-  transform: scale(1.1);
 }
 </style>

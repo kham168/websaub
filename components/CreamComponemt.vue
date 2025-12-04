@@ -10,7 +10,7 @@
         <v-card-title class="d-flex justify-space-between align-center">
           <div>
             <div class="text-h5 font-weight-bold">
-              {{ selectedItem.creamname  }}
+              {{ selectedItem.creamname }}
             </div>
           </div>
           <v-btn
@@ -136,7 +136,7 @@
                               <span
                                 class="text-subtitle-1 font-weight-bold ml-2"
                               >
-                                {{ formatPrice(selectedItem.Price1 ) }}
+                                {{ formatPrice(selectedItem.price1) }}
                               </span>
                               <span
                                 class="text-subtitle-2 align-self-start text-decoration-line-through text-grey-darken-1"
@@ -145,7 +145,7 @@
                               </span>
                               <span
                                 class="text-subtitle-2 align-self-start text-decoration-line-through text-grey-darken-1"
-                                >{{ formatPrice( selectedItem.Price2) }}
+                                >{{ formatPrice(selectedItem.price2) }}
                               </span>
                             </div>
                             <div
@@ -400,7 +400,7 @@
                               <span
                                 class="text-subtitle-1 font-weight-bold ml-2"
                               >
-                                {{ formatPrice(selectedItem.Price2) }}
+                                {{ formatPrice(selectedItem.price2) }}
                               </span>
                               <span
                                 class="text-subtitle-2 align-self-start text-decoration-line-through text-grey-darken-1"
@@ -409,7 +409,7 @@
                               </span>
                               <span
                                 class="text-subtitle-2 align-self-start text-decoration-line-through text-grey-darken-1"
-                                >{{ formatPrice(selectedItem.Price1) }}
+                                >{{ formatPrice(selectedItem.price1) }}
                               </span>
                             </div>
                             <div
@@ -482,14 +482,14 @@
                       <p class="mb-2">
                         <strong>email:</strong>
                         <span class="text-primary ml-2">{{
-                          selectedItem?.email  || selectedItem?.email
+                          selectedItem?.email || selectedItem?.email
                         }}</span>
                       </p>
 
                       <p class="mb-2">
                         <strong>Tel && WhattsApp:</strong>
                         <span class="text-primary ml-2">{{
-                          selectedItem?.tel 
+                          selectedItem?.tel
                         }}</span>
                       </p>
 
@@ -500,7 +500,7 @@
                         </strong>
                         <v-divider class="my-2" />
                         <span>
-                          {{ selectedItem?.detail  }}
+                          {{ selectedItem?.detail }}
                         </span>
                       </div>
                     </v-container>
@@ -519,7 +519,6 @@
 import { ref, computed } from "vue";
 import { useProductSellStore } from "@/stores/index";
 // const { $toast } = useNuxtApp()
-import { toast } from "vue-sonner";
 import Swal from "sweetalert2";
 
 const carouselIndex = ref(0);
@@ -527,41 +526,27 @@ const showDetails = ref(false);
 const quantity = ref(1);
 const selectedUnit = ref("ອັນ");
 // ------ store ---------
-const cartItems = ref([]);
+const cartItems = ref({});
 
 //  add Product to cart, using store
 
 const store = useProductSellStore();
-const cartCount = computed(() => {
-  // Use store cart if available, otherwise use local
-  if (store.cart && store.cart.length > 0) {
-    return store.cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-  }
-  return cartItems.value.reduce((sum, item) => sum + item.quantity, 0);
-});
-
-const cartTotal = computed(() => {
-  // Use store cart if available, otherwise use local
-  if (store.cart && store.cart.length > 0) {
-    return store.cart.reduce(
-      (sum, item) => sum + item.price * (item.quantity || 1),
-      0
-    );
-  }
-  return cartItems.value.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-});
 
 const addToCart = (product) => {
-  cartItems.value.push({ ...product, quantity: 1, unit: selectedUnit.value });
+  let price = 0;
+  if (product.price2 !== 0 || product.price2 !== null) {
+    price = product.price2;
+  } else {
+    price = product.price1;
+  }
+  cartItems.value = {
+    ...product,
+    quantity: 1,
+    unit: selectedUnit.value,
+    price: price,
+  };
 
-  console.log("🛒 Added to local cart:", selectedUnit.value);
-  console.log("cartItems:", cartItems.value);
-  
-  store.addToCart(product);
-  // console.log("🛒 Added to cart:", store.selectedItem.value);
+  store.addToCart(cartItems.value);
   isDialogOpen.value = false;
   setTimeout(() => {
     showSuccess();
@@ -579,8 +564,6 @@ const props = defineProps({
   },
 });
 
-console.log("selectedItem:", props.selectedItem);
-
 const formatPrice = (value) => {
   if (!value) return "0";
   return new Intl.NumberFormat("en-US").format(value);
@@ -595,17 +578,7 @@ const isDialogOpen = computed({
   },
 });
 
-//   const getPriceWhole = (price) => Math.floor(price);
-//   const getPriceDecimal = (price) => Math.round((price % 1) * 100);
 const getDeliveryDate = () => "Tomorrow";
-
-const closeDialog = () => {
-  emit("update:selectedItem", null);
-};
-
-const viewDetails = (item) => {
-  console.log("View details:", item);
-};
 
 const increase = () => {
   quantity.value++;
@@ -641,28 +614,7 @@ const validateQuantity = (event) => {
   event.target.value = val;
   quantity.value = val;
 };
-// Select a different channel
-// const selectChannel = (channel) => {
-//   console.log("Selected channel.......:", channel);
-//   emit("update:selectedItem", channel);
-//   carouselIndex.value = 0; // Reset carousel index if needed
-// };
-// const channel = computed(() => props.selectedItem || props.channels[0] || {});
-// const selectChannel = (channel) => {
-//   console.log("Selected channel:", channel);
-// };
-// ✅ Success toast with MDI + animation
-// const showSuccess = () => {
-//   toast.success('Product added successfully!', {
-//     description: 'Your stock was updated.',
-//     icon: h(VIcon, {
-//       icon: mdiCheckCircle,
-//       size: 28,
-//       color: 'green',
-//       class: 'animate-bounce',
-//     }),
-//   })
-// }
+
 const showSuccess = () => {
   Swal.fire({
     icon: "success",
@@ -684,10 +636,7 @@ const showSuccess = () => {
   cursor: pointer;
 }
 
-/* Thumbnail active state */
-.thumbnail-active {
-  border: 2px solid green;
-}
+
 
 /* Circle icon hover effect */
 .v-sheet.cursor-pointer:hover {

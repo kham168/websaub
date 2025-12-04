@@ -2,15 +2,9 @@
   <v-app fluid>
     <!-- Top Auto Carousel -->
     <v-container class="pa-4 bg-grey-lighten-3">
-      <v-carousel
-        cycle
-        show-arrows
-        hide-delimiters
-        interval="4000"
-        height="300"
-      >
+      <v-carousel cycle show-arrows hide-delimiters interval="4000">
         <v-carousel-item
-          v-for="(item, index) in allChannels.slice(0, 5)"
+          v-for="(item, index) in allbrandMuagAv.slice(0, 5)"
           :key="`carousel-${item.id || index}`"
         >
           <v-img
@@ -18,29 +12,107 @@
             class="fill-height"
             cover
           >
-            <template v-slot:default>
-              <v-sheet
-                class="d-flex align-center justify-center"
-                color="rgba(0,0,0,0.4)"
-                height="100%"
-              >
-                <h2 class="text-white text-h4 text-center px-4">
-                  {{ item.productname || "Product" }}
-                </h2>
-              </v-sheet>
-            </template>
           </v-img>
         </v-carousel-item>
       </v-carousel>
     </v-container>
 
     <v-divider class="my-4"></v-divider>
+    <v-container class="pa-4">
+      <v-row justify="center">
+        <v-col cols="12" md="10" lg="8">
+          <!-- Search Bar -->
+          <v-text-field
+            v-model="searchQuery"
+            placeholder="Search by name, type, location..."
+            variant="outlined"
+            density="comfortable"
+            prepend-inner-icon="mdi-magnify"
+            clearable
+            hide-details
+            class="search-field mb-3"
+          >
+            <template #append>
+              <v-btn
+                color="primary"
+                size="large"
+                @click="handleSearch"
+                class="text-none"
+              >
+                <v-icon class="mr-1">mdi-magnify</v-icon>
+                Search
+              </v-btn>
+            </template>
+          </v-text-field>
 
+          <!-- Location Filters -->
+          <v-row class="mt-2">
+            <v-col cols="12" sm="4">
+              <v-select
+                v-model="selectedProvince"
+                :items="provinces"
+                label="Select Province"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-map-marker"
+                clearable
+                hide-details
+                @update:model-value="onProvinceChange"
+              ></v-select>
+            </v-col>
+
+            <v-col cols="12" sm="4">
+              <v-select
+                v-model="selectedDistrict"
+                :items="districts"
+                label="Select District"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-map-marker-outline"
+                clearable
+                hide-details
+                :disabled="!selectedProvince"
+                @update:model-value="onDistrictChange"
+              ></v-select>
+            </v-col>
+
+            <v-col cols="12" sm="4">
+              <v-select
+                v-model="selectedVillage"
+                :items="villages"
+                label="Select Village"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-home-map-marker"
+                clearable
+                hide-details
+                :disabled="!selectedDistrict"
+              ></v-select>
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
+    </v-container>
+    <!-- Loading State -->
+    <v-row v-if="loading" class="text-center py-16">
+      <v-col cols="12">
+        <v-progress-circular indeterminate color="primary" size="64" />
+        <p class="mt-4 text-h6">ກຳລັງໂຫລດ...</p>
+      </v-col>
+    </v-row>
+
+    <!-- Error State -->
+    <v-row v-else-if="error" class="text-center py-16">
+      <v-col cols="12">
+        <v-icon size="64" color="error">mdi-alert-circle</v-icon>
+        <p class="mt-4 text-h6 text-error">{{ error }}</p>
+      </v-col>
+    </v-row>
     <!-- Product Grid -->
     <v-container fluid class="pa-4">
       <v-row>
         <v-col
-          v-for="(item, index) in allChannels"
+          v-for="(item, index) in allbrandMuagAv"
           :key="`product-${item.id || index}`"
           cols="12"
           sm="6"
@@ -115,6 +187,39 @@
         </v-col>
       </v-row>
     </v-container>
+    <v-divider class="my-4"> </v-divider>
+    <v-row>
+      <v-col cols="1" class="d-flex align-end justify-end mb-1">
+        <v-icon color="primary">mdi-plus-circle</v-icon>
+        <!-- <h1 class="font-weight-bold mb-4 text-center">ແນະນຳເບຣນດອື່ນๆ</h1> -->
+      </v-col>
+      <v-col cols="11" class="d-flex align-start justify-start text-h5">
+        ແນະນຳເບຣນດອື່ນๆ
+      </v-col>
+    </v-row>
+    <v-divider class="my-4"></v-divider>
+    <v-container class="pa-4 bg-grey-lighten-3">
+      <v-carousel
+        cycle
+        show-arrows
+        hide-delimiters
+        interval="3000"
+        width="90px"
+        height="300px"
+      >
+        <v-carousel-item v-for="(item, index) in topData" :key="index">
+          <v-img
+            :src="item.image[0] || '/placeholder.jpg'"
+            class="fill-height"
+            cover
+          >
+          </v-img>
+        </v-carousel-item>
+      </v-carousel>
+    </v-container>
+    <v-divider class="my-4"></v-divider>
+    <!-- =============== Show Top Product and TopData  ================ -->
+    <TopDataCard :topData="topData" />
 
     <!-- Image Dialog -->
     <v-dialog v-model="showDialog" max-width="700px">
@@ -223,7 +328,6 @@
                   <!-- <v-chip size="small" color="primary" class="ml-2">
                   
                   </v-chip> -->
-                 
                 </div>
               </v-col>
               <v-col cols="12" sm="4">
@@ -232,7 +336,6 @@
                   <span class="ml-2 text-red font-weight-bold">
                     {{ detailItem.totalroom || "-" }}
                   </span>
-                 
                 </div>
               </v-col>
               <v-col cols="12" sm="4">
@@ -241,7 +344,6 @@
                   <span class="ml-2 text-red font-weight-bold">
                     {{ detailItem.squaremeters || "no detail" }}
                   </span>
-                
                 </div>
               </v-col>
               <v-col cols="12" sm="6">
@@ -374,7 +476,8 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-const { allChannels, fetchBrandMuagAv } = useBrandMuagAv();
+const { fetchBrandMuagAv, topData, loading, error, allbrandMuagAv } =
+  useBrandMuagAv();
 const showDialog = ref(false);
 const selectedImages = ref([]);
 const currentIndex = ref(0);

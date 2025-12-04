@@ -3,23 +3,12 @@
     <!-- Top Auto Carousel -->
     <v-container class="pa-4 bg-grey-lighten-3">
       <v-carousel cycle show-arrows hide-delimiters interval="4000">
-        <v-carousel-item v-for="(item, index) in allDormitories" :key="index">
+        <v-carousel-item v-for="(item, index) in allHoobXauj" :key="index">
           <v-img
             :src="item.image[0] || '/placeholder.jpg'"
             class="fill-height"
             cover
           >
-            <template v-slot:default>
-              <v-sheet
-                class="d-flex align-center justify-center"
-                color="rgba(0,0,0,0.4)"
-                height="100%"
-              >
-                <h2 class="text-white text-h4 text-center px-4">
-                  {{ item.title || item.channel }}
-                </h2>
-              </v-sheet>
-            </template>
           </v-img>
         </v-carousel-item>
       </v-carousel>
@@ -101,12 +90,27 @@
       </v-row>
     </v-container>
 
+    <!-- Loading State -->
+    <v-row v-if="loading" class="text-center py-16">
+      <v-col cols="12">
+        <v-progress-circular indeterminate color="primary" size="64" />
+        <p class="mt-4 text-h6">ກຳລັງໂຫລດ...</p>
+      </v-col>
+    </v-row>
+
+    <!-- Error State -->
+    <v-row v-else-if="error" class="text-center py-16">
+      <v-col cols="12">
+        <v-icon size="64" color="error">mdi-alert-circle</v-icon>
+        <p class="mt-4 text-h6 text-error">{{ error }}</p>
+      </v-col>
+    </v-row>
     <!-- show all brand -->
     <v-container fluid class="pa-4">
       <!-- Product Grid -->
       <v-row>
         <v-col
-          v-for="(item, index) in allDormitories"
+          v-for="(item, index) in allHoobXauj"
           :key="index"
           cols="12"
           sm="6"
@@ -132,33 +136,27 @@
                 <v-icon size="small" class="mr-1">mdi-camera</v-icon>
                 {{ item.image.length }}
               </div>
-
-              <!-- Best Seller Badge -->
-              <div v-if="item.isBestSeller" class="best-seller-badge">
-                #1 Best Seller
-              </div>
             </div>
 
             <!-- Product Info -->
             <v-card-text class="flex-grow-1 pa-3">
+              <div class="text-caption mb-1 font-weight-medium">
+                {{ item.dormantalname }}
+              </div>
               <!-- Price Section -->
               <div class="mb-2">
                 <div class="d-flex align-center">
-                  <span class="text-red text-decoration-line-through mr-2">
-                    LAK {{ formatPrice(item.price2) }}
+                  <span class="text-red">LAK</span>
+                  <span class="text-h6 ml-1">
+                    {{ formatPrice(item.price2) }}
                   </span>
-                  <span class="font-weight-bold">
-                    LAK {{ formatPrice(item.price1) }}
-                  </span>
-                </div>
-                <div>
-                  Tsev:<span class="text-red ml-1">{{ item.type || "-" }}</span>
-                </div>
-                <div>
-                  Muaj:<span class="text-red ml-1"
-                    >{{ item.totalroom || "-" }}
+                  <span
+                    class="text-body-3 align-self-start text-decoration-line-through text-grey-darken-1"
+                  >
+                    {{ formatPrice(item.price1) }}
                   </span>
                 </div>
+
                 <div>
                   <v-icon icon color="grey"> mdi-map-marker</v-icon>
                   <span>{{ item.province }},</span>
@@ -182,7 +180,39 @@
         </v-col>
       </v-row>
     </v-container>
-
+    <!-- ================ Show Top Product and slider  ================ -->
+    <v-divider class="my-4"></v-divider>
+    <v-row>
+      <v-col cols="1" class="d-flex align-end justify-end mb-1">
+        <v-icon color="primary">mdi-plus-circle</v-icon>
+      </v-col>
+      <v-col cols="11" class="d-flex align-start justify-start text-h5">
+        ແນະນຳເບຣນດອື່ນๆ
+      </v-col>
+    </v-row>
+    <v-divider class="my-4"></v-divider>
+    <v-container class="pa-4 bg-grey-lighten-3">
+      <v-carousel
+        cycle
+        show-arrows
+        hide-delimiters
+        interval="3000"
+        width="90px"
+        height="300px"
+      >
+        <v-carousel-item v-for="(item, index) in topData" :key="index">
+          <v-img
+            :src="item.image[0] || '/placeholder.jpg'"
+            class="fill-height"
+            cover
+          >
+          </v-img>
+        </v-carousel-item>
+      </v-carousel>
+    </v-container>
+    <v-divider class="my-4"></v-divider>
+    <!-- =============== Show Top Product and TopData  ================ -->
+    <TopDataCard :topData="topData" />
     <!-- Image Dialog -->
     <v-dialog v-model="showDialog" max-width="700px">
       <v-card class="rounded-xl overflow-hidden pa-4">
@@ -427,25 +457,8 @@
 <script setup>
 import { ref, onMounted } from "vue";
 
-const {
-  allDormitories,
-  loading,
-  error,
-  pagination,
-  topData,
-  fetchHoobXauj,
-  fetchDormitories,
-  fetchTopData,
-  fetchPropertyById,
-  filterByProvince,
-  filterByDistrict,
-  filterByVillages,
-  filterByPriceRange,
-  filterByType,
-  searchProperties,
-  fetchAvailableProperties,
-  setSelectedHoobXauj,
-} = useHoobXauj();
+const { allHoobXauj, loading, error, pagination, topData, fetchHoobXauj } =
+  useHoobXauj();
 
 const selectedItem = ref(null);
 
@@ -480,7 +493,7 @@ function showDetailsDialog(item) {
 onMounted(async () => {
   try {
     await fetchHoobXauj();
-    console.log("Hoob Xauj fetched:", allDormitories.value);
+    console.log("Hoob Xauj fetched:", allHoobXauj.value);
   } catch (err) {
     console.error("Error fetching data:", err);
   }

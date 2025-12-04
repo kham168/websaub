@@ -1,51 +1,24 @@
 <template>
   <v-app>
-    <v-container fluid class="pa-0">
-      <!-- Hero Carousel -->
+    <v-container fluid class="pa-2 pl-16 pr-16">
       <v-carousel
         cycle
         show-arrows
         hide-delimiters
-        interval="4000"
+        interval="2000"
         height="500"
         class="hero-carousel"
       >
         <v-carousel-item
-          v-for="(item, index) in channels"
+          v-for="(img, index) in profileImageitems[0]?.image"
           :key="index"
-          @click="viewDetails(item)"
-          class="carousel-item"
         >
           <v-img
-            :src="item.image[0] || '/placeholder.jpg'"
+            :src="img"
             height="500"
             cover
             gradient="to bottom, rgba(0,0,0,.2), rgba(0,0,0,.7)"
-          >
-            <v-container class="fill-height">
-              <v-row align="end" class="fill-height pa-6">
-                <v-col cols="12">
-                  <div class="text-center">
-                    <h1 class="text-white text-h3 font-weight-bold mb-3">
-                      {{ item.channel }}
-                    </h1>
-                    <p v-if="item.title" class="text-white text-h6 mb-4">
-                      {{ item.title }}
-                    </p>
-                    <v-btn
-                      color="white"
-                      variant="flat"
-                      size="large"
-                      @click.stop="navigateToProduct(index)"
-                      prepend-icon="mdi-arrow-right"
-                    >
-                      ເບິ່ງລາຍການ
-                    </v-btn>
-                  </div>
-                </v-col>
-              </v-row>
-            </v-container>
-          </v-img>
+          />
         </v-carousel-item>
       </v-carousel>
     </v-container>
@@ -58,7 +31,37 @@
         <h2 class="text-h3 font-weight-bold mb-3">ບໍລິການຂອງພວກເຮົາ</h2>
         <p class="text-h6 text-grey-darken-1">ເລືອກບໍລິການທີ່ທ່ານຕ້ອງການ</p>
       </div>
-
+      <!-- <NuxtLink to="/admin">Admin Page</NuxtLink> -->
+      <v-container class="pa-4">
+        <v-row justify="center">
+          <v-col cols="12" md="10" lg="8">
+            <!-- Search Bar -->
+            <v-text-field
+              v-model="searchQuery"
+              placeholder="Search by name, type,..."
+              variant="outlined"
+              density="comfortable"
+              prepend-inner-icon="mdi-magnify"
+              clearable
+              hide-details
+              class="search-field mb-3"
+            >
+              <template #append>
+                <v-btn
+                  color="primary"
+                  size="large"
+                  @click="handleSearch"
+                  class="text-none"
+                >
+                  <v-icon class="mr-1">mdi-magnify</v-icon>
+                  Search
+                </v-btn>
+              </template>
+            </v-text-field>
+          </v-col>
+        </v-row>
+      </v-container>
+      <v-divider class="my-4"></v-divider>
       <!-- Loading State -->
       <v-row v-if="loading" class="text-center py-16">
         <v-col cols="12">
@@ -90,7 +93,8 @@
             class="category-card"
             elevation="2"
             hover
-            @click="navigateToProduct(index)"
+            @click="navigateToProduct(item.channel)"
+            @click.stop="navigateToProduct(item)"
           >
             <!-- Image -->
             <div class="image-wrapper">
@@ -116,16 +120,14 @@
             <!-- Content -->
             <v-card-text class="pa-4">
               <!-- Channel Name -->
-              <h3 class="text-h6 font-weight-bold mb-2 channel-name">
+              <h3 class="text-h6 font-weight-bold channel-name">
                 {{ item.channel }}
               </h3>
 
               <!-- Title/Description -->
-              <p v-if="item.title" class="text-body-2 text-grey-darken-1 mb-3">
+              <p v-if="item.title" class="text-body-2 text-grey-darken-1 mb-1">
                 {{ item.detail }}
               </p>
-
-              <!-- Rating -->
             </v-card-text>
 
             <!-- Actions -->
@@ -134,7 +136,6 @@
                 block
                 color="primary"
                 variant="flat"
-                @click.stop="navigateToProduct(index)"
                 prepend-icon="mdi-arrow-right-circle"
               >
                 ເບິ່ງລາຍລະອຽດ
@@ -155,55 +156,35 @@ const router = useRouter();
 
 // Composable
 const { channels, fetchChannels, loading, error } = useChannel();
+const { fetchProfileImages, profileImageitems } = useProfileImage();
 
 onMounted(async () => {
   await fetchChannels();
+
   console.log("Channels loaded:", channels.value);
+  await fetchProfileImages();
+  console.log("Profile images loaded:", profileImageitems.value);
 });
 
-// Navigation function with FIXED routes
-const navigateToProduct = (index) => {
-  const routes = [
-    "/muag_cream/home_muagcreams",
-    "/hoob_xauj/home_hoobXauj",
-    "/tsev_xauj/home_tsevXauj",
-    "/muag_alaij_khoTsheb/home_alaij",
-    "/muag_av/home_muagav",
-    "/muag_tshuaj/home_muagtshuaj",
-    "/taxi/home_taxi",
-  ];
+const routesMap = {
+  1: "/muag_cream/home_muagcreams",
+  2: "/hoob_xauj/home_hoobXauj",
+  3: "/tsev_xauj/home_tsevXauj",
+  4: "/muag_alaij_khoTsheb/home_alaij",
+  5: "/muag_av/home_muagav",
+  6: "/muag_tshuaj/home_muagtshuaj",
+  7: "/taxi/home_taxi",
+};
 
-  if (routes[index]) {
-    console.log("Navigating to:", routes[index]);
-    router.push(routes[index]);
+const navigateToProduct = (item) => {
+  const route = routesMap[item.id];
+
+  if (route) {
+    console.log("Navigating to:", route);
+    router.push(route);
   } else {
-    console.warn("No route found for index:", index);
+    console.warn("No matching route for id:", item.id);
   }
-};
-
-// View details (alternative navigation using item.path)
-const viewDetails = (item) => {
-  if (item.path) {
-    router.push(`/${item.path}`);
-  }
-};
-
-// Price helpers
-const getPriceWhole = (price) => {
-  return Math.floor(price || 0);
-};
-
-const getPriceDecimal = (price) => {
-  const decimal = ((price || 0) % 1).toFixed(2).substring(1);
-  return decimal;
-};
-
-// Delivery date helper
-const getDeliveryDate = () => {
-  const date = new Date();
-  date.setDate(date.getDate() + 3);
-  const options = { weekday: "short", month: "short", day: "numeric" };
-  return date.toLocaleDateString("lo-LA", options);
 };
 </script>
 
@@ -282,6 +263,7 @@ const getDeliveryDate = () => {
 .category-card:hover .channel-name {
   color: #1565c0;
 }
+
 /* Responsive */
 @media (max-width: 600px) {
   .category-card {

@@ -3,7 +3,7 @@
     <!-- Top Auto Carousel -->
     <v-container class="pa-4 bg-grey-lighten-3">
       <v-carousel cycle show-arrows hide-delimiters interval="4000">
-        <v-carousel-item v-for="(item, index) in khoTshebData" :key="index">
+        <v-carousel-item v-for="(item, index) in allkhoTshebData" :key="index">
           <v-img
             :src="item.image[0] || '/placeholder.jpg'"
             class="fill-height"
@@ -12,7 +12,6 @@
         </v-carousel-item>
       </v-carousel>
     </v-container>
-
     <v-divider class="my-4" />
     <v-container class="pa-4">
       <v-row justify="center">
@@ -89,12 +88,26 @@
         </v-col>
       </v-row>
     </v-container>
+    <!-- Loading State -->
+    <v-row v-if="loading" class="text-center py-16">
+      <v-col cols="12">
+        <v-progress-circular indeterminate color="primary" size="64" />
+        <p class="mt-4 text-h6">ກຳລັງໂຫລດ...</p>
+      </v-col>
+    </v-row>
 
+    <!-- Error State -->
+    <v-row v-else-if="error" class="text-center py-16">
+      <v-col cols="12">
+        <v-icon size="64" color="error">mdi-alert-circle</v-icon>
+        <p class="mt-4 text-h6 text-error">{{ error }}</p>
+      </v-col>
+    </v-row>
     <!-- Product Grid -->
     <v-container fluid class="pa-4">
       <v-row>
         <v-col
-          v-for="(item, index) in khoTshebData"
+          v-for="(item, index) in allkhoTshebData"
           :key="index"
           cols="12"
           sm="6"
@@ -132,33 +145,27 @@
               <div class="text-primary font-weight-medium">
                 {{ item.type }}
               </div>
-              <div>{{ item.detail }}</div>
-
-              <div class="d-flex text-h6 mt-2">
-                <span
-                  v-if="item.Price2"
-                  class="text-red text-decoration-line-through mr-2"
-                >
-                  LAK {{ formatPrice(item.Price2) }}
-                </span>
-                <span class="font-weight-bold">
-                  LAK {{ formatPrice(item.Price1) }}
-                </span>
+              <div class="mb-2">
+                <div class="d-flex align-center">
+                  <span class="text-red">LAK</span>
+                  <span class="text-h6 ml-1">{{
+                    formatPrice(item.price2)
+                  }}</span>
+                  <span
+                    class="text-body-3 align-self-start text-decoration-line-through text-grey-darken-1"
+                    >{{ formatPrice(item.price1) }}</span
+                  >
+                </div>
               </div>
-
               <div class="d-flex align-center mt-2">
                 <v-icon color="grey">mdi-phone</v-icon>
                 <span class="font-weight-bold text-blue ml-2">
                   {{ item.tel }}
                 </span>
               </div>
-
-              <div class="text-caption text-grey-darken-2 mb-1">
-                Get it as soon as <strong>{{ getDeliveryDate() }}</strong>
-              </div>
+              <div class="ml-6 mt-1">{{ item.detail }}</div>
             </v-card-text>
-
-            <!-- Product Info - When locationgps has value (hide price, show location) -->
+            <!-- ========== Product Info - When locationgps has value (hide price, show location) ========== -->
             <v-card-text class="flex-grow-1" v-else>
               <div class="text-primary text-h6 font-weight-medium">
                 {{ item.name }}
@@ -166,7 +173,6 @@
               <div class="text-primary font-weight-medium">
                 {{ item.type }}
               </div>
-              <div>{{ item.detail }}</div>
 
               <div class="d-flex align-center mt-2">
                 <v-icon color="grey">mdi-phone</v-icon>
@@ -180,158 +186,138 @@
                   {{ item.locationgps }}
                 </span>
               </div>
-
-              <div class="text-caption text-grey-darken-2 mb-1">
-                Get it as soon as <strong>{{ getDeliveryDate() }}</strong>
-              </div>
+              <div class="ml-6 mt-1">{{ item.detail }}</div>
             </v-card-text>
 
-            <!-- Button: View Gallery -->
-            <v-card-actions class="pa-3 pt-0">
-              <v-btn
-                block
-                color="primary"
-                variant="outlined"
-                class="text-none font-weight-medium"
-                size="small"
-                @click.stop="selectItems(item)"
-              >
-                <v-icon size="small" class="mr-1">mdi-eye</v-icon>
-                View Gallery
-              </v-btn>
-            </v-card-actions>
+            <v-container class="pa-3 pt-0">
+              <v-row dense class="d-flex flex-column ga-2">
+                <!-- ADD TO CART -->
+                <v-col cols="12" class="w-50" v-if="!item.locationgps">
+                  <div v-if="getProductQty(item.id) === 0">
+                    <v-btn
+                      block
+                      color="success"
+                      class="text-none font-weight-bold"
+                      size="large"
+                      @click.stop="addToCart(item)"
+                      rounded="lg"
+                      elevation="2"
+                    >
+                      <v-icon class="mr-2">mdi-cart-plus</v-icon>
+                      Add to Cart
+                    </v-btn>
+                  </div>
+
+                  <!-- QTY CONTROLS -->
+                  <div v-else>
+                    <div
+                      class="quantity-wrapper-small bg-green"
+                      style="
+                        border: 1px solid green;
+                        border-radius: 50px;
+                        padding: 4px;
+                      "
+                    >
+                      <v-btn
+                        icon
+                        size="small"
+                        color="primary"
+                        class="qty-btn-small"
+                        @click.stop="decrementQty(item.id)"
+                      >
+                        <v-icon size="16" color="red">mdi-minus</v-icon>
+                      </v-btn>
+
+                      <span
+                        class="qty-display-small bg-green text-white"
+                        style="border-radius: 6px; padding: 2px 6px"
+                      >
+                        {{ getProductQty(item.id) }}
+                      </span>
+
+                      <v-btn
+                        icon
+                        size="small"
+                        color="primary"
+                        class="qty-btn-small"
+                        @click.stop="incrementQty(item.id)"
+                      >
+                        <v-icon size="16" color="green">mdi-plus</v-icon>
+                      </v-btn>
+                    </div>
+                  </div>
+                </v-col>
+
+                <!-- VIEW DETAILS BUTTON -->
+                <v-col cols="12">
+                  <v-container
+                    class="d-flex justify-end pa-0"
+                    @click.stop="selectItems(item)"
+                  >
+                    <v-span
+                      style="cursor: pointer; text-decoration: underline"
+                      class="text-blue"
+                    >
+                      Show More Details</v-span
+                    >
+                  </v-container>
+                </v-col>
+              </v-row>
+            </v-container>
           </v-card>
         </v-col>
       </v-row>
     </v-container>
+    <!-- ================ Show Top Product and slider  ================ -->
+    <v-divider class="my-4"></v-divider>
+    <v-row>
+      <v-col cols="1" class="d-flex align-end justify-end mb-1">
+        <v-icon color="primary">mdi-plus-circle</v-icon>
+        <!-- <h1 class="font-weight-bold mb-4 text-center">ແນະນຳເບຣນດອື່ນๆ</h1> -->
+      </v-col>
+      <v-col cols="11" class="d-flex align-start justify-start text-h5">
+        ແນະນຳເບຣນດອື່ນๆ
+      </v-col>
+    </v-row>
+    <v-divider class="my-4"></v-divider>
+    <v-container class="pa-4 bg-grey-lighten-3">
+      <v-carousel
+        cycle
+        show-arrows
+        hide-delimiters
+        interval="3000"
+        width="90px"
+        height="300px"
+      >
+        <v-carousel-item v-for="(item, index) in topData" :key="index">
+          <v-img
+            :src="item.image[0] || '/placeholder.jpg'"
+            class="fill-height"
+            cover
+          >
+          </v-img>
+        </v-carousel-item>
+      </v-carousel>
+    </v-container>
+    <v-divider class="my-4"></v-divider>
+
+    <!-- =============== Show Top Product and TopData  ================ -->
+    <TopDataCard :topData="topData" />
 
     <!-- ✅ Conditional rendering based on locationgps -->
     <KhoTshebComponemt
       v-if="locationgps === null"
       :selected-item="selectedItems"
-      :channels="khoTshebData"
+      :channels="allkhoTshebData"
       @update:selected-item="selectedItems = $event"
     />
 
-    <!-- Full old v-dialog restored -->
-    <v-dialog v-else v-model="showDetails" max-width="800px">
-      <v-card>
-        <v-card-title
-          class="d-flex justify-space-between align-center bg-primary"
-        >
-          <span class="text-h5 text-white">Property Details</span>
-          <v-btn icon variant="text" @click="showDetails = false">
-            <v-icon color="white">mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
-
-        <v-card-text class="pa-6" v-if="detailItem">
-          <!-- Image Gallery -->
-          <div class="mb-4">
-            <v-carousel
-              v-if="detailItem.image && detailItem.image.length > 0"
-              height="300"
-              cycle
-              interval="3000"
-              show-arrows
-            >
-              <v-carousel-item
-                v-for="(img, index) in detailItem.image"
-                :key="index"
-              >
-                <v-img :src="img" height="300" cover></v-img>
-              </v-carousel-item>
-            </v-carousel>
-          </div>
-
-          <!-- Price Information - Hidden when locationgps is not null -->
-
-          <!-- Property Information -->
-          <v-card class="mb-4 pa-4" elevation="1">
-            <h3 class="mb-3">Property Information</h3>
-            <v-row>
-              <v-col cols="12" sm="6">
-                <div class="mb-1">
-                  <strong>Type:</strong>
-                  <v-chip size="small" color="primary" class="ml-2">
-                    {{ detailItem.type || "-" }}
-                  </v-chip>
-                </div>
-              </v-col>
-              <!-- <v-col cols="12" sm="6">
-                <div class="mb-1">
-                  <strong>Total Rooms:</strong>
-                  <span class="ml-2 text-red font-weight-bold">
-                    {{ detailItem.totalroom || "-" }}
-                  </span>
-                </div>
-              </v-col> -->
-              <v-col cols="12" sm="12">
-                <div class="mb-0">
-                  <strong>Details:</strong>
-                  <v-divider></v-divider>
-                  <div>
-                    <span class="ml-2 text-red font-weight-bold">
-                      {{ detailItem.detail }}
-                    </span>
-                  </div>
-                </div>
-              </v-col>
-              <v-col cols="12" v-if="detailItem.name">
-                <div class="mb-2">
-                  <strong>Title:</strong>
-                  <span class="ml-2">{{ detailItem.name }}</span>
-                </div>
-              </v-col>
-            </v-row>
-          </v-card>
-
-          <!-- Location Information -->
-          <v-card class="mb-4 pa-4" elevation="1">
-            <h3 class="mb-3">
-              <v-icon color="primary" class="mr-2">mdi-map-marker</v-icon>
-              Location
-            </h3>
-            <v-row>
-              <v-col cols="12">
-                <div class="mb-2">
-                  <strong>GPS Location:</strong>
-                  <div class="mt-1">{{ detailItem.locationgps || "N/A" }}</div>
-                </div>
-              </v-col>
-            </v-row>
-          </v-card>
-
-          <!-- Contact Information -->
-          <v-card class="mb-4 pa-4 bg-blue-lighten-5" elevation="1">
-            <h3 class="mb-3">
-              <v-icon color="primary" class="mr-2">mdi-phone</v-icon>
-              Contact Information
-            </h3>
-            <v-row>
-              <v-col cols="12">
-                <div class="mb-2">
-                  <a
-                    :href="'tel:' + detailItem.tel"
-                    class="ml-2 text-blue text-decoration-none"
-                  >
-                    <v-icon size="small" class="mr-1">mdi-phone</v-icon>
-                    {{ detailItem.tel }}
-                  </a>
-                </div>
-              </v-col>
-            </v-row>
-          </v-card>
-        </v-card-text>
-
-        <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn color="primary" variant="flat" @click="showDetails = false">
-            Close
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <!-- ✅ Detail Dialog Component KhoTsheb locationgps -->
+    <DialogShowDetailKhoTsheb
+      :detail-item="detailItem"
+      :show-details="showDetails"
+      @update:show-details="showDetails = $event"
+    />
   </v-app>
 </template>
 
@@ -339,15 +325,88 @@
 import { ref, onMounted } from "vue";
 import KhoTshebComponemt from "~/components/KhoTshebComponemt.vue";
 
-const { khoTshebData, fetchKhoTsheb } = useKhoTsheb();
+const {
+  khoTshebData,
+  fetchKhoTsheb,
+  allkhoTshebData,
+  topData,
+  pagination,
+  loading,
+  error,
+} = useKhoTsheb();
 const selectedItems = ref(null);
 const locationgps = ref(null);
 const showDetails = ref(false);
 const detailItem = ref(null);
 
+const store = useProductSellStore();
+const getProductQty = (productId) => {
+  const cartItem = store.cartItems?.find((item) => item.id === productId);
+  return cartItem ? cartItem.quantity || 0 : 0;
+};
+const incrementQty = (productId) => {
+  const cartItem = store.cartItems?.find((item) => item.id === productId);
+  if (!cartItem) {
+    return;
+  }
+
+  const product = allkhoTshebData.value?.find((p) => p.id === productId);
+  if (!product) {
+    return;
+  }
+
+  console.log("Current qty:", cartItem.quantity);
+
+  const newQty = (cartItem.quantity || 0) + 1;
+
+  let price = 0;
+  if (product.price2 !== 0 && product.price2 !== null) {
+    price = product.price2;
+  } else {
+    price = product.price1;
+  }
+
+  const updatedItem = {
+    ...cartItem,
+    quantity: newQty,
+    price: price,
+  };
+
+  store.updateCart(updatedItem);
+};
+const decrementQty = (productId) => {
+  const cartItem = store.cartItems?.find((item) => item.id === productId);
+  if (!cartItem) {
+    return;
+  }
+
+  if (cartItem.quantity > 1) {
+    const product = allkhoTshebData.value?.find((p) => p.id === productId);
+    const newQty = cartItem.quantity - 1;
+
+    let price = 0;
+    if (product && product.price2 !== 0 && product.price2 !== null) {
+      price = product.price2;
+    } else if (product) {
+      price = product.price1;
+    }
+    console.log("Current qty111:", newQty);
+
+    const updatedItem = {
+      ...cartItem,
+      quantity: newQty,
+      price: price,
+    };
+
+    store.updateCart(updatedItem);
+  } else {
+    store.removeFromCart(productId);
+  }
+};
 onMounted(async () => {
   await fetchKhoTsheb();
-  console.log("Kho Tsheb fetched:", khoTshebData.value);
+  console.log("Kho Tsheb fetched:", allkhoTshebData.value);
+  console.log("Cart items:", store.cartItems?.length || 0);
 });
 
 const selectItems = (item) => {
@@ -368,20 +427,6 @@ const selectItems = (item) => {
   }
 
   window.scrollTo({ top: 0, behavior: "smooth" });
-};
-
-function formatPrice(price) {
-  if (!price) return "0";
-  return Number(price).toLocaleString("en-US", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
-}
-
-const getDeliveryDate = () => {
-  const date = new Date();
-  const options = { weekday: "short", month: "short", day: "numeric" };
-  return date.toLocaleDateString("en-US", options);
 };
 
 // Search and Filter states
@@ -494,12 +539,6 @@ function handleSearch() {
   const village = selectedVillage.value;
   const query = searchQuery.value.trim().toLowerCase();
 
-  // Example Search Logic
-  console.log("Search Query:", query);
-  console.log("Province:", province);
-  console.log("District:", district);
-  console.log("Village:", village);
-
   if (!query && !province && !district && !village) {
     alert("Please enter a search query or select a location!");
     return;
@@ -512,6 +551,27 @@ function handleSearch() {
     }`
   );
 }
+
+// ------ End Search Handler -----
+
+const addToCart = (product) => {
+  let price = 0;
+  if (product.price2 !== 0 && product.price2 !== null) {
+    price = product.price2;
+  } else {
+    price = product.price1;
+  }
+
+  const cartItem = {
+    ...product,
+    quantity: 1,
+    unit: "ອັນ",
+    price: price,
+    // qrimage: qrimage.value,
+  };
+
+  store.addToCart(cartItem);
+};
 </script>
 
 <style scoped>
@@ -551,5 +611,20 @@ function handleSearch() {
   font-size: 11px;
   font-weight: 600;
   border-radius: 4px;
+}
+/* ----- */
+.quantity-wrapper-small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.qty-btn-small {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  border-radius: 12px !important; /* box-style */
+  padding: 0 !important;
+  background-color: yellow !important;
 }
 </style>

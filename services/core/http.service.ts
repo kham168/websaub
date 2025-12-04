@@ -13,6 +13,7 @@ interface ApiResponse<T = any> {
   message?: string
   status: number
   success: boolean
+  result?:T
 }
 
 class HttpService {
@@ -74,6 +75,7 @@ class HttpService {
         message: data.message,
         status: response.status,
         success: true,
+        result: data,
       }
     } catch (error: any) {
       console.error('HTTP Request Error:', error)

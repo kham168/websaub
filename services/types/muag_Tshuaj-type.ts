@@ -1,23 +1,34 @@
-// types/muag_Tshuaj-type.ts
 
 export interface MuagTshuajItem {
     id: string
     name: string
-    Price1: string
-    Price2: string | null
-    Price3?: string | null
+    price1: string
+    price2: string | null
+    price3?: string | null
     tel: string
     detail: string
     donation: string
     image: string[]
     path?: string
   }
-  
-  export interface TopDataCategory {
-    Dormitory: MuagTshuajItem[]
-    House: MuagTshuajItem[]
-    Land: MuagTshuajItem[]
-    Taxi: MuagTshuajItem[]
+  export interface TopDataItem {
+    channelid: String;
+    id: string
+    name: string
+    price1: string
+    price2: string | null
+    price3: string | null
+    tel: string
+    detail: string
+    donation: string | null
+    image: string[]
+    path: string
+  }
+  export interface TopData {
+    Dormitory?: MuagTshuajItem[]
+    House?: MuagTshuajItem[]
+    Land?: MuagTshuajItem[]
+    Taxi?: MuagTshuajItem[]
   }
   
   export interface Pagination {
@@ -28,22 +39,19 @@ export interface MuagTshuajItem {
   }
   
   export interface MuagTshuajResponse {
+    rows: MuagTshuajItem[]
+    pagination: Pagination
+    topData?: TopData
+  }
+  export interface MuagTshuajApiResponse {
     status: boolean
     message: string
-    data: MuagTshuajItem[]
-    pagination: Pagination
-    topData: TopDataCategory
+    data: MuagTshuajResponse
+    topData?: TopData | null
+    
   }
-  
-  export interface MuagTshuajQuery {
-    page?: number
-    limit?: number
-  }
-  
-  export interface MuagTshuajState {
-    items: MuagTshuajItem[]
-    topData: TopDataCategory | null
+  export interface MuagTshuajServiceResponse {
+    topData: TopData | null | any
     pagination: Pagination | null
-    loading: boolean
-    error: string | null
+    data: MuagTshuajItem[]
   }
