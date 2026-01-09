@@ -1,17 +1,25 @@
 <template>
   <v-app>
     <v-container class="pa-4 bg-grey-lighten-3">
+    
       <v-carousel cycle show-arrows hide-delimiters interval="4000">
         <v-carousel-item
-          v-for="(item, index) in allDataMuagTshuaj"
+          v-for="(img, index) in channelimage || []"
           :key="index"
         >
           <v-img
-            :src="item.image?.[0] || '/placeholder.jpg'"
+            :src="img || '/placeholder.jpg'"
+            error-src="/placeholder.jpg"
             class="fill-height"
             cover
-          >
-          </v-img>
+          />
+        </v-carousel-item>
+
+        <!-- Fallback if channelimage is empty -->
+        <v-carousel-item
+          v-if="!(channelimage && channelimage.length)"
+        >
+          <v-img src="/placeholder.jpg" class="fill-height" cover />
         </v-carousel-item>
       </v-carousel>
     </v-container>
@@ -293,13 +301,22 @@
 </template>
 
 <script setup>
-const { fetchMuagTshuaj, topData, loading, error, allDataMuagTshuaj } =
-  useMuagTshuaj();
+const {
+  fetchMuagTshuaj,
+  topData,
+  loading,
+  error,
+  allDataMuagTshuaj,
+  channelData,
+  channelimage,
+  qr
+} = useMuagTshuaj();
 const store = useProductSellStore();
 const selectedItem = ref(null);
 
 onMounted(async () => {
   await fetchMuagTshuaj();
+  console.log("Muag Tshuaj Data:", channelData.value);
 });
 
 const selectItem = (item) => {
@@ -332,7 +349,8 @@ const addToCart = (product) => {
     quantity: 1,
     unit: "ອັນ",
     price: price,
-    // qrimage: qrimage.value,
+    qr: qr.value,
+    
   };
 
   store.addToCart(cartItem);

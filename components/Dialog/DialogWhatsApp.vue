@@ -22,6 +22,12 @@
         </div>
         <v-row dense>
           <v-col cols="12" sm="4">
+            <div class="text-caption text-grey-darken-2">Name of Customer</div>
+            <div class="text-body-2 font-weight-medium">
+              {{ checkoutData.custName }}
+            </div>
+          </v-col>
+          <v-col cols="12" sm="4">
             <div class="text-caption text-grey-darken-2">Phone Number</div>
             <div class="text-body-2 font-weight-medium">
               {{ checkoutData.phoneNumber }}
@@ -53,21 +59,32 @@
           </div> -->
       <div>
         <!-- Image that triggers the popup -->
+
+        <!-- {{ qr }} -->
         <v-img
-          :src="qrimage"
+          :src="store?.cartItems[0]?.qr??'/favicon.ico'"
           class="cursor-pointer"
           contain
           width="150"
           height="150"
           @click="dialog = true"
         ></v-img>
+        <!-- <v-img
+          v-if="props.qr"
+          :src="props.qr"
+          class="cursor-pointer"
+          contain
+          width="150"
+          height="150"
+          @click="dialog = true"
+        /> -->
 
         <!-- Popup dialog -->
         <v-dialog v-model="dialog" max-width="350">
           <v-card class="pa-0" elevation="2">
             <!-- <v-card-title class="text-h6">QR Code</v-card-title> -->
             <!-- <v-card-text class="text-center"> -->
-            <v-img :src="qrimage" contain></v-img>
+            <v-img :src="store.cartItems[0].qr" contain></v-img>
             <!-- </v-card-text> -->
             <!-- <v-card-actions class="justify-end">
                   <v-btn text @click="dialog = false">Close</v-btn>
@@ -100,7 +117,7 @@
               class="mb-3 product-preview-card"
               elevation="1"
             >
-              <div class="d-flex pa-3 ">
+              <div class="d-flex pa-3">
                 <v-img
                   :src="item.image?.[0] || ''"
                   width="70"
@@ -240,7 +257,8 @@
 <script setup>
 import Swal from "sweetalert2";
 import { ref, computed } from "vue";
-const { insertOrder,orderID } = useCustomerOrder();
+const { insertOrder, orderID } = useCustomerOrder();
+const store = useProductSellStore();
 
 // Props
 const props = defineProps({
@@ -264,7 +282,7 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
-  qrimage: {
+  qr: {
     type: String,
     default: "",
   },
@@ -287,7 +305,6 @@ const isOpen = computed({
   set: (value) => emit("update:modelValue", value),
 });
 
-
 const previewSlip = (tel) => {
   const file = slipUploads.value[tel];
   if (!file) {
@@ -305,6 +322,7 @@ const formatCartForWhatsAppGroup = (tel, items, orderID) => {
   let text = `Your Order — ${orderID}\n`;
 
   items.forEach((item) => {
+    // image.value = item.image?.[0];
     text += `\n${item.creamname || item.name}\n`;
     if (item.detail) text += `${item.detail}\n`;
     text += `Qty: ${item.quantity} ${item.unit || "ອັນ"}\n`;
@@ -331,41 +349,84 @@ const formatCartForWhatsAppGroup = (tel, items, orderID) => {
 };
 
 const sendToWhatsApp = async () => {
-  if(!slipUploads.value){
+  let response;
+
+  const channel=store.cartItems[0].channel;
+
+  try {
+    const firstSlip = Object.values(slipUploads.value).find(
+      (slip) => slip !== null && slip !== undefined
+    );
+    const slipPayload = firstSlip ? { file: firstSlip } : null;
+
+    response = await insertOrder(
+      props.checkoutData,
+      props.cartGroup,
+      slipPayload,
+      channel
+    );
+
+    if (!response || response.success !== true) {
+      Swal.fire({
+        icon: "error",
+        title: "Order Failed",
+        text: response?.message || "Failed to save order. Please try again.",
+      });
+      return;
+    }
+
+    await Swal.fire({
+      icon: "success",
+      title: "Order Created Successfully!",
+      text: `Order ID: ${orderID.value}`,
+      timer: 200,
+      showConfirmButton: false,
+    });
+
+    try {
+      for (const [tel, items] of Object.entries(props.cartGroup)) {
+        const message = formatCartForWhatsAppGroup(tel, items, orderID.value);
+        window.open(`https://wa.me/856${tel}?text=${message}`, "_blank");
+      }
+    } catch (whatsappError) {}
+
+    try {
+      store.clearCart();
+    } catch (clearError) {}
+
+    slipUploads.value = {};
+    slipPreview.value = {};
+
+    emit("send");
+
+    close();
+  } catch (error) {
     Swal.fire({
       icon: "error",
-      title: "Error",
-      text: "Please upload at least one payment slip before sending the order.",
-    })
-    return;
+      title: "Unexpected Error",
+      text: `${
+        error?.message || "An error occurred"
+      }. The order may have been saved.`,
+      confirmButtonText: "Close Dialog",
+    }).then(() => {
+      close();
+    });
   }
-  const responses = await insertOrder(
-    props.checkoutData,
-    props.cartGroup,
-    slipUploads.value
-  );
-
-  const allSuccess = responses.every(r => r && r.success === true);
-
-  if (!allSuccess) {
-    alert("Order failed to save. Please try again.");
-    return;
-  }
-
-  // After all orders saved successfully → Send WhatsApp
-  for (const [tel, items] of Object.entries(props.cartGroup)) {
-    const message = formatCartForWhatsAppGroup(tel, items,orderID.value);
-    window.open(`https://wa.me/856${tel}?text=${message}`, "_blank");
-  }
-
-  emit("send");
-  close();
 };
 
-
 const close = () => {
-  emit("close");
-  emit("update:modelValue", false);
+  console.log("🔵 Closing dialog");
+  try {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    emit("close");
+    emit("update:modelValue", false);
+    console.log("✅ Dialog closed successfully");
+  } catch (closeError) {
+    console.error("❌ Error closing dialog:", closeError);
+  }
 };
 </script>
 

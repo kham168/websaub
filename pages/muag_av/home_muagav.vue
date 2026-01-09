@@ -2,16 +2,18 @@
   <v-app fluid>
     <!-- Top Auto Carousel -->
     <v-container class="pa-4 bg-grey-lighten-3">
-      <v-carousel cycle show-arrows hide-delimiters interval="4000">
+      <v-carousel
+        cycle
+        show-arrows
+        v-model="carouselIndex"
+        hide-delimiters
+        interval="4000"
+      >
         <v-carousel-item
-          v-for="(item, index) in allbrandMuagAv.slice(0, 5)"
-          :key="`carousel-${item.id || index}`"
+          v-for="(img, index) in channelimage || []"
+          :key="`carousel-${index}`"
         >
-          <v-img
-            :src="item.image?.[0] || '/placeholder.jpg'"
-            class="fill-height"
-            cover
-          >
+          <v-img :src="img || '/placeholder.jpg'" class="fill-height" cover>
           </v-img>
         </v-carousel-item>
       </v-carousel>
@@ -476,13 +478,21 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-const { fetchBrandMuagAv, topData, loading, error, allbrandMuagAv } =
-  useBrandMuagAv();
+const {
+  fetchBrandMuagAv,
+  topData,
+  loading,
+  error,
+  allbrandMuagAv,
+  qr,
+  channelimage,
+} = useBrandMuagAv();
 const showDialog = ref(false);
 const selectedImages = ref([]);
 const currentIndex = ref(0);
 const showDetails = ref(false);
 const detailItem = ref(null);
+const carouselIndex = ref(0);
 
 function formatPrice(price) {
   if (!price) return "0";

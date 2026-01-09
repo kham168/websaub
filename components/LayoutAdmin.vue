@@ -345,7 +345,7 @@
                 prepend-icon="mdi-plus"
                 @click="showProductModal = true"
               >
-                Add New Product
+                ເພີ່ມສິນຄ້າ
               </v-btn>
             </v-col>
           </v-row>

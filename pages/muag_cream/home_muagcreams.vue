@@ -1,15 +1,22 @@
 <template>
   <v-app fluid>
     <v-container class="pa-4 bg-grey-lighten-3">
-      <v-carousel cycle show-arrows hide-delimiters interval="4000">
+      <v-carousel
+        v-model="carouselIndex"
+        cycle
+        show-arrows
+        hide-delimiters
+        interval="4000"
+      >
         <v-carousel-item
-          v-for="(item, index) in allCreams.slice(0, 5)"
-          :key="`carousel-${item.id || index}`"
+          v-for="(img, index) in channelimage || []"
+          :key="`carousel-${index}`"
         >
           <v-img
-            :src="item.image?.[0] || '/placeholder.jpg'"
+            :src="img || '/placeholder.jpg'"
             class="fill-height"
             cover
+            eager
           >
           </v-img>
         </v-carousel-item>
@@ -80,15 +87,15 @@
               <v-img
                 :src="item.image[0] || '/favicon.ico'"
                 aspect-ratio="1"
-                cover
+                contain
                 class="product-image"
                 height="200"
               />
 
-              <div v-if="item.image.length > 1" class="image-count-badge">
+              <!-- <div v-if="item.image.length > 1" class="image-count-badge mr-4">
                 <v-icon size="small" class="mr-1">mdi-camera</v-icon>
                 {{ item.image.length }}
-              </div>
+              </div> -->
 
               <div v-if="item.isBestSeller" class="best-seller-badge">
                 #1 Best Seller
@@ -101,18 +108,40 @@
                 {{ item.creamname }}
               </div>
 
-              <div class="mb-2">
+              <!-- <div class="mb-2">
                 <div class="d-flex align-center">
                   <span class="text-red">LAK</span>
                   <span class="text-h6 ml-1">{{
                     formatPrice(item.price2)
                   }}</span>
-                  <span
+                  <span 
+                  v-if="Number(item.price1) > 0"
                     class="text-body-3 align-self-start text-decoration-line-through text-grey-darken-1"
                     >{{ formatPrice(item.price1) }}</span
                   >
                 </div>
+              </div> -->
+              <div class="mb-2">
+                <div class="d-flex align-center">
+                  <span class="text-red">LAK</span>
+
+                  <!-- Main price -->
+                  <span
+                    class="text-h6 ml-1"
+                  >
+                    {{ formatPrice(item.price2) }}
+                  </span>
+
+                  <!-- Old price (show only if valid) -->
+                  <span
+                    v-if="Number(item.price1) > 0"
+                    class="text-body-3 align-self-start text-decoration-line-through text-grey-darken-1 ml-2"
+                  >
+                    {{ formatPrice(item.price1) }}
+                  </span>
+                </div>
               </div>
+
               <div class="text-caption text-primary mb-1 font-weight-medium">
                 {{ item.tel }}
               </div>
@@ -200,6 +229,17 @@
           </v-card>
         </v-col>
       </v-row>
+      <div class="text-center mt-10">
+        <v-btn
+          variant="text"
+          v-if="allCreams.length < totalItems"
+          color="primary"
+          :loading="loading1"
+          @click="loadMore"
+          class="font-weight-bold"
+          >Load More</v-btn
+        >
+      </div>
     </v-container>
     <!-- ================ Show Top Product and slider  ================ -->
     <v-divider class="my-4"></v-divider>
@@ -255,18 +295,24 @@ const {
   error,
   pagination,
   topData,
-  qrimage,
+  channelimage,
+  qr,
+  seeMore,
+  totalItems,
 } = useBrandCream();
 
 const selectedItem = ref(null);
 const searchQuery = ref("");
 const store = useProductSellStore();
+const currentPage = ref(0);
+const loading1 = ref(false);
 
 // Get product quantity from cart by ID
 const getProductQty = (productId) => {
   const cartItem = store.cartItems?.find((item) => item.id === productId);
   return cartItem ? cartItem.quantity || 0 : 0;
 };
+const carouselIndex = ref(0);
 
 // Select item for detail view
 const selectItem = (item) => {
@@ -277,10 +323,10 @@ const selectItem = (item) => {
 // Add to cart
 const addToCart = (product) => {
   let price = 0;
-  if (product.price2 !== 0 && product.price2 !== null) {
-    price = product.price2;
-  } else {
+  if (product.price1 !== 0 && product.price1 !== null) {
     price = product.price1;
+  } else {
+    price = product.price2;
   }
 
   const cartItem = {
@@ -288,9 +334,12 @@ const addToCart = (product) => {
     quantity: 1,
     unit: "ອັນ",
     price: price,
-    qrimage: qrimage.value,
+    qr: qr.value,
   };
-
+  console.log("cartItem---------->fgfdhgbfhbgj", qr.value);
+  // if (qr) {
+  //   console.warn("QR code not loaded yet!");
+  // }
   store.addToCart(cartItem);
 };
 
@@ -366,6 +415,16 @@ const handleSearch = () => {
 onMounted(async () => {
   await fetchBrandCream();
 });
+const loadMore = async () => {
+  // if (seeMore.value) {
+  loading1.value = true;
+  currentPage.value++; // increase page
+  setTimeout(async () => {
+    await seeMore(currentPage.value);
+    loading1.value = false;
+  }, 2000);
+  // }
+};
 </script>
 
 <style scoped>

@@ -13,6 +13,8 @@ export const useKhoTsheb = () => {
   const pagination = ref<any>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const channelimage = ref<any | null>(null);
+  const qr = ref<any | null>(null);
   const fetchKhoTsheb = async (page: number = 0, limit: number = 10) => {
     loading.value = true;
     error.value = null;
@@ -29,13 +31,20 @@ export const useKhoTsheb = () => {
         allkhoTshebData.value = [];
         pagination.value = null;
         topData.value = null;
+        channelimage.value = null;
+        qr.value = null;
         return;
       }
 
       const topDataResponse = response.topData.topData;
+      const qrResponse = response.qr.qr;
+      const channelResponse = response.channelimage.channelimage;
       allkhoTshebData.value = [...response.data];
       pagination.value = response.pagination;
       topData.value = topDataResponse;
+      channelimage.value = channelResponse;
+      console.log("----------------", channelimage.value);
+      qr.value = qrResponse;
       if (response.data.length > 0) {
         khoTshebData.value = response.data[0];
       }
@@ -57,6 +66,8 @@ export const useKhoTsheb = () => {
     pagination,
     loading,
     error,
+    channelimage,
+    qr,
     fetchKhoTsheb,
   };
 };

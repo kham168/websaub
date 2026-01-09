@@ -32,6 +32,16 @@
               <v-icon left color="green-lighten-2" size="30">mdi-login</v-icon>
               Login
             </v-btn>
+
+            <!-- OR using router directly in template -->
+            <!-- <v-btn text class="mx-2 text-white" @click="/pages/chue/sell_Product.vue">
+              <v-icon left color="green-lighten-2" size="30">mdi-login</v-icon>
+              CH CHANNEL
+            </v-btn> -->
+            <v-btn text class="mx-2 text-white" :to="'/chue/sell_Product'">
+              <v-icon left color="green-lighten-2" size="30">mdi-login</v-icon>
+              CH CHANNEL
+            </v-btn>
           </div>
         </div>
         <v-badge
@@ -506,12 +516,25 @@
                     density="comfortable"
                   ></v-textarea>
                 </v-col>
+
+                <v-col cols="12">
+                  <v-text-field
+                    v-model="checkoutData.custName"
+                    label="please enter your name *"
+                    placeholder="yuour name"
+                    variant="outlined"
+                    prepend-inner-icon="mdi-account"
+                    color="primary"
+                    type="custName"
+                    density="comfortable"
+                  ></v-text-field>
+                </v-col>
                 <v-col cols="12">
                   <v-text-field
                     v-model="checkoutData.phoneNumber"
                     label="Phone Number *"
                     placeholder="020 XXXX XXXX"
-                    :rules="[rules.required, rules.phone]"
+                    :rules="[rules.required, rules.phone, rules.startWith020]"
                     variant="outlined"
                     prepend-inner-icon="mdi-phone"
                     color="primary"
@@ -519,6 +542,7 @@
                     density="comfortable"
                   ></v-text-field>
                 </v-col>
+
                 <v-col cols="12">
                   <v-textarea
                     v-model="checkoutData.notes"
@@ -567,17 +591,22 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
     <!-- ================================== WHATSAPP DIALOG ================================== -->
-    <v-dialog v-model="whatsappDialog" max-width="900px" persistent scrollable>
+    <v-dialog
+      v-model="whatsappDialog"
+      max-width="900px"
+      persistent
+      scrollable
+      :retain-focus="false"
+    >
       <DialogWhatsApp
         :checkout-data="checkoutData"
         :cart-group="cartGroup"
         :total-items="totalItems"
         :total-price="store.totalPrice"
-        :qrimage="store.cartItems[0].qrimage"
+        :qr="store.cartItems?.q"
         :cart-count="store.cartItems.length"
-        @close="whatsappDialog = false"
+        @close="handleCloseWhatsAppDialog"
       />
     </v-dialog>
   </v-app>
@@ -617,7 +646,10 @@ const cartGroup = computed(() => {
   });
   return groups;
 });
-
+const handleCloseWhatsAppDialog = () => {
+  console.log("🔵 Parent: Closing WhatsApp dialog");
+  whatsappDialog.value = false;
+};
 // Video Tutorial Data
 const videos = ref([
   {
@@ -661,6 +693,7 @@ const checkoutData = ref({
   phoneNumber: "",
   shippingCompany: null,
   notes: "",
+  custName: "",
 });
 const shippingCompanies = [
   "Lao Post",
@@ -670,9 +703,14 @@ const shippingCompanies = [
   "Ninja Van",
 ];
 const rules = {
-  required: (v) => !!v || "This field is required",
-  phone: (v) =>
-    /^[0-9]{8,15}$/.test(v?.replace(/\s/g, "")) || "Invalid phone number",
+  required: (value) => !!value || "Phone number is required",
+  phone: (value) => {
+    const phoneRegex = /^[0-9\s]+$/;
+    return phoneRegex.test(value) || "Phone number must contain only numbers";
+  },
+  startWith020: (value) => {
+    return value.startsWith("020") || "Phone number must start with 020";
+  },
 };
 
 const headers = [
@@ -743,6 +781,7 @@ const resetForm = () => {
     phoneNumber: "",
     shippingCompany: null,
     notes: "",
+    custName: "",
   };
   checkoutForm.value?.reset();
 };
@@ -759,33 +798,6 @@ const submitCheckout = () => {
 // login
 // Login/Register Methods
 const loginDialog = ref(false);
-
-const sendToAI = () => {
-  if (!aiInput.value.trim()) return;
-
-  chatMessages.value.push({
-    role: "user",
-    content: aiInput.value,
-  });
-
-  const userMessage = aiInput.value;
-  aiInput.value = "";
-  aiLoading.value = true;
-
-  setTimeout(() => {
-    chatMessages.value.push({
-      role: "assistant",
-      content: `Thank you for your question: "${userMessage}". I'm here to help you with your shopping needs!`,
-    });
-    aiLoading.value = false;
-
-    nextTick(() => {
-      if (chatContainer.value) {
-        chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
-      }
-    });
-  }, 1000);
-};
 </script>
 
 <style scoped>

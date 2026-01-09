@@ -13,6 +13,8 @@ export const useHoobXauj = () => {
   const error = ref<string | null>(null);
   const pagination = ref<any>(null);
   const topData = ref<any | null>(null);
+  const channelimage = ref<any | null>(null);
+  const qr = ref<any | null>(null);
 
   const fetchHoobXauj = async (page: number = 0, limit: number = 10) => {
     loading.value = true;
@@ -29,11 +31,18 @@ export const useHoobXauj = () => {
         allHoobXauj.value = [];
         pagination.value = null;
         topData.value = null;
+        channelimage.value = null;
+        qr.value = null;
         return;
       }
       const topDataResponse = response.topData.topData;
+      const qrResponse = response.qr.qr;
+      const channelResponse = response.channelimage.channelimage;
       allHoobXauj.value = [...response.data];
       topData.value = topDataResponse;
+      channelimage.value = channelResponse;
+      console.log('----------------',channelimage.value);
+      qr.value = qrResponse;
     } catch (err: any) {
       error.value = err.message || "Failed to fetch data";
       allHoobXauj.value = [];
@@ -50,6 +59,8 @@ export const useHoobXauj = () => {
     error,
     pagination,
     topData,
+    channelimage,
+    qr,
     fetchHoobXauj,
   };
 };

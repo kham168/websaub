@@ -28,17 +28,22 @@ export class HoobXaujService {
           data: response.data,
           pagination: null,
           topData: response.result,
+          qr: response.result,
+          channelimage: response.result,
         };
+        
       }
 
       if (!actualData || !actualData.rows) {
-        return { data: [], pagination: null, topData: null };
+        return { data: [], pagination: null, topData: null, qr: null ,channelimage: null};
       }
 
       return {
         data: actualData.rows,
         pagination: actualData.pagination || null,
         topData: actualData.topData || null,
+        channelimage: actualData.channelimage || null,
+        qr: actualData.qr || null,
       };
     } catch (error) {
       throw error;

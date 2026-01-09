@@ -378,10 +378,18 @@
               </v-card-actions>
             </v-card>
           </v-col>
+        
+          <!-- ================ Show Top Product and slider  ================ -->
           <v-divider class="my-4"></v-divider>
-          <v-col>
-            <h1 class="font-weight-bold mb-4 text-center">ແນະນຳເບຣນດອື່ນๆ</h1>
-          </v-col>
+          <v-row>
+            <v-col cols="1" class="d-flex align-end justify-end mb-1">
+              <v-icon color="primary">mdi-plus-circle</v-icon>
+              <!-- <h1 class="font-weight-bold mb-4 text-center">ແນະນຳເບຣນດອື່ນๆ</h1> -->
+            </v-col>
+            <v-col cols="11" class="d-flex align-start justify-start text-h5">
+              ແນະນຳເບຣນດອື່ນๆ
+            </v-col>
+          </v-row>
           <v-divider class="my-4"></v-divider>
           <v-container class="pa-4 bg-grey-lighten-3">
             <v-carousel
@@ -402,156 +410,9 @@
               </v-carousel-item>
             </v-carousel>
           </v-container>
-          <v-col
-            v-for="(taxi, index) in topData"
-            :key="taxi.id || index"
-            cols="12"
-            sm="6"
-            md="4"
-            lg="3"
-          >
-            <v-card class="taxi-card" elevation="2" hover>
-              <!-- Image Carousel -->
-              <div class="image-carousel-wrapper">
-                <v-carousel
-                  v-model="taxi.currentSlide"
-                  height="250"
-                  hide-delimiter-background
-                  show-arrows="hover"
-                  class="image-carousel"
-                >
-                  <template v-slot:prev="{ props }">
-                    <v-btn
-                      icon="mdi-chevron-left"
-                      size="small"
-                      v-bind="props"
-                      class="carousel-arrow"
-                      color="white"
-                      elevation="2"
-                    />
-                  </template>
-                  <template v-slot:next="{ props }">
-                    <v-btn
-                      icon="mdi-chevron-right"
-                      size="small"
-                      v-bind="props"
-                      class="carousel-arrow"
-                      color="white"
-                      elevation="2"
-                    />
-                  </template>
-
-                  <v-carousel-item
-                    v-for="(img, i) in taxi.image"
-                    :key="`img-${index}-${i}`"
-                  >
-                    <v-img
-                      :src="img.startsWith('http') ? img : imageBaseUrl + img"
-                      aspect-ratio="1.5"
-                      cover
-                      class="taxi-image"
-                      @click="openZoom(taxi, i)"
-                      @error="handleImageError"
-                    >
-                      <template v-slot:placeholder>
-                        <v-row
-                          class="fill-height ma-0"
-                          align="center"
-                          justify="center"
-                        >
-                          <v-progress-circular
-                            indeterminate
-                            color="grey-lighten-5"
-                          ></v-progress-circular>
-                        </v-row>
-                      </template>
-
-                      <!-- Image counter badge -->
-                      <div class="image-counter">
-                        <v-icon size="small" class="mr-1">mdi-camera</v-icon>
-                        {{ i + 1 }}/{{ taxi.image.length }}
-                      </div>
-                    </v-img>
-                  </v-carousel-item>
-                </v-carousel>
-              </div>
-
-              <!-- Card Content -->
-              <v-card-text class="pa-4">
-                <!-- Taxi Name -->
-                <h4 class="text-h6 font-weight-bold mb-3 taxi-name">
-                  {{ taxi.name }}
-                </h4>
-
-                <!-- Pricing -->
-                <div class="pricing-section mb-3">
-                  <v-chip color="success" variant="flat" class="mb-2">
-                    <v-icon start size="small">mdi-cash</v-icon>
-                    {{ Number(taxi.price1).toLocaleString() }} ₭
-                  </v-chip>
-                  <p class="text-caption text-grey-darken-1">
-                    ລາຄາສາມາດລົມໄດ້ຕາມໄລຍະທາງ
-                  </p>
-                </div>
-
-                <!-- Contact Info -->
-                <v-list class="bg-transparent pa-0 mb-3">
-                  <v-list-item class="px-0" density="compact">
-                    <template v-slot:prepend>
-                      <v-icon color="primary" size="small">mdi-phone</v-icon>
-                    </template>
-                    <v-list-item-title>
-                      <a
-                        :href="`tel:${taxi.tel}`"
-                        class="contact-link text-primary"
-                      >
-                        {{ taxi.tel }}
-                      </a>
-                    </v-list-item-title>
-                  </v-list-item>
-                </v-list>
-
-                <!-- Details (collapsible) -->
-                <v-expand-transition>
-                  <div v-if="taxi.showDetails" class="details-expanded">
-                    <v-divider class="mb-3" />
-                    <p class="text-body-2 text-grey-darken-2">
-                      {{ taxi.detail }}
-                    </p>
-                  </div>
-                </v-expand-transition>
-              </v-card-text>
-
-              <!-- Card Actions -->
-              <v-card-actions class="pa-4 pt-0">
-                <v-btn
-                  variant="text"
-                  color="primary"
-                  size="small"
-                  @click="taxi.showDetails = !taxi.showDetails"
-                >
-                  {{ taxi.showDetails ? "ຫຼຸດລົງ" : "ລາຍລະອຽດເພີ່ມ" }}
-                  <v-icon end>
-                    {{
-                      taxi.showDetails ? "mdi-chevron-up" : "mdi-chevron-down"
-                    }}
-                  </v-icon>
-                </v-btn>
-
-                <v-spacer />
-
-                <v-btn
-                  color="success"
-                  variant="flat"
-                  size="small"
-                  @click="addToCart(taxi)"
-                  prepend-icon="mdi-whatsapp"
-                >
-                  WhatsApp
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-col>
+          <v-divider class="my-4"></v-divider>
+          <!-- =============== Show Top Product and TopData  ================ -->
+          <TopDataCard :topData="topData" />
         </v-row>
       </v-container>
 

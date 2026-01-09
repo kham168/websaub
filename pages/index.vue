@@ -3,6 +3,7 @@
     <v-container fluid class="pa-2 pl-16 pr-16">
       <v-carousel
         cycle
+        v-model="carouselIndex"
         show-arrows
         hide-delimiters
         interval="2000"
@@ -157,6 +158,7 @@ const router = useRouter();
 // Composable
 const { channels, fetchChannels, loading, error } = useChannel();
 const { fetchProfileImages, profileImageitems } = useProfileImage();
+const carouselIndex = ref(0);
 
 onMounted(async () => {
   await fetchChannels();

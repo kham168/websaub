@@ -28,6 +28,8 @@ export class BrandMuagAvService {
           data: response.data,
           pagination: null,
           topData: response.result,
+          qr: response.result,
+          channelimage: response.result,
         };
       }
       if (!actualData || !actualData.rows || !Array.isArray(actualData.rows)) {
@@ -35,12 +37,16 @@ export class BrandMuagAvService {
           data: [],
           pagination: null,
           topData: null,
+          qr: null,
+          channelimage: null,
         };
       }
       return {
         data: actualData.rows,
         pagination: actualData.pagination || null,
         topData: actualData.topData || null,
+        qr: actualData.qr || null,
+        channelimage: actualData.channelimage || null,
       };
     } catch (error) {
       throw error;

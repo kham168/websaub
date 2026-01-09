@@ -110,7 +110,7 @@ const getRoute = (item) => {
   //   "ts3": "/taxi/home_taxi",
   // };
 
-  if (channelRoutes[item.channelid]) return channelRoutes[item.channelid];
+  if (channelRoutes[item.channel]) return channelRoutes[item.channel];
   // if (idRoutes[item.id]) return idRoutes[item.id];
 
   return null; // no route available

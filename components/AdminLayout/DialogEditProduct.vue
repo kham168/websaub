@@ -1,11 +1,16 @@
 <template>
-  <v-dialog v-model="props.showDetailEditProduct" max-width="800px" persistent>
+  <v-dialog
+    :model-value="props.showDetailEditProduct"
+    @update:model-value="closeEditModal"
+    max-width="800px"
+    persistent
+  >
     <v-card>
       <v-card-title
         class="text-h5 font-weight-bold d-flex justify-space-between align-center"
       >
         <span>Edit Product</span>
-        <v-btn icon variant="text" @click="closeEditModal">
+        <v-btn icon variant="text"  @click="closeEditModal">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
@@ -304,44 +309,89 @@
         <v-btn color="grey" variant="text" @click="closeEditModal">
           Cancel
         </v-btn>
-        <v-btn color="primary" variant="elevated" @click="handleUpdateProduct">
+        <v-btn color="primary" variant="elevated"  @click="handleUpdateProduct">
           Update Product
         </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
+
 <script setup>
+import { ref, reactive, watch } from "vue";
+
 const props = defineProps({
   showDetailEditProduct: Boolean,
-  product: Object
+  editingProduct: Object,
 });
 
-// const emit = defineEmits(["update:show", "save"]);
+const emits = defineEmits(["close", "update"]);
 
-// Create local copy so editing doesn't mutate parent until saved
-const localProduct = ref({});
+// Local copy for editing
+const localProduct = reactive({});
 
+// Sync parent → modal
 watch(
-  () => props.product,
-  (val) => {
-    if (val) localProduct.value = JSON.parse(JSON.stringify(val));
+  () => props.editingProduct,
+  (p) => {
+    if (p) Object.assign(localProduct, p);
   },
   { immediate: true }
 );
 
-const close = () => emit("update:show", false);
-
-const handleUpdateProduct = () => {
-  emit("save", localProduct.value);
-  close();
-};
-const emit = defineEmits(["update:showDetailEditProduct"])
-
-const editingProduct = ref({ ...props.product })
-
+// Close modal
 function closeEditModal() {
-  emit("update:showDetailEditProduct", false)
+  emits("close");
+}
+
+// Update product
+function handleUpdateProduct() {
+  emits("update", { ...localProduct });
+  closeEditModal();
+}
+
+// DATE PICKERS
+const startMenu = ref(false);
+const endMenu = ref(false);
+const startRaw = ref(null);
+const endRaw = ref(null);
+
+const selectStartDate = (date) => {
+  localProduct.startDate = date;
+  startMenu.value = false;
+};
+
+const selectEndDate = (date) => {
+  localProduct.endDate = date;
+  endMenu.value = false;
+};
+
+// IMAGES
+const existingImages = ref([]);
+const newEditImages = ref([]);
+const editProductImages = ref([]);
+
+watch(
+  () => props.editingProduct,
+  (p) => {
+    if (p?.image) existingImages.value = [...p.image];
+  },
+  { immediate: true }
+);
+
+function removeExistingImage(index) {
+  existingImages.value.splice(index, 1);
+}
+
+function handleEditFileSelect(e) {
+  newEditImages.value = [];
+  for (const file of e) {
+    newEditImages.value.push(URL.createObjectURL(file));
+  }
+}
+
+function removeNewEditImage(idx) {
+  newEditImages.value.splice(idx, 1);
 }
 </script>
 

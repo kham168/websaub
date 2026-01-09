@@ -16,7 +16,7 @@ export interface TaxiItem {
 }
 
 export interface TopDataItem {
-  channelid: String;
+  channel: String;
   id: string;
   name: string;
   price1?: string;

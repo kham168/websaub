@@ -5,13 +5,17 @@ import type {
   MuagTshuajItem,
   MuagTshuajServiceResponse,
   TopDataItem,
+  ChannelDatas,
 } from "~/services/types/muag_Tshuaj-type";
 
 export const useMuagTshuaj = () => {
   const allDataMuagTshuaj = ref<MuagTshuajItem[]>([]);
   const muagTshuaj = ref<MuagTshuajItem | null>(null);
   const topData = ref<any | null>(null);
+  const channelData = ref<ChannelDatas | null>(null);
   const pagination = ref<any | null>(null);
+  const channelimage = ref<any | null>(null);
+  const qr = ref<any | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
   const fetchMuagTshuaj = async (page: number = 0, limit: number = 10) => {
@@ -28,12 +32,21 @@ export const useMuagTshuaj = () => {
         allDataMuagTshuaj.value = [];
         pagination.value = null;
         topData.value = null;
+        channelData.value = null;
+        channelimage.value = null;
+        qr.value = null;
         return;
       }
       const topDataResponse = response.topData.topData;
+      const channelDataResponse = response.channelData.channelData;
+      const qrResponse = response.qr.qr;
+      const channelResponse = response.channelimage.channelimage;
       allDataMuagTshuaj.value = [...response.data];
       pagination.value = response.pagination;
       topData.value = topDataResponse;
+      channelData.value = channelDataResponse;
+      channelimage.value = channelResponse;
+      qr.value = qrResponse;
       if (response.data.length > 0) {
         muagTshuaj.value = response.data[0];
       }
@@ -43,6 +56,9 @@ export const useMuagTshuaj = () => {
       allDataMuagTshuaj.value = [];
       pagination.value = null;
       topData.value = null;
+      channelData.value = null;
+      channelimage.value = null;
+      qr.value = null;
     } finally {
       loading.value = false;
     }
@@ -51,10 +67,13 @@ export const useMuagTshuaj = () => {
   return {
     allDataMuagTshuaj,
     muagTshuaj,
+    channelData,
     topData,
     pagination,
     loading,
     error,
+    channelimage,
+    qr,
     fetchMuagTshuaj,
   };
 };

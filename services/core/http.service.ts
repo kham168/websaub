@@ -17,34 +17,110 @@ interface ApiResponse<T = any> {
 }
 
 class HttpService {
+  // private async request<T>(
+  //   endpoint: string,
+  //   options: RequestOptions = {}
+  // ): Promise<ApiResponse<T>> {
+  //   const { token, version, params, ...fetchOptions } = options
+
+  //   // Build URL with query parameters
+  //   let url = getFullUrl(endpoint, version)
+  //   if (params) {
+  //     const queryString = new URLSearchParams(params).toString()
+  //     url += `?${queryString}`
+  //   }
+
+  //   // Build headers properly
+  //   const authHeader = getAuthHeader(token)
+  //   const headers: Record<string, string> = {
+  //     ...API_CONFIG.DEFAULT_HEADERS,
+  //   }
+
+  //   // Add auth header if exists
+  //   if (authHeader.Authorization) {
+  //     headers.Authorization = authHeader.Authorization
+  //   }
+
+  //   // Merge with custom headers from options
+  //   if (fetchOptions.headers) {
+  //     const customHeaders = fetchOptions.headers as Record<string, string>
+  //     Object.assign(headers, customHeaders)
+  //   }
+
+  //   try {
+  //     const controller = new AbortController()
+  //     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT)
+
+  //     const response = await fetch(url, {
+  //       ...fetchOptions,
+  //       headers,
+  //       signal: controller.signal,
+  //     })
+
+  //     clearTimeout(timeoutId)
+
+  //     // Parse response
+  //     const data = await response.json()
+
+  //     if (!response.ok) {
+  //       throw {
+  //         status: response.status,
+  //         message: data.message || 'Request failed',
+  //         data,
+  //       }
+  //     }
+
+  //     return {
+  //       data: data.data || data,
+  //       message: data.message,
+  //       status: response.status,
+  //       success: true,
+  //       result: data,
+  //     }
+  //   } catch (error: any) {
+  //     console.error('HTTP Request Error:', error)
+      
+  //     // Handle timeout
+  //     if (error.name === 'AbortError') {
+  //       throw {
+  //         status: 408,
+  //         message: 'Request timeout',
+  //         success: false,
+  //       }
+  //     }
+
+  //     throw {
+  //       status: error.status || 500,
+  //       message: error.message || 'Network error',
+  //       data: error.data,
+  //       success: false,
+  //     }
+  //   }
+  // }
   private async request<T>(
     endpoint: string,
     options: RequestOptions = {}
   ): Promise<ApiResponse<T>> {
     const { token, version, params, ...fetchOptions } = options
 
-    // Build URL with query parameters
     let url = getFullUrl(endpoint, version)
     if (params) {
       const queryString = new URLSearchParams(params).toString()
       url += `?${queryString}`
     }
 
-    // Build headers properly
-    const authHeader = getAuthHeader(token)
     const headers: Record<string, string> = {
       ...API_CONFIG.DEFAULT_HEADERS,
     }
 
-    // Add auth header if exists
-    if (authHeader.Authorization) {
-      headers.Authorization = authHeader.Authorization
+    // ພິສັດເພື່ອ admin side
+    if (token) {
+      headers.Authorization = `Bearer ${token}`
     }
 
-    // Merge with custom headers from options
+    // Merge with custom headers
     if (fetchOptions.headers) {
-      const customHeaders = fetchOptions.headers as Record<string, string>
-      Object.assign(headers, customHeaders)
+      Object.assign(headers, fetchOptions.headers as Record<string, string>)
     }
 
     try {
@@ -59,7 +135,6 @@ class HttpService {
 
       clearTimeout(timeoutId)
 
-      // Parse response
       const data = await response.json()
 
       if (!response.ok) {
@@ -80,13 +155,8 @@ class HttpService {
     } catch (error: any) {
       console.error('HTTP Request Error:', error)
       
-      // Handle timeout
       if (error.name === 'AbortError') {
-        throw {
-          status: 408,
-          message: 'Request timeout',
-          success: false,
-        }
+        throw { status: 408, message: 'Request timeout', success: false }
       }
 
       throw {

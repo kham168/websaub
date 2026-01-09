@@ -15,9 +15,8 @@ export const useProfileImageService = () => {
     try {
       const response = await $fetch<ApiResponse<ProfilImageItem[]>>(baseUrl, { method: 'GET' })
 
-      return response.data   // <-- FIXED: return data.data, not whole response
+      return response.data   
     } catch (error) {
-      console.error('Error fetching profile images:', error)
       return []
     }
   }

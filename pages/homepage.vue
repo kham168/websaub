@@ -3,6 +3,7 @@
     <v-container fluid class="pa-2 pl-16 pr-16">
       <v-carousel
         cycle
+        v-model="carouselIndex"
         show-arrows
         hide-delimiters
         interval="2000"
@@ -16,7 +17,7 @@
           <v-img
             :src="img"
             height="500"
-            cover
+            contain
             gradient="to bottom, rgba(0,0,0,.2), rgba(0,0,0,.7)"
           />
         </v-carousel-item>
@@ -134,7 +135,7 @@
             <v-card-actions class="pa-4 pt-0">
               <v-btn
                 block
-                color="primary"
+                class="text-blue"
                 variant="flat"
                 prepend-icon="mdi-arrow-right-circle"
               >
@@ -157,7 +158,7 @@ const router = useRouter();
 // Composable
 const { channels, fetchChannels, loading, error } = useChannel();
 const { fetchProfileImages, profileImageitems } = useProfileImage();
-
+const carouselIndex = ref(0);
 onMounted(async () => {
   await fetchChannels();
 
@@ -174,6 +175,7 @@ const routesMap = {
   5: "/muag_av/home_muagav",
   6: "/muag_tshuaj/home_muagtshuaj",
   7: "/taxi/home_taxi",
+  8:"/chue/sell_Product"
 };
 
 const navigateToProduct = (item) => {

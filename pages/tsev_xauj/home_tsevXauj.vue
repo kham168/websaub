@@ -2,24 +2,15 @@
   <v-app fluid>
     <!-- Top Carousel -->
     <v-container class="pa-4 bg-grey-lighten-3">
-      <v-carousel cycle show-arrows hide-delimiters interval="4000">
-        <v-carousel-item v-for="(item, index) in allHouses" :key="index">
-          <v-img
-            :src="item.image[0] || '/placeholder.jpg'"
-            class="fill-height"
-            cover
-          >
-            <template v-slot:default>
-              <v-sheet
-                class="d-flex align-center justify-center"
-                color="rgba(0,0,0,0.4)"
-                height="100%"
-              >
-                <h2 class="text-white text-h4 text-center px-4">
-                  {{ item.title || item.channel }}
-                </h2>
-              </v-sheet>
-            </template>
+      <v-carousel
+        cycle
+        show-arrows
+        v-model="carouselIndex"
+        hide-delimiters
+        interval="4000"
+      >
+        <v-carousel-item v-for="(img, index) in channelimage" :key="index">
+          <v-img :src="img || '/placeholder.jpg'" class="fill-height" cover>
           </v-img>
         </v-carousel-item>
       </v-carousel>
@@ -155,16 +146,30 @@
                 {{ item.housename }}
               </div>
               <div class="mb-2">
-                <div class="d-flex align-center">
-                  <span class="text-red">LAK</span>
+                <!-- <div class="d-flex align-center">
                   <span class="text-h6 ml-1">{{
-                    formatPrice(item.price2)
+                   item.price2
                   }}</span>
+
                   <span
                     class="text-body-3 align-self-start text-decoration-line-through text-grey-darken-1"
-                    >{{ formatPrice(item.price1) }}</span
+                    >{{ item.price1 }}</span
                   >
+                  <!-- <span class="text-red">/m2</span> --
+                </div> -->
+                <div class="d-flex align-center">
+                  <span class="text-h6 ml-1">
+                    {{ item.price2 }}
+                  </span>
+
+                  <span
+                    v-if="Number(item.price1) > 0"
+                    class="text-body-3 align-self-start text-decoration-line-through text-grey-darken-1 ml-2"
+                  >
+                    {{ item.price1 }}
+                  </span>
                 </div>
+
                 <div class="mb-1">
                   <v-icon color="grey">mdi-map-marker</v-icon>
                   <span>{{ item.province }}, {{ item.district }}</span>
@@ -437,6 +442,8 @@ const {
   houses,
   loading,
   error,
+  channelimage,
+  qr,
   pagination,
   topData,
   allHouses,
@@ -447,11 +454,12 @@ const showDetails = ref(false);
 const selectedImages = ref([]);
 const currentIndex = ref(0);
 const detailItem = ref(null);
+const carouselIndex = ref(0);
 
-function formatPrice(price) {
-  if (!price) return "0.00";
-  return Number(price).toLocaleString("en-US", { minimumFractionDigits: 0 });
-}
+// function formatPrice(price) {
+//   if (!price) return "0.00";
+//   return Number(price).toLocaleString("en-US", { minimumFractionDigits: 0 });
+// }
 
 function openImageDialog(images) {
   selectedImages.value = images;
@@ -466,6 +474,8 @@ function showDetailsDialog(item) {
 
 onMounted(async () => {
   await fetchTsevXauj();
+  console.log("Tsev Xauj fetched:", allHouses.value);
+  console.log("Cart items:", store.cartItems?.length || 0);
 });
 </script>
 

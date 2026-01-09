@@ -2,10 +2,10 @@
   <v-app fluid>
     <!-- Top Auto Carousel -->
     <v-container class="pa-4 bg-grey-lighten-3">
-      <v-carousel cycle show-arrows hide-delimiters interval="4000">
-        <v-carousel-item v-for="(item, index) in allkhoTshebData" :key="index">
+      <v-carousel cycle show-arrows v-model="carouselIndex" hide-delimiters interval="4000">
+        <v-carousel-item v-for="(img, index) in channelimage" :key="index">
           <v-img
-            :src="item.image[0] || '/placeholder.jpg'"
+            :src="img || '/placeholder.jpg'"
             class="fill-height"
             cover
           />
@@ -333,11 +333,15 @@ const {
   pagination,
   loading,
   error,
+  channelimage,
+  qr,
 } = useKhoTsheb();
 const selectedItems = ref(null);
 const locationgps = ref(null);
 const showDetails = ref(false);
 const detailItem = ref(null);
+const carouselIndex = ref(0);
+
 
 const store = useProductSellStore();
 const getProductQty = (productId) => {
@@ -567,6 +571,7 @@ const addToCart = (product) => {
     quantity: 1,
     unit: "ອັນ",
     price: price,
+    qr: qr.value,
     // qrimage: qrimage.value,
   };
 

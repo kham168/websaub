@@ -8,11 +8,10 @@ export interface BrandCreamItem {
   detail: string;
   donation: string;
   image: string[];
-  // qrimage: string
 }
 
 export interface TopDataItem {
-  channelid: String;
+  channel: String;
   id: string;
   name: string;
   price1: string;
@@ -38,28 +37,34 @@ export interface TopData {
   Muas?: TopDataItem[];
   Tshuaj?: TopDataItem[];
 }
-
-// Direct data structure (what axios returns after unwrapping)
 export interface BrandCreamResponse {
   rows: BrandCreamItem[];
   pagination: PaginationData;
   topData?: TopData;
-  // qrimage: string
+  qr?: Result;
+  channelimage?: Result;
 }
 
-// API Response when nested (with status/message wrapper)
 export interface BrandCreamApiResponse {
   status: boolean;
   message: string;
   data: BrandCreamResponse;
   topData?: TopData | null;
-  // qrimage: string
+  qr?: Result | null;
+  channelimage?: Result | null;
 }
 
-// Service return type
 export interface BrandCreamServiceResponse {
   data: BrandCreamItem[];
   pagination: PaginationData | null;
   topData: TopData | null | any;
-  // qrimage: string
+  qr: Result | any | null;
+  channelimage: Result | any | null;
+}
+export interface Result {
+  qr: string;
+  channelimage: string[];
+  video1: string | null;
+  video2: string | null;
+  guidelinevideo: string | null;
 }

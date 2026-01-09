@@ -1,28 +1,47 @@
-export default defineNuxtRouteMiddleware((to, from) => {
-  const token = useCookie("token").value;
+// // export default defineNuxtRouteMiddleware((to, from) => {
+// //   const token = useCookie("token").value;
 
+// //   const isAdminRoute = to.path.startsWith("/admin");
+
+// //   // ================================
+// //   // CASE 1: USER NOT LOGGED IN
+// //   // ================================
+// //   if (!token) {
+// //     if (isAdminRoute) {
+// //       return navigateTo("/homepage");
+// //     }
+// //     return; // allow default pages
+// //   }
+
+// //   // ================================
+// //   // CASE 2: USER LOGGED IN
+// //   // ================================
+// //   if (token) {
+// //     // user CANNOT access default pages
+// //     if (!isAdminRoute) {
+// //       return navigateTo("/admin");
+// //     }
+// //     // allow admin pages
+// //     return;
+// //   }
+// // });
+
+export default defineNuxtRouteMiddleware((to) => {
+  const token = useCookie("token").value;
   const isAdminRoute = to.path.startsWith("/admin");
 
-  // ================================
-  // CASE 1: USER NOT LOGGED IN
-  // ================================
-  if (!token) {
-    if (isAdminRoute) {
-      return navigateTo("/homepage");
-    }
-    return; // allow default pages
+  // User NOT logged in
+  if (!token && isAdminRoute) {
+    return navigateTo("/homepage");
   }
 
-  // ================================
-  // CASE 2: USER LOGGED IN
-  // ================================
+  // User logged in
   if (token) {
-    // user CANNOT access default pages
-    if (!isAdminRoute) {
+    if (!isAdminRoute && (to.path === "/" || to.path === "/homepage")) {
       return navigateTo("/admin");
     }
-
-    // allow admin pages
-    return;
   }
+
+  // Allow all other routes
+  return;
 });

@@ -1,24 +1,28 @@
-// export default defineNuxtPlugin(() => {
-//     addRouteMiddleware('auth', defineNuxtRouteMiddleware((to, from) => {
-//       const publicRoutes = ['/'];
-  
-//       // Skip authentication check for public routes
-//       if (publicRoutes.includes(to.path)) {
-//         return;
-//       }
-  
-//       // Redirect unauthenticated users to the login page
-//       if (!isAuthenticated()) {
-//         // return navigateTo('/');
-//       }
-//     }), { global: true }); // Mark this middleware as global
-//   });
-//  // plugins/global-middleware.ts
-// // Authentication logic
-// function isAuthenticated(): boolean {
-//     // Example logic: Check for the presence of a cookie or token
-//     const authToken = useCookie('token').value;
-//     // console.log('Authentication token:', authToken); // Debugging log
-//     return !!authToken; // Returns true if a valid token exists
-//     // return false
-//   }
+import {
+  defineNuxtPlugin,
+  addRouteMiddleware,
+  defineNuxtRouteMiddleware,
+} from "#app";
+
+export default defineNuxtPlugin(() => {
+  // Add global auth middleware
+  addRouteMiddleware(
+    "auth",
+    defineNuxtRouteMiddleware((to, from) => {
+      const token = useCookie("token").value;
+      const isAdminRoute = to.path.startsWith("/admin");
+
+      if (!token && isAdminRoute) {
+        return navigateTo("/homepage"); // prevent access to admin
+      }
+
+      if (token && !isAdminRoute) {
+        return navigateTo("/admin"); // redirect logged-in users to admin
+      }
+
+      // Otherwise allow navigation
+      return;
+    }),
+    { global: true } // global middleware
+  );
+});
