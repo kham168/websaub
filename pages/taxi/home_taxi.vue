@@ -226,6 +226,7 @@
             <p class="mt-4 text-h6 text-error">{{ error }}</p>
           </v-col>
         </v-row>
+
         <!-- Taxi Cards -->
         <v-row v-else>
           <v-col
@@ -320,19 +321,21 @@
                   </p>
                 </div>
 
-                <!-- Contact Info -->
+                <!-- ✅ FIXED: Contact Info - Tel button calls phone directly -->
                 <v-list class="bg-transparent pa-0 mb-3">
                   <v-list-item class="px-0" density="compact">
                     <template v-slot:prepend>
                       <v-icon color="primary" size="small">mdi-phone</v-icon>
                     </template>
                     <v-list-item-title>
-                      <a
-                        :href="`tel:${taxi.tel}`"
+                      <!-- ✅ Click to CALL: uses window.location.href for reliable tel: routing -->
+                      <span
                         class="contact-link text-primary"
+                        @click="callPhone(taxi.tel)"
+                        style="cursor: pointer;"
                       >
                         {{ taxi.tel }}
-                      </a>
+                      </span>
                     </v-list-item-title>
                   </v-list-item>
                 </v-list>
@@ -366,11 +369,12 @@
 
                 <v-spacer />
 
+                <!-- ✅ FIXED: WhatsApp button routes to WhatsApp -->
                 <v-btn
                   color="success"
                   variant="flat"
                   size="small"
-                  @click="addToCart(taxi)"
+                  @click="openWhatsApp(taxi)"
                   prepend-icon="mdi-whatsapp"
                 >
                   WhatsApp
@@ -378,13 +382,12 @@
               </v-card-actions>
             </v-card>
           </v-col>
-        
+
           <!-- ================ Show Top Product and slider  ================ -->
           <v-divider class="my-4"></v-divider>
           <v-row>
             <v-col cols="1" class="d-flex align-end justify-end mb-1">
               <v-icon color="primary">mdi-plus-circle</v-icon>
-              <!-- <h1 class="font-weight-bold mb-4 text-center">ແນະນຳເບຣນດອື່ນๆ</h1> -->
             </v-col>
             <v-col cols="11" class="d-flex align-start justify-start text-h5">
               ແນະນຳເບຣນດອື່ນๆ
@@ -487,7 +490,14 @@
                     <v-icon start size="small">mdi-cash</v-icon>
                     {{ Number(zoomItem.price1 || 0).toLocaleString() }} ₭
                   </v-chip>
-                  <v-chip color="primary" variant="flat" size="small">
+                  <!-- ✅ FIXED: Click chip phone number to call -->
+                  <v-chip
+                    color="primary"
+                    variant="flat"
+                    size="small"
+                    style="cursor: pointer;"
+                    @click="callPhone(zoomItem.tel)"
+                  >
                     <v-icon start size="small">mdi-phone</v-icon>
                     {{ zoomItem.tel }}
                   </v-chip>
@@ -597,12 +607,25 @@
 
           <v-divider />
 
-          <!-- Footer Actions -->
-          <v-card-actions class="pa-6 justify-center">
+          <!-- ✅ FIXED: Footer Actions - separate Call and WhatsApp buttons -->
+          <v-card-actions class="pa-6 justify-center gap-4">
+            <!-- Call button -->
+            <v-btn
+              color="primary"
+              size="x-large"
+              @click="callPhone(zoomItem.tel)"
+              prepend-icon="mdi-phone"
+              variant="outlined"
+              elevation="2"
+              class="px-8"
+            >
+              ໂທຫາ
+            </v-btn>
+            <!-- WhatsApp button -->
             <v-btn
               color="success"
               size="x-large"
-              @click="addToCart(zoomItem)"
+              @click="openWhatsApp(zoomItem)"
               prepend-icon="mdi-whatsapp"
               elevation="2"
               class="px-8"
@@ -619,11 +642,9 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 
-// Use the composable - this is your main data source
 const { items, allitems, topData, pagination, loading, error, fetchTaxi } =
   useTaxi();
 
-// Props
 defineProps({
   store: {
     type: Object,
@@ -632,33 +653,27 @@ defineProps({
   },
 });
 
-// API Configuration
 const imageBaseUrl = "http://localhost:5151/";
 
-// State - use composable data instead of separate fetch
 const filteredData = ref([]);
 const searchQuery = ref("");
 
-// Location filters
 const provinces = ref([]);
 const districtsForSelectedProvince = ref([]);
 const selectedProvince = ref(null);
 const selectedDistrict = ref(null);
 
-// Comment dialog
 const commentDialog = ref(false);
 const telephone = ref("");
 const comment = ref("");
 const telephoneError = ref(false);
 const commentError = ref(false);
 
-// Zoom dialog
 const zoomDialog = ref(false);
 const zoomItem = ref({ image: [] });
 const zoomSlide = ref(0);
 const isZoomPlaying = ref(true);
 
-// Video banner
 const videoBanners = ref([
   "https://youtu.be/KTd1yYVoMpE?si=GPO0xlvZHjYZyecB",
   "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
@@ -667,7 +682,6 @@ const videoBanners = ref([
 const currentVideoSlide = ref(0);
 const isMuted = ref(true);
 
-// Extract YouTube ID
 function extractYoutubeID(url) {
   const match = url.match(
     /(?:youtu\.be\/|youtube\.com\/(?:embed\/|watch\?v=))([\w-]+)/
@@ -675,7 +689,6 @@ function extractYoutubeID(url) {
   return match ? match[1] : "";
 }
 
-// Video sources
 const videoSrcs = computed(() => {
   return videoBanners.value.map((video) => {
     const id = extractYoutubeID(video);
@@ -686,38 +699,27 @@ const videoSrcs = computed(() => {
   });
 });
 
-// Helper function to parse image data
 function parseImageArray(imageData) {
-  if (!imageData) {
-    return ["placeholder.jpg"];
-  }
-
+  if (!imageData) return ["placeholder.jpg"];
   if (Array.isArray(imageData)) {
     return imageData.length > 0 ? imageData : ["placeholder.jpg"];
   }
-
   if (typeof imageData === "string") {
     try {
       const parsed = JSON.parse(imageData);
       return Array.isArray(parsed) ? parsed : [imageData];
     } catch {
       const result = imageData.includes(",")
-        ? imageData
-            .split(",")
-            .map((s) => s.trim())
-            .filter((s) => s)
+        ? imageData.split(",").map((s) => s.trim()).filter((s) => s)
         : [imageData];
       return result.length > 0 ? result : ["placeholder.jpg"];
     }
   }
-
   return ["placeholder.jpg"];
 }
 
-// Process taxi items with images and additional properties
 function processTaxiItems(items) {
   if (!items || !Array.isArray(items)) return [];
-
   return items.map((item) => ({
     ...item,
     image: parseImageArray(item.image || item.images || item.photo),
@@ -726,47 +728,24 @@ function processTaxiItems(items) {
   }));
 }
 
-// Initialize data from composable
 onMounted(async () => {
-  await fetchTaxi(); // Fetch from composable
-  // Set filtered data from composable
+  await fetchTaxi();
   if (allitems.value && allitems.value.length > 0) {
     filteredData.value = processTaxiItems(allitems.value);
-    console.log("✅ Filtered data set:", filteredData.value.length, "items");
-  } else {
-    console.warn("⚠️ No items in allitems");
   }
-
-  // ✅ Process topData if it exists
-  if (
-    topData.value &&
-    Array.isArray(topData.value) &&
-    topData.value.length > 0
-  ) {
-    console.log("✅ Processing topData items:", topData.value);
-    // topData is already an array, just process the images
+  if (topData.value && Array.isArray(topData.value) && topData.value.length > 0) {
     topData.value = processTaxiItems(topData.value);
-    console.log("✅ ---------Processed topData:", topData.value);
-  } else {
-    console.warn("⚠️ No topData available - backend did not return topData");
   }
 
-  // Fetch provinces
   try {
-    const resProvince = await fetch(
-      "http://localhost:5151/api/province/selectall"
-    );
-    if (!resProvince.ok)
-      throw new Error(`Province API failed: ${resProvince.status}`);
-
+    const resProvince = await fetch("http://localhost:5151/api/province/selectall");
+    if (!resProvince.ok) throw new Error(`Province API failed: ${resProvince.status}`);
     const provinceData = await resProvince.json();
-    let provinceList = [];
-
-    if (Array.isArray(provinceData)) {
-      provinceList = provinceData;
-    } else if (provinceData.data && Array.isArray(provinceData.data)) {
-      provinceList = provinceData.data;
-    }
+    let provinceList = Array.isArray(provinceData)
+      ? provinceData
+      : provinceData.data && Array.isArray(provinceData.data)
+      ? provinceData.data
+      : [];
 
     if (provinceList.length > 0) {
       provinces.value = provinceList.map((p) => ({
@@ -779,7 +758,6 @@ onMounted(async () => {
   }
 });
 
-// Watch for changes in allitems from composable
 watch(
   allitems,
   (newItems) => {
@@ -790,32 +768,24 @@ watch(
   { deep: true }
 );
 
-// Fetch districts when province changes
 watch(selectedProvince, async (provinceId) => {
   selectedDistrict.value = null;
   districtsForSelectedProvince.value = [];
   if (!provinceId) return;
 
   try {
-    const res = await fetch(
-      "http://localhost:5151/api/district/selectbyprovinceid",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provinceid: provinceId }),
-      }
-    );
-
+    const res = await fetch("http://localhost:5151/api/district/selectbyprovinceid", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provinceid: provinceId }),
+    });
     if (!res.ok) throw new Error(`District API failed: ${res.status}`);
-
     const districtData = await res.json();
-    let districtList = [];
-
-    if (Array.isArray(districtData)) {
-      districtList = districtData;
-    } else if (districtData.data && Array.isArray(districtData.data)) {
-      districtList = districtData.data;
-    }
+    let districtList = Array.isArray(districtData)
+      ? districtData
+      : districtData.data && Array.isArray(districtData.data)
+      ? districtData.data
+      : [];
 
     if (districtList.length > 0) {
       districtsForSelectedProvince.value = districtList.map((d) => ({
@@ -828,10 +798,8 @@ watch(selectedProvince, async (provinceId) => {
   }
 });
 
-// Query by location
 async function queryByLocation() {
   if (!selectedProvince.value || !selectedDistrict.value) return;
-
   try {
     const res = await fetch(
       "http://localhost:5151/api/taxi/selectbyprovinceanddistrictid",
@@ -844,17 +812,11 @@ async function queryByLocation() {
         }),
       }
     );
-
     if (!res.ok) throw new Error(`Search API failed: ${res.status}`);
-
     const responseData = await res.json();
-
     if (responseData.status && Array.isArray(responseData.data)) {
       filteredData.value = processTaxiItems(responseData.data);
-
-      if (filteredData.value.length === 0) {
-        alert("ບໍ່ພົບລົດແທັກຊີ່ໃນເຂດທີ່ເລືອກ");
-      }
+      if (filteredData.value.length === 0) alert("ບໍ່ພົບລົດແທັກຊີ່ໃນເຂດທີ່ເລືອກ");
     } else {
       filteredData.value = [];
     }
@@ -864,23 +826,18 @@ async function queryByLocation() {
   }
 }
 
-// Search by name
 watch(searchQuery, async (val) => {
   if (!val) {
-    // Reset to all items from composable
     filteredData.value = processTaxiItems(allitems.value);
     return;
   }
-
   try {
     const res = await fetch("http://localhost:5151/api/taxi/searchbyname", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: val }),
     });
-
     const responseData = await res.json();
-
     if (responseData.status && Array.isArray(responseData.data)) {
       filteredData.value = processTaxiItems(responseData.data);
     } else {
@@ -892,7 +849,6 @@ watch(searchQuery, async (val) => {
   }
 });
 
-// Comment handlers
 function openCommentDialog() {
   commentDialog.value = true;
   telephoneError.value = false;
@@ -903,18 +859,11 @@ function submitComment() {
   telephoneError.value = !telephone.value.trim();
   commentError.value = !comment.value.trim();
   if (telephoneError.value || commentError.value) return;
-
-  console.log("📞 Phone:", telephone.value);
-  console.log("📝 Comment:", comment.value);
-
-  // TODO: Send to API
-
   telephone.value = "";
   comment.value = "";
   commentDialog.value = false;
 }
 
-// Zoom handlers
 function openZoom(item, index) {
   zoomItem.value = item;
   zoomSlide.value = index;
@@ -926,23 +875,32 @@ function toggleZoomAutoplay() {
   isZoomPlaying.value = !isZoomPlaying.value;
 }
 
-// WhatsApp handler
-function addToCart(item) {
+// ✅ NEW: Call phone function — triggers native phone dialer
+function callPhone(tel) {
+  if (!tel) {
+    alert("❌ ບໍ່ມີເບີໂທ");
+    return;
+  }
+  // Strip all non-digit characters then open tel: link
+  const cleanPhone = tel.replace(/\D/g, "");
+  window.location.href = `tel:${cleanPhone}`;
+}
+
+// ✅ NEW: WhatsApp function — opens WhatsApp chat with +856 country code
+function openWhatsApp(item) {
   if (!item.tel) {
     alert("❌ ບໍ່ມີເບີໂທ");
     return;
   }
-
-  const phone = item.tel.replace(/\D/g, "");
+  // Remove all non-digits, strip leading 0, prepend Laos country code 856
+  const cleanPhone = item.tel.replace(/\D/g, "").replace(/^0+/, "");
   const message = encodeURIComponent("ສະບາຍດີ! ຂ້ອຍຕ້ອງການຈອງລົດ");
-  const url = `https://wa.me/856${phone}?text=${message}`;
+  const url = `https://wa.me/856${cleanPhone}?text=${message}`;
   window.open(url, "_blank");
 }
 
-// Image error handler
 function handleImageError(event) {
   const imgSrc = event.target.src;
-
   if (!imgSrc.includes("/uploads/")) {
     event.target.src = imageBaseUrl + "uploads/" + imgSrc.split("/").pop();
   } else if (!imgSrc.includes("/images/")) {
@@ -953,6 +911,7 @@ function handleImageError(event) {
   }
 }
 </script>
+
 <style scoped>
 .video-hero-section {
   position: relative;
@@ -1093,15 +1052,10 @@ function handleImageError(event) {
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* 🎨 Beautiful Dialog Zoom Styles */
 .zoom-dialog-card {
   border-radius: 16px !important;
   overflow: hidden;
@@ -1165,17 +1119,14 @@ function handleImageError(event) {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Mobile responsive */
 @media (max-width: 960px) {
   .zoom-carousel-wrapper {
     padding: 16px !important;
   }
-
   .zoom-header {
     flex-direction: column;
     align-items: flex-start !important;
   }
-
   .zoom-header .v-avatar {
     margin-bottom: 12px;
   }
@@ -1185,12 +1136,10 @@ function handleImageError(event) {
   .zoom-carousel-wrapper {
     padding: 12px !important;
   }
-
   .zoom-image-counter {
     top: 12px;
     right: 12px;
   }
-
   .zoom-image-counter .v-chip {
     font-size: 0.75rem;
   }
