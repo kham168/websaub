@@ -1,12 +1,12 @@
 <template>
   <v-app>
-    <v-container fluid class="pa-2 pl-16 pr-16">
+    <v-container fluid class="pa-0">
       <v-carousel
         cycle
         v-model="carouselIndex"
         show-arrows
         hide-delimiters
-        interval="2000"
+        interval="3000"
         height="500"
         class="hero-carousel"
       >
@@ -17,8 +17,8 @@
           <v-img
             :src="img"
             height="500"
-            contain
-            gradient="to bottom, rgba(0,0,0,.2), rgba(0,0,0,.7)"
+            cover
+            gradient="to bottom, rgba(0,0,0,.3), rgba(0,0,0,.5)"
           />
         </v-carousel-item>
       </v-carousel>
@@ -29,14 +29,13 @@
     <!-- Categories Grid -->
     <v-container fluid class="pa-6">
       <div class="text-center mb-8">
-        <h2 class="text-h3 font-weight-bold mb-3">ບໍລິການຂອງພວກເຮົາ</h2>
+        <h2 class="text-h6 font-weight-bold mb-3">ບໍລິການຂອງພວກເຮົາ</h2>
         <p class="text-h6 text-grey-darken-1">ເລືອກບໍລິການທີ່ທ່ານຕ້ອງການ</p>
       </div>
-      <!-- <NuxtLink to="/admin">Admin Page</NuxtLink> -->
+
       <v-container class="pa-4">
         <v-row justify="center">
           <v-col cols="12" md="10" lg="8">
-            <!-- Search Bar -->
             <v-text-field
               v-model="searchQuery"
               placeholder="Search by name, type,..."
@@ -45,7 +44,7 @@
               prepend-inner-icon="mdi-magnify"
               clearable
               hide-details
-              class="search-field mb-3"
+              class="mb-3"
             >
               <template #append>
                 <v-btn
@@ -62,7 +61,9 @@
           </v-col>
         </v-row>
       </v-container>
-      <v-divider class="my-4"></v-divider>
+
+      <v-divider class="my-4" />
+
       <!-- Loading State -->
       <v-row v-if="loading" class="text-center py-16">
         <v-col cols="12">
@@ -74,8 +75,38 @@
       <!-- Error State -->
       <v-row v-else-if="error" class="text-center py-16">
         <v-col cols="12">
-          <v-icon size="64" color="error">mdi-alert-circle</v-icon>
+          <v-icon size="80" color="error">mdi-alert-circle-outline</v-icon>
           <p class="mt-4 text-h6 text-error">{{ error }}</p>
+          <v-btn
+            color="error"
+            variant="tonal"
+            prepend-icon="mdi-refresh"
+            class="mt-4"
+            @click="fetchChannels"
+          >
+            ລອງໃໝ່
+          </v-btn>
+        </v-col>
+      </v-row>
+
+      <!-- Empty State -->
+      <v-row v-else-if="channels.length === 0" class="text-center py-16">
+        <v-col cols="12">
+          <v-icon size="80" color="grey-lighten-1"
+            >mdi-store-off-outline</v-icon
+          >
+          <p class="mt-4 text-h6 text-grey">ບໍ່ມີຂໍ້ມູນໃນຂະນະນີ້</p>
+          <p class="text-body-2 text-grey-lighten-1 mb-4">
+            ກະລຸນາລອງໃໝ່ພາຍຫຼັງ
+          </p>
+          <v-btn
+            color="primary"
+            variant="tonal"
+            prepend-icon="mdi-refresh"
+            @click="fetchChannels"
+          >
+            ໂຫລດໃໝ່
+          </v-btn>
         </v-col>
       </v-row>
 
@@ -89,44 +120,57 @@
           md="4"
           lg="3"
           xl="2"
+          class="mb-4"
         >
           <v-card
-            class="category-card"
             elevation="2"
+            rounded="lg"
             hover
-            @click="navigateToProduct(item.channel)"
+            class="h-100 d-flex flex-column cursor-pointer"
             @click.stop="navigateToProduct(item)"
           >
             <!-- Image -->
-            <div class="image-wrapper">
-              <v-img
-                :src="item.image[0]"
-                aspect-ratio="1"
-                cover
-                class="category-image"
-              >
-                <!-- Image Count Badge -->
-                <div v-if="item.image.length > 1" class="image-count-badge">
-                  <v-icon size="small" class="mr-1">mdi-camera</v-icon>
-                  {{ item.image.length }}
-                </div>
+            <v-img :src="item.image[0]" aspect-ratio="1" cover>
+              <template #default>
+                <div
+                  class="d-flex flex-column fill-height justify-space-between"
+                >
+                  <!-- Top right: image count -->
+                  <div class="d-flex justify-end pa-2">
+                    <v-chip
+                      v-if="item.image.length > 1"
+                      size="small"
+                      color="black"
+                      variant="flat"
+                      class="text-white"
+                    >
+                      <v-icon size="small" class="mr-1">mdi-camera</v-icon>
+                      {{ item.image.length }}
+                    </v-chip>
+                  </div>
 
-                <!-- Best Seller Badge -->
-                <div v-if="item.isBestSeller" class="best-seller-badge">
-                  #1 ຍອດນິຍົມ
+                  <!-- Bottom left: best seller badge -->
+                  <div class="d-flex justify-start pa-2">
+                    <v-chip
+                      v-if="item.isBestSeller"
+                      size="small"
+                      color="deep-orange"
+                      variant="flat"
+                      class="text-white font-weight-bold"
+                    >
+                      #1 ຍອດນິຍົມ
+                    </v-chip>
+                  </div>
                 </div>
-              </v-img>
-            </div>
+              </template>
+            </v-img>
 
             <!-- Content -->
             <v-card-text class="pa-4">
-              <!-- Channel Name -->
-              <h3 class="text-h6 font-weight-bold channel-name">
+              <h3 class="text-h6 font-weight-bold text-primary">
                 {{ item.channel }}
               </h3>
-
-              <!-- Title/Description -->
-              <p v-if="item.title" class="text-body-2 text-grey-darken-1 mb-1">
+              <p v-if="item.detail" class="text-body-2 text-grey-darken-1 mb-1">
                 {{ item.detail }}
               </p>
             </v-card-text>
@@ -135,7 +179,7 @@
             <v-card-actions class="pa-4 pt-0">
               <v-btn
                 block
-                class="text-blue"
+                color="primary"
                 variant="flat"
                 prepend-icon="mdi-arrow-right-circle"
               >
@@ -155,17 +199,21 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 
-// Composable
 const { channels, fetchChannels, loading, error } = useChannel();
 const { fetchProfileImages, profileImageitems } = useProfileImage();
 const carouselIndex = ref(0);
+const searchQuery = ref("");
+
 onMounted(async () => {
   await fetchChannels();
-
   console.log("Channels loaded:", channels.value);
   await fetchProfileImages();
   console.log("Profile images loaded:", profileImageitems.value);
 });
+
+const handleSearch = () => {
+  console.log("Searching for:", searchQuery.value);
+};
 
 const routesMap = {
   1: "/muag_cream/home_muagcreams",
@@ -175,14 +223,12 @@ const routesMap = {
   5: "/muag_av/home_muagav",
   6: "/muag_tshuaj/home_muagtshuaj",
   7: "/taxi/home_taxi",
-  8:"/chue/sell_Product"
+  8: "/chue/sell_Product",
 };
 
 const navigateToProduct = (item) => {
   const route = routesMap[item.id];
-
   if (route) {
-    console.log("Navigating to:", route);
     router.push(route);
   } else {
     console.warn("No matching route for id:", item.id);
@@ -191,85 +237,13 @@ const navigateToProduct = (item) => {
 </script>
 
 <style scoped>
-/* Hero Carousel */
-.hero-carousel {
-  border-radius: 0;
+.hero-carousel :deep(.v-btn--icon) {
+  background-color: rgba(25, 118, 210, 0.8) !important;
+  color: white !important;
+  border-radius: 50%;
 }
 
-/* Category Cards */
-.category-card {
-  height: 100%;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-}
-
-.category-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2) !important;
-}
-
-.image-wrapper {
-  position: relative;
-  overflow: hidden;
-  border-radius: 12px 12px 0 0;
-}
-
-.category-image {
-  transition: transform 0.4s ease;
-}
-
-.category-card:hover .category-image {
-  transform: scale(1.1);
-}
-
-.image-count-badge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  z-index: 2;
-  backdrop-filter: blur(4px);
-}
-
-.best-seller-badge {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  background: #ff6b35;
-  color: white;
-  padding: 6px 12px;
-  font-size: 11px;
-  font-weight: 700;
-  border-radius: 6px;
-  z-index: 2;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.channel-name {
-  color: #1976d2;
-  line-height: 1.4;
-  min-height: 2em;
-  transition: color 0.2s;
-}
-
-.category-card:hover .channel-name {
-  color: #1565c0;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-  .category-card {
-    margin-bottom: 16px;
-  }
+.hero-carousel :deep(.v-btn--icon:hover) {
+  background-color: rgba(25, 118, 210, 1) !important;
 }
 </style>

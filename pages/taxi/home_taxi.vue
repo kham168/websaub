@@ -1,54 +1,95 @@
 <template>
   <v-app>
     <v-container fluid class="pa-0">
-      <!-- 🎥 Video Hero Banner -->
-      <section class="video-hero-section">
-        <v-carousel
-          v-model="currentVideoSlide"
-          height="500"
-          hide-delimiter-background
-          show-arrows
-          cycle
-          interval="6000"
-          class="video-carousel"
-        >
-          <template v-slot:prev="{ props }">
-            <v-btn
-              icon="mdi-chevron-left"
-              size="large"
-              v-bind="props"
-              class="video-arrow"
-              color="white"
-              elevation="3"
-            />
-          </template>
-          <template v-slot:next="{ props }">
-            <v-btn
-              icon="mdi-chevron-right"
-              size="large"
-              v-bind="props"
-              class="video-arrow"
-              color="white"
-              elevation="3"
-            />
-          </template>
 
-          <v-carousel-item
-            v-for="(video, i) in videoBanners"
-            :key="`video-${i}`"
-            class="video-item"
-          >
+      <!-- ✅ SMART BANNER: Video = play in place | Images = carousel slide -->
+
+      <!-- CASE 1: Single Video (no carousel, just plays) -->
+      <div
+        v-if="isVideoMode"
+        class="position-relative"
+        style="width: 100%; height: 500px; background: #000"
+      >
+        <iframe
+          v-if="videoSrc"
+          :src="videoSrc"
+          frameborder="0"
+          allow="autoplay; fullscreen; picture-in-picture"
+          style="width: 100%; height: 100%; display: block"
+        />
+
+        <!-- Overlay Text -->
+        <div
+          class="position-absolute w-100 h-100 d-flex align-center justify-center"
+          style="
+            top: 0; left: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+            pointer-events: none;
+            z-index: 1;
+          "
+        >
+          <div class="text-center px-4">
+            <h1 class="text-h3 text-white font-weight-bold mb-4">
+              ບໍລິການລົດແທັກຊີ່
+            </h1>
+            <p class="text-h6 text-white mb-6">
+              ລາຄາສົມເຫດສົມຜົນ • ປອດໄພ • ໄວ
+            </p>
+          </div>
+        </div>
+
+        <!-- Sound Toggle -->
+        <v-btn
+          icon
+          class="position-absolute bg-white"
+          style="bottom: 20px; left: 20px; z-index: 2"
+          elevation="2"
+          @click="isMuted = !isMuted"
+        >
+          <v-icon color="grey-darken-2">
+            {{ isMuted ? "mdi-volume-off" : "mdi-volume-high" }}
+          </v-icon>
+        </v-btn>
+      </div>
+
+      <!-- CASE 2: Multiple Videos = carousel (each plays on slide) -->
+      <v-carousel
+        v-else-if="videoBanners.length > 1"
+        v-model="currentVideoSlide"
+        height="500"
+        hide-delimiter-background
+        show-arrows
+        cycle
+        interval="6000"
+      >
+        <template v-slot:prev="{ props }">
+          <v-btn icon="mdi-chevron-left" size="large" v-bind="props" color="white" elevation="3" class="bg-blue-darken-2" />
+        </template>
+        <template v-slot:next="{ props }">
+          <v-btn icon="mdi-chevron-right" size="large" v-bind="props" color="white" elevation="3" class="bg-blue-darken-2" />
+        </template>
+
+        <v-carousel-item v-for="(video, i) in videoBanners" :key="`video-${i}`">
+          <div class="position-relative fill-height">
             <iframe
               v-if="videoSrcs[i]"
               :src="videoSrcs[i]"
               frameborder="0"
               allow="autoplay; fullscreen; picture-in-picture"
-              class="video-iframe"
+              style="width: 100%; height: 100%; display: block"
             />
 
-            <!-- Overlay with gradient -->
-            <div class="video-overlay">
-              <div class="overlay-content">
+            <!-- Overlay -->
+            <div
+              class="position-absolute w-100 h-100 d-flex align-center justify-center"
+              style="
+                top: 0; left: 0;
+                background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+                pointer-events: none;
+                z-index: 1;
+              "
+            >
+              <div class="text-center px-4">
                 <h1 class="text-h3 text-white font-weight-bold mb-4">
                   ບໍລິການລົດແທັກຊີ່
                 </h1>
@@ -61,29 +102,86 @@
             <!-- Sound Toggle -->
             <v-btn
               icon
-              class="sound-toggle"
-              @click="isMuted = !isMuted"
-              color="white"
+              class="position-absolute bg-white"
+              style="bottom: 20px; left: 20px; z-index: 2"
               elevation="2"
+              @click="isMuted = !isMuted"
             >
-              <v-icon>{{
-                isMuted ? "mdi-volume-off" : "mdi-volume-high"
-              }}</v-icon>
+              <v-icon color="grey-darken-2">
+                {{ isMuted ? "mdi-volume-off" : "mdi-volume-high" }}
+              </v-icon>
             </v-btn>
-          </v-carousel-item>
-        </v-carousel>
-      </section>
+          </div>
+        </v-carousel-item>
+      </v-carousel>
+
+      <!-- CASE 3: Image Carousel (1 or more images) -->
+      <v-carousel
+        v-else-if="imageBanners.length > 0"
+        v-model="currentImageSlide"
+        height="500"
+        :cycle="imageBanners.length > 1"
+        :show-arrows="imageBanners.length > 1"
+        :hide-delimiters="imageBanners.length <= 1"
+        hide-delimiter-background
+        interval="4000"
+      >
+        <template v-slot:prev="{ props }">
+          <v-btn icon="mdi-chevron-left" size="large" v-bind="props" color="white" elevation="3" class="bg-blue-darken-2" />
+        </template>
+        <template v-slot:next="{ props }">
+          <v-btn icon="mdi-chevron-right" size="large" v-bind="props" color="white" elevation="3" class="bg-blue-darken-2" />
+        </template>
+
+        <v-carousel-item v-for="(img, i) in imageBanners" :key="`img-${i}`">
+          <div class="position-relative fill-height">
+            <v-img :src="img" class="fill-height" cover />
+
+            <!-- Overlay -->
+            <div
+              class="position-absolute w-100 h-100 d-flex align-center justify-center"
+              style="
+                top: 0; left: 0;
+                background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+                pointer-events: none;
+                z-index: 1;
+              "
+            >
+              <div class="text-center px-4">
+                <h1 class="text-h3 text-white font-weight-bold mb-4">
+                  ບໍລິການລົດແທັກຊີ່
+                </h1>
+                <p class="text-h6 text-white mb-6">
+                  ລາຄາສົມເຫດສົມຜົນ • ປອດໄພ • ໄວ
+                </p>
+              </div>
+            </div>
+          </div>
+        </v-carousel-item>
+      </v-carousel>
+
+      <!-- CASE 4: Nothing to show -->
+      <v-sheet
+        v-else
+        height="500"
+        color="grey-lighten-3"
+        class="d-flex align-center justify-center"
+      >
+        <div class="text-center">
+          <v-icon size="64" color="grey-lighten-1">mdi-image-off-outline</v-icon>
+          <p class="text-body-1 text-medium-emphasis mt-3">ບໍ່ມີສື່ສຳລັບສະແດງ</p>
+        </div>
+      </v-sheet>
 
       <!-- 🔍 Search & Filter Section -->
-      <v-container class="search-section py-8">
-        <v-card elevation="3" class="pa-6 rounded-lg">
+      <v-container class="py-8">
+        <v-card elevation="3" rounded="lg" class="pa-6">
           <h2 class="text-h5 font-weight-bold mb-6">
             <v-icon color="primary" class="mr-2">mdi-magnify</v-icon>
             ຄົ້ນຫາລົດແທັກຊີ່
           </h2>
 
           <v-row>
-            <!-- Province Select -->
             <v-col cols="12" sm="6" md="3">
               <v-select
                 v-model="selectedProvince"
@@ -98,7 +196,6 @@
               />
             </v-col>
 
-            <!-- District Select -->
             <v-col cols="12" sm="6" md="3">
               <v-select
                 v-model="selectedDistrict"
@@ -114,21 +211,19 @@
               />
             </v-col>
 
-            <!-- Search Button -->
             <v-col cols="12" sm="6" md="2">
               <v-btn
                 block
                 color="primary"
                 size="large"
-                @click="queryByLocation"
                 :disabled="!selectedProvince || !selectedDistrict"
                 prepend-icon="mdi-magnify"
+                @click="queryByLocation"
               >
                 ຄົ້ນຫາ
               </v-btn>
             </v-col>
 
-            <!-- Search Text -->
             <v-col cols="12" sm="6" md="3">
               <v-text-field
                 v-model="searchQuery"
@@ -140,48 +235,43 @@
               />
             </v-col>
 
-            <!-- Ask Button -->
             <v-col cols="12" md="1" class="d-flex align-center">
               <v-btn
                 block
                 color="success"
                 variant="tonal"
-                @click="openCommentDialog"
                 prepend-icon="mdi-comment-question"
+                @click="openCommentDialog"
               >
                 ສອບຖາມ
               </v-btn>
             </v-col>
           </v-row>
 
-          <!-- Active Filters Display -->
+          <!-- Active Filters -->
           <v-row v-if="selectedProvince || selectedDistrict" class="mt-2">
             <v-col cols="12">
-              <div class="d-flex align-center gap-2 flex-wrap">
+              <div class="d-flex align-center ga-2 flex-wrap">
                 <span class="text-subtitle-2 text-grey-darken-1">ຕົວກອງ:</span>
                 <v-chip
                   v-if="selectedProvince"
                   closable
-                  @click:close="selectedProvince = null"
                   color="primary"
                   variant="flat"
                   size="small"
+                  @click:close="selectedProvince = null"
                 >
                   {{ provinces.find((p) => p.code === selectedProvince)?.name }}
                 </v-chip>
                 <v-chip
                   v-if="selectedDistrict"
                   closable
-                  @click:close="selectedDistrict = null"
                   color="primary"
                   variant="flat"
                   size="small"
+                  @click:close="selectedDistrict = null"
                 >
-                  {{
-                    districtsForSelectedProvince.find(
-                      (d) => d.code === selectedDistrict
-                    )?.name
-                  }}
+                  {{ districtsForSelectedProvince.find((d) => d.code === selectedDistrict)?.name }}
                 </v-chip>
               </div>
             </v-col>
@@ -200,18 +290,10 @@
         </div>
       </v-container>
 
-      <!-- 🚖 Taxi Cards Grid -->
+      <!-- 🚖 Taxi Cards -->
       <v-container class="pb-12">
-        <!-- Empty State -->
-        <v-row v-if="filteredData.length === 0">
-          <v-col cols="12" class="text-center py-16">
-            <v-icon size="120" color="grey-lighten-2">mdi-taxi</v-icon>
-            <h3 class="text-h5 text-grey-darken-1 mt-6">
-              ບໍ່ພົບຂໍ້ມູນລົດແທັກຊີ່
-            </h3>
-            <p class="text-body-1 text-grey mt-2">ກະລຸນາລອງຄົ້ນຫາໃໝ່</p>
-          </v-col>
-        </v-row>
+
+        <!-- Loading State -->
         <v-row v-if="loading" class="text-center py-16">
           <v-col cols="12">
             <v-progress-circular indeterminate color="primary" size="64" />
@@ -222,8 +304,46 @@
         <!-- Error State -->
         <v-row v-else-if="error" class="text-center py-16">
           <v-col cols="12">
-            <v-icon size="64" color="error">mdi-alert-circle</v-icon>
+            <v-icon size="80" color="error">mdi-alert-circle-outline</v-icon>
             <p class="mt-4 text-h6 text-error">{{ error }}</p>
+            <v-btn
+              color="error"
+              variant="tonal"
+              prepend-icon="mdi-refresh"
+              class="mt-4"
+              @click="fetchTaxi"
+            >
+              ລອງໃໝ່
+            </v-btn>
+          </v-col>
+        </v-row>
+
+        <!-- Empty State -->
+        <v-row v-else-if="filteredData.length === 0" justify="center" class="py-16">
+          <v-col cols="12" sm="8" md="4" class="text-center">
+            <v-sheet
+              rounded="xl"
+              color="grey-lighten-4"
+              class="pa-10 d-flex flex-column align-center"
+            >
+              <v-icon size="80" color="grey-lighten-1">mdi-taxi</v-icon>
+              <p class="text-h6 font-weight-medium mt-5 mb-1">
+                ບໍ່ພົບຂໍ້ມູນລົດແທັກຊີ່
+              </p>
+              <p class="text-body-2 text-medium-emphasis mb-6">
+                ກະລຸນາລອງຄົ້ນຫາໃໝ່
+              </p>
+              <v-btn
+                color="primary"
+                variant="tonal"
+                size="large"
+                rounded="lg"
+                prepend-icon="mdi-refresh"
+                @click="fetchTaxi"
+              >
+                ໂຫລດໃໝ່
+              </v-btn>
+            </v-sheet>
           </v-col>
         </v-row>
 
@@ -237,114 +357,121 @@
             md="4"
             lg="3"
           >
-            <v-card class="taxi-card" elevation="2" hover>
-              <!-- Image Carousel -->
-              <div class="image-carousel-wrapper">
-                <v-carousel
-                  v-model="taxi.currentSlide"
-                  height="250"
-                  hide-delimiter-background
-                  show-arrows="hover"
-                  class="image-carousel"
-                >
-                  <template v-slot:prev="{ props }">
-                    <v-btn
-                      icon="mdi-chevron-left"
-                      size="small"
-                      v-bind="props"
-                      class="carousel-arrow"
-                      color="white"
-                      elevation="2"
-                    />
-                  </template>
-                  <template v-slot:next="{ props }">
-                    <v-btn
-                      icon="mdi-chevron-right"
-                      size="small"
-                      v-bind="props"
-                      class="carousel-arrow"
-                      color="white"
-                      elevation="2"
-                    />
-                  </template>
+            <v-card elevation="2" rounded="lg" hover class="h-100 d-flex flex-column">
 
-                  <v-carousel-item
-                    v-for="(img, i) in taxi.image"
-                    :key="`img-${index}-${i}`"
+              <!-- Image with manual prev/next arrows -->
+              <v-img
+                :src="
+                  taxi.image[taxi.currentSlide ?? 0]?.startsWith('http')
+                    ? taxi.image[taxi.currentSlide ?? 0]
+                    : imageBaseUrl + taxi.image[taxi.currentSlide ?? 0]
+                "
+                :aspect-ratio="16 / 9"
+                cover
+                class="cursor-pointer"
+                @click="openZoom(taxi, taxi.currentSlide ?? 0)"
+                @error="handleImageError"
+              >
+                <template v-slot:placeholder>
+                  <v-row class="fill-height ma-0" align="center" justify="center">
+                    <v-progress-circular indeterminate color="grey-lighten-5" />
+                  </v-row>
+                </template>
+
+                <template v-slot:error>
+                  <v-row class="fill-height ma-0" align="center" justify="center">
+                    <div class="text-center">
+                      <v-icon size="40" color="grey-lighten-2">mdi-image-off</v-icon>
+                      <p class="text-caption text-grey mt-1">ບໍ່ມີຮູບພາບ</p>
+                    </div>
+                  </v-row>
+                </template>
+
+                <!-- Prev / Next arrows -->
+                <div class="d-flex align-center justify-space-between fill-height px-2">
+                  <v-btn
+                    v-if="taxi.image.length > 1"
+                    icon="mdi-chevron-left"
+                    size="x-small"
+                    variant="plain"
+                    color="white"
+                    style="background: rgba(0,0,0,0.35)"
+                    @click.stop="
+                      taxi.currentSlide =
+                        taxi.currentSlide > 0
+                          ? taxi.currentSlide - 1
+                          : taxi.image.length - 1
+                    "
+                  />
+                  <div v-else />
+
+                  <v-btn
+                    v-if="taxi.image.length > 1"
+                    icon="mdi-chevron-right"
+                    size="x-small"
+                    variant="plain"
+                    color="white"
+                    style="background: rgba(0,0,0,0.35)"
+                    @click.stop="
+                      taxi.currentSlide =
+                        taxi.currentSlide < taxi.image.length - 1
+                          ? taxi.currentSlide + 1
+                          : 0
+                    "
+                  />
+                  <div v-else />
+                </div>
+
+                <!-- Image counter top-right -->
+                <div class="position-absolute" style="top: 8px; right: 8px">
+                  <v-chip
+                    size="x-small"
+                    color="black"
+                    variant="flat"
+                    class="text-white opacity-80"
                   >
-                    <v-img
-                      :src="img.startsWith('http') ? img : imageBaseUrl + img"
-                      aspect-ratio="1.5"
-                      cover
-                      class="taxi-image"
-                      @click="openZoom(taxi, i)"
-                      @error="handleImageError"
-                    >
-                      <template v-slot:placeholder>
-                        <v-row
-                          class="fill-height ma-0"
-                          align="center"
-                          justify="center"
-                        >
-                          <v-progress-circular
-                            indeterminate
-                            color="grey-lighten-5"
-                          ></v-progress-circular>
-                        </v-row>
-                      </template>
-
-                      <!-- Image counter badge -->
-                      <div class="image-counter">
-                        <v-icon size="small" class="mr-1">mdi-camera</v-icon>
-                        {{ i + 1 }}/{{ taxi.image.length }}
-                      </div>
-                    </v-img>
-                  </v-carousel-item>
-                </v-carousel>
-              </div>
+                    <v-icon size="x-small" class="mr-1">mdi-camera</v-icon>
+                    {{ (taxi.currentSlide ?? 0) + 1 }}/{{ taxi.image.length }}
+                  </v-chip>
+                </div>
+              </v-img>
 
               <!-- Card Content -->
-              <v-card-text class="pa-4">
-                <!-- Taxi Name -->
-                <h4 class="text-h6 font-weight-bold mb-3 taxi-name">
+              <v-card-text class="pa-3 pa-sm-4 flex-grow-1">
+                <h4 class="text-body-1 text-sm-h6 font-weight-bold mb-2 text-primary text-truncate">
                   {{ taxi.name }}
                 </h4>
 
                 <!-- Pricing -->
-                <div class="pricing-section mb-3">
-                  <v-chip color="success" variant="flat" class="mb-2">
+                <v-sheet border="s-lg" color="transparent" class="border-success pl-3 mb-3">
+                  <v-chip
+                    color="success"
+                    variant="flat"
+                    :size="smAndDown ? 'small' : 'default'"
+                    class="mb-1"
+                  >
                     <v-icon start size="small">mdi-cash</v-icon>
-                    {{ Number(taxi.price1).toLocaleString() }} ₭
+                    {{ taxi.price1 ? Number(taxi.price1).toLocaleString() : "ສອບຖາມລາຄາ" }} ₭
                   </v-chip>
-                  <p class="text-caption text-grey-darken-1">
-                    ລາຄາສາມາດລົມໄດ້ຕາມໄລຍະທາງ
-                  </p>
+                  <p class="text-caption text-grey-darken-1">ລາຄາສາມາດລົມໄດ້ຕາມໄລຍະທາງ</p>
+                </v-sheet>
+
+                <!-- Contact -->
+                <div
+                  class="d-flex align-center ga-2 mb-3 cursor-pointer"
+                  @click="callPhone(taxi.tel)"
+                >
+                  <v-icon color="primary" :size="smAndDown ? 'x-small' : 'small'">mdi-phone</v-icon>
+                  <span class="text-primary font-weight-medium text-caption text-sm-body-2">
+                    {{ taxi.tel }}
+                  </span>
                 </div>
 
-                <!-- ✅ FIXED: Contact Info - Tel button calls phone directly -->
-                <v-list class="bg-transparent pa-0 mb-3">
-                  <v-list-item class="px-0" density="compact">
-                    <template v-slot:prepend>
-                      <v-icon color="primary" size="small">mdi-phone</v-icon>
-                    </template>
-                    <v-list-item-title>
-                      <!-- ✅ Click to CALL: uses window.location.href for reliable tel: routing -->
-                      <span
-                        class="contact-link text-primary"
-                        @click="callPhone(taxi.tel)"
-                        style="cursor: pointer;"
-                      >
-                        {{ taxi.tel }}
-                      </span>
-                    </v-list-item-title>
-                  </v-list-item>
-                </v-list>
-
-                <!-- Details (collapsible) -->
+                <!-- Collapsible Details -->
                 <v-expand-transition>
-                  <div v-if="taxi.showDetails" class="details-expanded">
-                    <v-divider class="mb-3" />
-                    <p class="text-body-2 text-grey-darken-2">
+                  <div v-if="taxi.showDetails">
+                    <v-divider class="mb-2" />
+                    <p class="text-caption text-sm-body-2 text-grey-darken-2">
                       {{ taxi.detail }}
                     </p>
                   </div>
@@ -352,76 +479,53 @@
               </v-card-text>
 
               <!-- Card Actions -->
-              <v-card-actions class="pa-4 pt-0">
+              <v-card-actions class="pa-3 pa-sm-4 pt-0">
                 <v-btn
                   variant="text"
                   color="primary"
-                  size="small"
+                  :size="smAndDown ? 'x-small' : 'small'"
                   @click="taxi.showDetails = !taxi.showDetails"
                 >
                   {{ taxi.showDetails ? "ຫຼຸດລົງ" : "ລາຍລະອຽດເພີ່ມ" }}
                   <v-icon end>
-                    {{
-                      taxi.showDetails ? "mdi-chevron-up" : "mdi-chevron-down"
-                    }}
+                    {{ taxi.showDetails ? "mdi-chevron-up" : "mdi-chevron-down" }}
                   </v-icon>
                 </v-btn>
 
                 <v-spacer />
 
-                <!-- ✅ FIXED: WhatsApp button routes to WhatsApp -->
                 <v-btn
                   color="success"
                   variant="flat"
-                  size="small"
-                  @click="openWhatsApp(taxi)"
+                  :size="smAndDown ? 'x-small' : 'small'"
                   prepend-icon="mdi-whatsapp"
+                  @click="openWhatsApp(taxi)"
                 >
-                  WhatsApp
+                  {{ smAndDown ? "" : "WhatsApp" }}
                 </v-btn>
               </v-card-actions>
             </v-card>
           </v-col>
 
-          <!-- ================ Show Top Product and slider  ================ -->
-          <v-divider class="my-4"></v-divider>
-          <v-row>
-            <v-col cols="1" class="d-flex align-end justify-end mb-1">
-              <v-icon color="primary">mdi-plus-circle</v-icon>
-            </v-col>
-            <v-col cols="11" class="d-flex align-start justify-start text-h5">
-              ແນະນຳເບຣນດອື່ນๆ
-            </v-col>
-          </v-row>
-          <v-divider class="my-4"></v-divider>
-          <v-container class="pa-4 bg-grey-lighten-3">
-            <v-carousel
-              cycle
-              show-arrows
-              hide-delimiters
-              interval="3000"
-              width="90px"
-              height="300px"
-            >
-              <v-carousel-item v-for="(item, index) in topData" :key="index">
-                <v-img
-                  :src="item.image[0] || '/placeholder.jpg'"
-                  class="fill-height"
-                  cover
-                >
-                </v-img>
-              </v-carousel-item>
-            </v-carousel>
-          </v-container>
-          <v-divider class="my-4"></v-divider>
-          <!-- =============== Show Top Product and TopData  ================ -->
-          <TopDataCard :topData="topData" />
+          <!-- Recommended Section -->
+          <v-col cols="12" class="mt-4">
+            <v-divider class="mb-4" />
+            <div class="d-flex align-center mb-4">
+              <v-icon color="primary" class="mr-2">mdi-plus-circle</v-icon>
+              <span class="text-h5">ແນະນຳເບຣນດອື່ນໆ</span>
+            </div>
+            <v-divider class="mb-4" />
+          </v-col>
+
+          <v-col cols="12">
+            <TopDataCard :topData="topData" />
+          </v-col>
         </v-row>
       </v-container>
 
       <!-- 📝 Comment Dialog -->
       <v-dialog v-model="commentDialog" max-width="600">
-        <v-card class="rounded-lg">
+        <v-card rounded="lg">
           <v-card-title class="bg-primary text-white pa-4">
             <v-icon class="mr-2">mdi-comment-question</v-icon>
             ສອບຖາມຂໍ້ມູນ
@@ -439,7 +543,6 @@
               :error-messages="telephoneError ? ['ກະລຸນາປ້ອນເບີໂທ'] : []"
               class="mb-4"
             />
-
             <v-textarea
               v-model="comment"
               label="ຂໍ້ຄວາມ"
@@ -455,233 +558,243 @@
 
           <v-card-actions class="pa-4">
             <v-spacer />
-            <v-btn variant="text" @click="commentDialog = false">
-              ຍົກເລີກ
-            </v-btn>
-            <v-btn color="primary" variant="flat" @click="submitComment">
-              ສົ່ງ
-            </v-btn>
+            <v-btn variant="text" @click="commentDialog = false">ຍົກເລີກ</v-btn>
+            <v-btn color="primary" variant="flat" @click="submitComment">ສົ່ງ</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
 
       <!-- 🔍 Image Zoom Dialog -->
-      <v-dialog
-        v-model="zoomDialog"
-        max-width="1200"
-        transition="dialog-transition"
-      >
-        <v-card class="zoom-dialog-card elevation-24">
+      <v-dialog v-model="zoomDialog" max-width="1200" transition="dialog-transition">
+        <v-card rounded="xl" elevation="24">
+
           <!-- Header -->
-          <v-card-title class="zoom-header pa-6 d-flex align-center">
-            <div class="d-flex align-center flex-grow-1">
-              <v-avatar color="primary" size="48" class="mr-4">
-                <v-icon color="white" size="28">mdi-car-side</v-icon>
-              </v-avatar>
-              <div>
-                <h3 class="text-h5 font-weight-bold">{{ zoomItem.name }}</h3>
-                <div class="d-flex align-center mt-1">
-                  <v-chip
-                    color="success"
-                    variant="flat"
-                    size="small"
-                    class="mr-2"
-                  >
-                    <v-icon start size="small">mdi-cash</v-icon>
-                    {{ Number(zoomItem.price1 || 0).toLocaleString() }} ₭
-                  </v-chip>
-                  <!-- ✅ FIXED: Click chip phone number to call -->
-                  <v-chip
-                    color="primary"
-                    variant="flat"
-                    size="small"
-                    style="cursor: pointer;"
-                    @click="callPhone(zoomItem.tel)"
-                  >
-                    <v-icon start size="small">mdi-phone</v-icon>
-                    {{ zoomItem.tel }}
-                  </v-chip>
-                </div>
+          <v-card-title
+            class="pa-4 pa-sm-6 d-flex align-center"
+            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+          >
+            <v-avatar color="white" size="40" class="mr-3 d-none d-sm-flex">
+              <v-icon color="primary" size="24">mdi-car-side</v-icon>
+            </v-avatar>
+
+            <div class="flex-grow-1 min-width-0">
+              <h3 class="text-body-1 text-sm-h5 font-weight-bold text-white text-truncate">
+                {{ zoomItem.name }}
+              </h3>
+              <div class="d-flex align-center mt-1 ga-1 ga-sm-2 flex-wrap">
+                <v-chip color="success" variant="flat" size="small">
+                  <v-icon start size="small">mdi-cash</v-icon>
+                  {{ Number(zoomItem.price1 || 0).toLocaleString() }} ₭
+                </v-chip>
+                <v-chip
+                  color="white"
+                  variant="flat"
+                  size="small"
+                  style="cursor: pointer"
+                  @click="callPhone(zoomItem.tel)"
+                >
+                  <v-icon start size="small" color="primary">mdi-phone</v-icon>
+                  {{ zoomItem.tel }}
+                </v-chip>
               </div>
             </div>
 
-            <v-btn icon @click="zoomDialog = false" size="large" variant="text">
+            <v-btn
+              icon
+              size="small"
+              variant="text"
+              color="white"
+              class="ml-2 flex-shrink-0"
+              @click="zoomDialog = false"
+            >
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-card-title>
 
           <v-divider />
 
-          <!-- Carousel Container -->
-          <v-card-text class="pa-8 zoom-carousel-wrapper">
-            <v-carousel
-              v-model="zoomSlide"
-              height="600"
-              hide-delimiters
-              show-arrows
-              cycle
-              interval="4000"
-              class="rounded-xl overflow-hidden elevation-8"
+          <!-- Zoom Carousel -->
+          <v-carousel
+            v-model="zoomSlide"
+            :height="carouselHeight"
+            hide-delimiters
+            show-arrows
+            cycle
+            interval="4000"
+            class="rounded-xl "
+          >
+            <template v-slot:prev="{ props }">
+              <v-btn icon v-bind="props" :size="smAndDown ? 'small' : 'large'" elevation="4" class="bg-white">
+                <v-icon :size="smAndDown ? 18 : 32" color="grey-darken-2">mdi-chevron-left</v-icon>
+              </v-btn>
+            </template>
+            <template v-slot:next="{ props }">
+              <v-btn icon v-bind="props" :size="smAndDown ? 'small' : 'large'" elevation="4" class="bg-white">
+                <v-icon :size="smAndDown ? 18 : 32" color="grey-darken-2">mdi-chevron-right</v-icon>
+              </v-btn>
+            </template>
+
+            <v-carousel-item
+              v-for="(img, i) in zoomItem.image"
+              :key="`zoom-${i}`"
             >
-              <template v-slot:prev="{ props }">
-                <v-btn
-                  icon
-                  size="large"
-                  v-bind="props"
-                  class="zoom-nav-btn"
-                  color="white"
-                  elevation="4"
-                >
-                  <v-icon size="32">mdi-chevron-left</v-icon>
-                </v-btn>
-              </template>
-              <template v-slot:next="{ props }">
-                <v-btn
-                  icon
-                  size="large"
-                  v-bind="props"
-                  class="zoom-nav-btn"
-                  color="white"
-                  elevation="4"
-                >
-                  <v-icon size="32">mdi-chevron-right</v-icon>
-                </v-btn>
-              </template>
-
-              <v-carousel-item
-                v-for="(img, i) in zoomItem.image"
-                :key="`zoom-${i}`"
+              <v-img
+                :src="img.startsWith('http') ? img : imageBaseUrl + img"
+                :height="carouselHeight"
+                contain
+                class="rounded-xl "
               >
-                <v-img
-                  :src="img.startsWith('http') ? img : imageBaseUrl + img"
-                  height="600"
-                  cover
-                  class="zoom-image-main"
+                <template v-slot:placeholder>
+                  <v-row class="fill-height ma-0" align="center" justify="center">
+                    <v-progress-circular indeterminate color="primary" size="64" width="6" />
+                  </v-row>
+                </template>
+
+                <!-- Counter -->
+                <div class="d-flex justify-end pa-2 pa-sm-3">
+                  <v-chip
+                    color="black"
+                    variant="flat"
+                    :size="smAndDown ? 'small' : 'default'"
+                    class="text-white font-weight-bold opacity-80"
+                  >
+                    <v-icon start size="small">mdi-image-multiple</v-icon>
+                    {{ i + 1 }} / {{ zoomItem.image?.length || 0 }}
+                  </v-chip>
+                </div>
+
+                <!-- Play/Pause + Dots -->
+                <div
+                  class="position-absolute w-100 d-flex align-center justify-space-between pa-2 pa-sm-3"
+                  style="bottom: 0"
                 >
-                  <template v-slot:placeholder>
-                    <v-row
-                      class="fill-height ma-0"
-                      align="center"
-                      justify="center"
-                    >
-                      <v-progress-circular
-                        indeterminate
-                        color="primary"
-                        size="64"
-                        width="6"
-                      ></v-progress-circular>
-                    </v-row>
-                  </template>
+                  <v-btn icon size="small" elevation="2" class="bg-white" @click.stop="toggleZoomAutoplay">
+                    <v-icon size="18" color="grey-darken-2">
+                      {{ isZoomPlaying ? "mdi-pause" : "mdi-play" }}
+                    </v-icon>
+                  </v-btn>
 
-                  <!-- Image counter overlay -->
-                  <div class="zoom-image-counter">
-                    <v-chip
-                      color="rgba(0, 0, 0, 0.8)"
-                      text-color="white"
-                      size="large"
-                      class="font-weight-bold"
+                  <div class="d-flex align-center ga-1">
+                    <v-icon
+                      v-for="(_, dotIndex) in zoomItem.image"
+                      :key="dotIndex"
+                      :size="dotIndex === i ? 10 : 7"
+                      :color="dotIndex === i ? 'white' : 'grey-lighten-1'"
                     >
-                      <v-icon start>mdi-image-multiple</v-icon>
-                      {{ i + 1 }} / {{ zoomItem.image?.length || 0 }}
-                    </v-chip>
+                      mdi-circle
+                    </v-icon>
                   </div>
 
-                  <!-- Play/Pause control -->
-                  <div class="zoom-play-control">
-                    <v-btn
-                      icon
-                      size="small"
-                      color="white"
-                      elevation="2"
-                      @click.stop="toggleZoomAutoplay"
-                    >
-                      <v-icon>{{
-                        isZoomPlaying ? "mdi-pause" : "mdi-play"
-                      }}</v-icon>
-                    </v-btn>
-                  </div>
-                </v-img>
-              </v-carousel-item>
-            </v-carousel>
-          </v-card-text>
+                  <div style="width: 32px" />
+                </div>
+              </v-img>
+            </v-carousel-item>
+          </v-carousel>
 
           <v-divider />
 
-          <!-- ✅ FIXED: Footer Actions - separate Call and WhatsApp buttons -->
-          <v-card-actions class="pa-6 justify-center gap-4">
-            <!-- Call button -->
+          <!-- Footer Actions -->
+          <v-card-actions class="pa-4 pa-sm-6 justify-center ga-2 ga-sm-4 flex-wrap">
             <v-btn
               color="primary"
-              size="x-large"
-              @click="callPhone(zoomItem.tel)"
-              prepend-icon="mdi-phone"
-              variant="outlined"
+              :size="$vuetify.display.smAndDown ? 'large' : 'x-large'"
               elevation="2"
-              class="px-8"
+              prepend-icon="mdi-phone"
+              :block="$vuetify.display.smAndDown"
+              class="px-4 px-sm-8"
+              @click="callPhone(zoomItem.tel)"
             >
               ໂທຫາ
             </v-btn>
-            <!-- WhatsApp button -->
             <v-btn
               color="success"
-              size="x-large"
-              @click="openWhatsApp(zoomItem)"
-              prepend-icon="mdi-whatsapp"
+              :size="$vuetify.display.smAndDown ? 'large' : 'x-large'"
               elevation="2"
-              class="px-8"
+              prepend-icon="mdi-whatsapp"
+              :block="$vuetify.display.smAndDown"
+              class="px-4 px-sm-8"
+              @click="openWhatsApp(zoomItem)"
             >
               ຕິດຕໍ່ທາງ WhatsApp
             </v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
+
     </v-container>
   </v-app>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
+import { useDisplay } from "vuetify";
 
-const { items, allitems, topData, pagination, loading, error, fetchTaxi } =
-  useTaxi();
+const { smAndDown } = useDisplay();
+
+const { items, allitems, topData, pagination, loading, error, fetchTaxi } = useTaxi();
 
 defineProps({
-  store: {
-    type: Object,
-    required: false,
-    default: () => ({}),
-  },
+  store: { type: Object, required: false, default: () => ({}) },
 });
 
 const imageBaseUrl = "http://localhost:5151/";
 
+// ── State ──────────────────────────────────────────
 const filteredData = ref([]);
 const searchQuery = ref("");
-
 const provinces = ref([]);
 const districtsForSelectedProvince = ref([]);
 const selectedProvince = ref(null);
 const selectedDistrict = ref(null);
-
 const commentDialog = ref(false);
 const telephone = ref("");
 const comment = ref("");
 const telephoneError = ref(false);
 const commentError = ref(false);
-
 const zoomDialog = ref(false);
 const zoomItem = ref({ image: [] });
 const zoomSlide = ref(0);
 const isZoomPlaying = ref(true);
+const isMuted = ref(true);
+const currentVideoSlide = ref(0);
+const currentImageSlide = ref(0);
 
+// ── Banner Data ─────────────────────────────────────
+// Set videoBanners OR imageBanners — video takes priority if set
 const videoBanners = ref([
   "https://youtu.be/KTd1yYVoMpE?si=GPO0xlvZHjYZyecB",
-  "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-  "https://www.youtube.com/watch?v=9bZkp7q19f0",
+  // Add more video URLs here, or leave as empty array [] to use images instead
 ]);
-const currentVideoSlide = ref(0);
-const isMuted = ref(true);
 
+const imageBanners = ref([
+  // Add image URLs here if no video, e.g: "/images/banner1.jpg"
+]);
+
+// ── Banner Logic ────────────────────────────────────
+// Video mode = at least 1 video URL is provided
+const isVideoMode = computed(() => videoBanners.value.length === 1);
+
+// For single video: build iframe src with mute/autoplay
+const videoSrc = computed(() => {
+  if (!isVideoMode.value) return null;
+  const id = extractYoutubeID(videoBanners.value[0]);
+  if (!id) return null;
+  return `https://www.youtube.com/embed/${id}?autoplay=1&loop=1&playlist=${id}&mute=${isMuted.value ? 1 : 0}`;
+});
+
+// For multiple videos in carousel
+const videoSrcs = computed(() =>
+  videoBanners.value.map((url) => {
+    const id = extractYoutubeID(url);
+    if (!id) return "";
+    return `https://www.youtube.com/embed/${id}?autoplay=1&loop=1&playlist=${id}&mute=${isMuted.value ? 1 : 0}`;
+  })
+);
+
+// ── Carousel height responsive ──────────────────────
+const carouselHeight = computed(() => (smAndDown.value ? 280 : 520));
+
+// ── Helpers ─────────────────────────────────────────
 function extractYoutubeID(url) {
   const match = url.match(
     /(?:youtu\.be\/|youtube\.com\/(?:embed\/|watch\?v=))([\w-]+)/
@@ -689,21 +802,10 @@ function extractYoutubeID(url) {
   return match ? match[1] : "";
 }
 
-const videoSrcs = computed(() => {
-  return videoBanners.value.map((video) => {
-    const id = extractYoutubeID(video);
-    if (!id) return "";
-    return `https://www.youtube.com/embed/${id}?autoplay=1&loop=1&playlist=${id}&mute=${
-      isMuted.value ? 1 : 0
-    }`;
-  });
-});
-
 function parseImageArray(imageData) {
   if (!imageData) return ["placeholder.jpg"];
-  if (Array.isArray(imageData)) {
+  if (Array.isArray(imageData))
     return imageData.length > 0 ? imageData : ["placeholder.jpg"];
-  }
   if (typeof imageData === "string") {
     try {
       const parsed = JSON.parse(imageData);
@@ -728,25 +830,19 @@ function processTaxiItems(items) {
   }));
 }
 
+// ── Lifecycle ────────────────────────────────────────
 onMounted(async () => {
   await fetchTaxi();
-  if (allitems.value && allitems.value.length > 0) {
+  if (allitems.value?.length > 0)
     filteredData.value = processTaxiItems(allitems.value);
-  }
-  if (topData.value && Array.isArray(topData.value) && topData.value.length > 0) {
+  if (topData.value?.length > 0)
     topData.value = processTaxiItems(topData.value);
-  }
 
   try {
     const resProvince = await fetch("http://localhost:5151/api/province/selectall");
     if (!resProvince.ok) throw new Error(`Province API failed: ${resProvince.status}`);
     const provinceData = await resProvince.json();
-    let provinceList = Array.isArray(provinceData)
-      ? provinceData
-      : provinceData.data && Array.isArray(provinceData.data)
-      ? provinceData.data
-      : [];
-
+    const provinceList = Array.isArray(provinceData) ? provinceData : provinceData.data ?? [];
     if (provinceList.length > 0) {
       provinces.value = provinceList.map((p) => ({
         code: p.provinceid || p.id || p.code,
@@ -758,12 +854,11 @@ onMounted(async () => {
   }
 });
 
+// ── Watchers ─────────────────────────────────────────
 watch(
   allitems,
   (newItems) => {
-    if (newItems && newItems.length > 0) {
-      filteredData.value = processTaxiItems(newItems);
-    }
+    if (newItems?.length > 0) filteredData.value = processTaxiItems(newItems);
   },
   { deep: true }
 );
@@ -772,7 +867,6 @@ watch(selectedProvince, async (provinceId) => {
   selectedDistrict.value = null;
   districtsForSelectedProvince.value = [];
   if (!provinceId) return;
-
   try {
     const res = await fetch("http://localhost:5151/api/district/selectbyprovinceid", {
       method: "POST",
@@ -781,12 +875,7 @@ watch(selectedProvince, async (provinceId) => {
     });
     if (!res.ok) throw new Error(`District API failed: ${res.status}`);
     const districtData = await res.json();
-    let districtList = Array.isArray(districtData)
-      ? districtData
-      : districtData.data && Array.isArray(districtData.data)
-      ? districtData.data
-      : [];
-
+    const districtList = Array.isArray(districtData) ? districtData : districtData.data ?? [];
     if (districtList.length > 0) {
       districtsForSelectedProvince.value = districtList.map((d) => ({
         code: d.districtid || d.id || d.code,
@@ -798,6 +887,29 @@ watch(selectedProvince, async (provinceId) => {
   }
 });
 
+watch(searchQuery, async (val) => {
+  if (!val) {
+    filteredData.value = processTaxiItems(allitems.value);
+    return;
+  }
+  try {
+    const res = await fetch("http://localhost:5151/api/taxi/searchbyname", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: val }),
+    });
+    const responseData = await res.json();
+    filteredData.value =
+      responseData.status && Array.isArray(responseData.data)
+        ? processTaxiItems(responseData.data)
+        : [];
+  } catch (err) {
+    console.error("❌ Failed to search taxis:", err);
+    filteredData.value = [];
+  }
+});
+
+// ── Methods ──────────────────────────────────────────
 async function queryByLocation() {
   if (!selectedProvince.value || !selectedDistrict.value) return;
   try {
@@ -816,7 +928,8 @@ async function queryByLocation() {
     const responseData = await res.json();
     if (responseData.status && Array.isArray(responseData.data)) {
       filteredData.value = processTaxiItems(responseData.data);
-      if (filteredData.value.length === 0) alert("ບໍ່ພົບລົດແທັກຊີ່ໃນເຂດທີ່ເລືອກ");
+      if (filteredData.value.length === 0)
+        alert("ບໍ່ພົບລົດແທັກຊີ່ໃນເຂດທີ່ເລືອກ");
     } else {
       filteredData.value = [];
     }
@@ -825,29 +938,6 @@ async function queryByLocation() {
     alert("ເກີດຂໍ້ຜິດພາດໃນການຄົ້ນຫາ: " + err.message);
   }
 }
-
-watch(searchQuery, async (val) => {
-  if (!val) {
-    filteredData.value = processTaxiItems(allitems.value);
-    return;
-  }
-  try {
-    const res = await fetch("http://localhost:5151/api/taxi/searchbyname", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: val }),
-    });
-    const responseData = await res.json();
-    if (responseData.status && Array.isArray(responseData.data)) {
-      filteredData.value = processTaxiItems(responseData.data);
-    } else {
-      filteredData.value = [];
-    }
-  } catch (err) {
-    console.error("❌ Failed to search taxis:", err);
-    filteredData.value = [];
-  }
-});
 
 function openCommentDialog() {
   commentDialog.value = true;
@@ -875,28 +965,18 @@ function toggleZoomAutoplay() {
   isZoomPlaying.value = !isZoomPlaying.value;
 }
 
-// ✅ NEW: Call phone function — triggers native phone dialer
 function callPhone(tel) {
-  if (!tel) {
-    alert("❌ ບໍ່ມີເບີໂທ");
-    return;
-  }
-  // Strip all non-digit characters then open tel: link
-  const cleanPhone = tel.replace(/\D/g, "");
-  window.location.href = `tel:${cleanPhone}`;
+  if (!tel) { alert("❌ ບໍ່ມີເບີໂທ"); return; }
+  window.location.href = `tel:${tel.replace(/\D/g, "")}`;
 }
 
-// ✅ NEW: WhatsApp function — opens WhatsApp chat with +856 country code
 function openWhatsApp(item) {
-  if (!item.tel) {
-    alert("❌ ບໍ່ມີເບີໂທ");
-    return;
-  }
-  // Remove all non-digits, strip leading 0, prepend Laos country code 856
+  if (!item.tel) { alert("❌ ບໍ່ມີເບີໂທ"); return; }
   const cleanPhone = item.tel.replace(/\D/g, "").replace(/^0+/, "");
-  const message = encodeURIComponent("ສະບາຍດີ! ຂ້ອຍຕ້ອງການຈອງລົດ");
-  const url = `https://wa.me/856${cleanPhone}?text=${message}`;
-  window.open(url, "_blank");
+  window.open(
+    `https://wa.me/856${cleanPhone}?text=${encodeURIComponent("ສະບາຍດີ! ຂ້ອຍຕ້ອງການລົດ")}`,
+    "_blank"
+  );
 }
 
 function handleImageError(event) {
@@ -913,235 +993,18 @@ function handleImageError(event) {
 </script>
 
 <style scoped>
-.video-hero-section {
-  position: relative;
-  height: 500px;
-  overflow: hidden;
+:deep(.v-carousel__controls .v-btn),
+:deep(.v-window__controls .v-btn) {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+  color: white !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  backdrop-filter: blur(4px) !important;
+  box-shadow: none !important;
 }
-
-.video-carousel {
-  border-radius: 0;
-}
-
-.video-item {
-  position: relative;
-  height: 500px;
-}
-
-.video-iframe {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.video-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.3),
-    rgba(0, 0, 0, 0.6)
-  );
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.overlay-content {
-  text-align: center;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.video-arrow {
-  z-index: 3;
-}
-
-.sound-toggle {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  z-index: 2;
-}
-
-.search-section {
-  margin-top: -40px;
-  position: relative;
-  z-index: 10;
-}
-
-.taxi-card {
-  height: 100%;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-}
-
-.taxi-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
-}
-
-.image-carousel-wrapper {
-  position: relative;
-  overflow: hidden;
-}
-
-.taxi-image {
-  cursor: pointer;
-  transition: transform 0.3s ease;
-}
-
-.taxi-card:hover .taxi-image {
-  transform: scale(1.05);
-}
-
-.image-counter {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  z-index: 2;
-  backdrop-filter: blur(4px);
-}
-
-.carousel-arrow {
-  margin: 0 8px;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.taxi-card:hover .carousel-arrow {
-  opacity: 1;
-}
-
-.taxi-name {
-  color: #1976d2;
-  line-height: 1.4;
-  min-height: 2em;
-}
-
-.pricing-section {
-  border-left: 3px solid #4caf50;
-  padding-left: 12px;
-}
-
-.contact-link {
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.contact-link:hover {
-  text-decoration: underline;
-}
-
-.details-expanded {
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.zoom-dialog-card {
-  border-radius: 16px !important;
-  overflow: hidden;
-}
-
-.zoom-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.zoom-carousel-wrapper {
-  background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
-  min-height: 600px;
-}
-
-.zoom-image-main {
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-}
-
-.zoom-image-main:hover {
-  transform: scale(1.02);
-}
-
-.zoom-image-counter {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 10;
-}
-
-.zoom-play-control {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  z-index: 10;
-}
-
-.zoom-play-control .v-btn {
-  backdrop-filter: blur(8px);
-  background: rgba(255, 255, 255, 0.9) !important;
-  transition: all 0.3s ease;
-}
-
-.zoom-play-control .v-btn:hover {
-  transform: scale(1.1);
-  background: rgba(255, 255, 255, 1) !important;
-}
-
-.zoom-nav-btn {
-  opacity: 0.95;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(8px);
-  background: rgba(255, 255, 255, 0.9) !important;
-}
-
-.zoom-nav-btn:hover {
-  opacity: 1;
-  transform: scale(1.15);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
-}
-
-@media (max-width: 960px) {
-  .zoom-carousel-wrapper {
-    padding: 16px !important;
-  }
-  .zoom-header {
-    flex-direction: column;
-    align-items: flex-start !important;
-  }
-  .zoom-header .v-avatar {
-    margin-bottom: 12px;
-  }
-}
-
-@media (max-width: 600px) {
-  .zoom-carousel-wrapper {
-    padding: 12px !important;
-  }
-  .zoom-image-counter {
-    top: 12px;
-    right: 12px;
-  }
-  .zoom-image-counter .v-chip {
-    font-size: 0.75rem;
-  }
+:deep(.v-carousel__controls .v-btn:hover),
+:deep(.v-window__controls .v-btn:hover) {
+  background-color: rgba(0, 0, 0, 0.6) !important;
 }
 </style>

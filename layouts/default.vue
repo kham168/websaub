@@ -38,10 +38,10 @@
               <v-icon left color="green-lighten-2" size="30">mdi-login</v-icon>
               CH CHANNEL
             </v-btn> -->
-            <v-btn text class="mx-2 text-white" :to="'/chue/sell_Product'">
+            <!-- <v-btn text class="mx-2 text-white" :to="'/chue/sell_Product'">
               <v-icon left color="green-lighten-2" size="30">mdi-login</v-icon>
               CH CHANNEL
-            </v-btn>
+            </v-btn> -->
           </div>
         </div>
         <v-badge
@@ -174,7 +174,7 @@
     </v-main>
 
     <!-- FOOTER -->
-    <v-footer
+    <!-- <v-footer
       color="deep-purple-darken-2"
       class="d-flex justify-center align-center py-6"
       app
@@ -212,7 +212,7 @@
           }}</span>
         </v-btn>
       </v-sheet>
-    </v-footer>
+    </v-footer> -->
     <!-- =================== LOGIN/REGISTER DIALOG =================== -->
     <v-dialog v-model="loginDialog" max-width="500px">
       <Login />
