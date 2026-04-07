@@ -21,32 +21,19 @@ export const useHistoryAllProductSell = () => {
       const services = new HistoryAllProductSellService();
       const response = await services.getAll(channel, page, limit, token);
 
-      console.log("📦 Service Response:", response);
-      console.log("📦 Response.data:", response.data);
-      console.log("📦 Response.data length:", response.data?.length);
-
-      // ✅ FIXED: Check if response.data exists and is an array
       if (response && Array.isArray(response.data)) {
         historyProductSell.value = response.data;
         pagination.value = response.pagination;
 
-        console.log(
-          "✅ Successfully loaded orders:",
-          historyProductSell.value.length
-        );
-
         if (historyProductSell.value.length === 0) {
-          console.warn("⚠️ API returned empty array");
           error.value = "No orders found";
         }
       } else {
-        console.error("❌ Invalid response structure:", response);
         error.value = "Invalid response structure from API";
         historyProductSell.value = [];
         pagination.value = null;
       }
     } catch (err: any) {
-      console.error("❌ Error fetching orders:", err);
       error.value =
         err.response?.data?.message || err.message || "An error occurred";
       historyProductSell.value = [];

@@ -41,7 +41,6 @@ export const useHoobXauj = () => {
       allHoobXauj.value = [...response.data];
       topData.value = topDataResponse;
       channelimage.value = channelResponse;
-      console.log('----------------',channelimage.value);
       qr.value = qrResponse;
     } catch (err: any) {
       error.value = err.message || "Failed to fetch data";

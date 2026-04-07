@@ -25,15 +25,6 @@ export function useUpdateSendingOrderSell() {
     loadings.value = true;
     updateSenndingsuccess.value = null;
     errors.value = null;
-
-    console.log("📦 Update Order Status:", {
-      orderId,
-      sellStatus,
-      sellComment,
-      sellName,
-      token: token ? "✓" : "✗",
-    });
-
     try {
       const res = await service.update(
         orderId,
@@ -46,10 +37,8 @@ export function useUpdateSendingOrderSell() {
       updateSenndingsuccess.value = res;
       await sellStore.fetchOrders(0, 0, 1000);
 
-      console.log("✅ Update Success:", res);
     } catch (err: any) {
       errors.value = err?.message || "Something went wrong";
-      console.error("❌ Update Error:", err);
     } finally {
       loadings.value = false;
     }

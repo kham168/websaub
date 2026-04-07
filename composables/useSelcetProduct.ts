@@ -24,12 +24,9 @@ export const useSelectProduct = () => {
         limit,
         token
       );
-      // selectProductsAll.value = res.data.data;
       selectProductsAll.value = res.data?.data || res.data || [];
       pagination.value = res.data?.pagination || null;
 
-      // pagination.value = res.data.pagination;
-      console.log("Select Products fetched:", selectProductsAll.value);
     } catch (err: any) {
       error.value = err?.message || "Failed to load products";
     } finally {

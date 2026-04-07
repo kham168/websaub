@@ -59,6 +59,7 @@ export interface TaxiResponse {
   rows: TaxiItem[];
   pagination: PaginationItem | null;
   topData: TopData | null;
+  reviewTxai: TaxiVideo;
 }
 
 // ✅ FIXED: This matches your actual API response structure
@@ -67,7 +68,8 @@ export interface TaxiApiResponse {
   message: string;
   data: TaxiItem[]; // ← Your API has items directly in data array
   pagination: PaginationItem; // ← pagination is at root level
-  topData: TopData; // ← topData is at root level (lowercase 't')
+  topData: TopData; 
+  reviewTxai: TaxiVideo; // ← topData is at root level (lowercase 't')
 }
 
 export interface TaxiServiceResponse {
@@ -75,3 +77,9 @@ export interface TaxiServiceResponse {
   topData: TopData | null;
   pagination: PaginationItem | null;
 }
+export interface TaxiVideo {
+  video1: string;
+  channelimage: string;
+  video2: string;
+  guidelinevideo: string;
+} 

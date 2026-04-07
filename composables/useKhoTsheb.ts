@@ -43,7 +43,6 @@ export const useKhoTsheb = () => {
       pagination.value = response.pagination;
       topData.value = topDataResponse;
       channelimage.value = channelResponse;
-      console.log("----------------", channelimage.value);
       qr.value = qrResponse;
       if (response.data.length > 0) {
         khoTshebData.value = response.data[0];

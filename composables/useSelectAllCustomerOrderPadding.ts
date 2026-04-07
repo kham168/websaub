@@ -26,7 +26,6 @@ export const useSelectAllCustomerOrderPadding = () => {
         limit,
         token
       );
-      console.log("📦 Response:", response);
 
       if (response.status && Array.isArray(response.data)) {
         ordersPadding.value = response.data;

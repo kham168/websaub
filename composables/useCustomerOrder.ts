@@ -13,12 +13,8 @@ export const useCustomerOrder = () => {
     const orderId = "ORD" + Date.now();
     orderID.value = orderId;
 
-    // ✅ Create ONE FormData for the entire order
     const formData = new FormData();
 
-    console.log("📦 channel Data:", channel);
-
-    // Add order information
     formData.append("id", orderId);
     formData.append("channel", channel);
     formData.append("custTel", checkoutData.phoneNumber || "");
@@ -26,12 +22,10 @@ export const useCustomerOrder = () => {
     formData.append("delivery", checkoutData.address || "");
     formData.append("shipping", checkoutData.shippingCompany || "");
     formData.append("custName", checkoutData.custName || "");
-    // Add payment slip (only if exists)
     if (slipPayment?.file) {
       formData.append("files", slipPayment.file);
     }
 
-    // ✅ Build productDetail array
     const groups = Object.values(cartGroup);
     const productDetail: any[] = [];
 
@@ -40,8 +34,6 @@ export const useCustomerOrder = () => {
         productDetail.push({
           productid: product.id?.toString() || "",
           productname: product.creamname || product.name || "",
-          // channel: channel.value || "",
-          // image: product.image[0] || "",
           image: Array.isArray(product.image) ? product.image[0] || "" : "",
           price: Number(product.Price3 || product.price || product.Price1) || 0,
           qty: Number(product.quantity) || 1,
@@ -49,10 +41,8 @@ export const useCustomerOrder = () => {
       }
     }
 
-    // ✅ Add productDetail as JSON string
     formData.append("productDetail", JSON.stringify(productDetail));
 
-    // Debug: Log the FormData contents
     const formDataObj: any = {};
     formData.forEach((value, key) => {
       if (key === "productDetail") {
@@ -63,7 +53,6 @@ export const useCustomerOrder = () => {
     });
 
     try {
-      // Send ONE request with all products
       const resp = await customerOrderService.CustomerInsertOrder(formData);
       return {
         success: true,
