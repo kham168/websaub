@@ -44,10 +44,6 @@
 // export default taxiService;
 import { http } from "~/services/core/http.service";
 import { TAXI_ENDPOINTS } from "~/services/endpoints/taxi.endpoint";
-import type {
-  TaxiServiceResponse,
-} from "~/services/types/taxi-type";
-
 class TaxiService {
   async getAll(
     page: number = 0,

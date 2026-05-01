@@ -3,8 +3,8 @@
 export const API_CONFIG = {
     // Base URLs
     BASE_URL: process.env.NUXT_PUBLIC_API_BASE_URL ||
-    //  'http://localhost:5151',
-    'https://service.tsheb.la',
+     'http://localhost:5151',
+    // 'https://service.tsheb.la',
     TIMEOUT: 30000, // 30 seconds
     
     // API Versions

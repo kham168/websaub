@@ -25,7 +25,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
   if (!token) {
     if (isAdminRoute) {
       // Redirect unauthenticated user trying to access admin page
-      return navigateTo("/homepage");
+      return navigateTo("/");
     }
     // Allow public pages
     return;

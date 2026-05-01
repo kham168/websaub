@@ -2,81 +2,18 @@
   <v-app>
     <!-- APP BAR -->
     <v-app-bar height="50" flat elevation="1" class="px-2 gradient-app-bar">
-      <!-- <v-container class="d-flex align-center justify-space-between" fluid>
-        <div class="d-flex align-center">
-          <v-app-bar-nav-icon
-            class="d-sm-flex d-md-none text-white"
-            @click="drawer = !drawer"
-          />
-          <div class="d-none d-md-flex align-center">
-            <v-btn text class="mx-2 text-white" to="/homepage">Home</v-btn>
-            <v-btn text class="mx-2 text-white" @click="openDialog('youtube')">
-              <v-icon left color="red-accent-4" size="30">mdi-youtube</v-icon>
-              Tutorials
-            </v-btn>
-            <v-btn
-              text
-              class="mx-2 text-white"
-              @click="openDialog('hand_love')"
-            >
-              <v-icon left color="pink-lighten-2" size="30"
-                >mdi-hand-heart</v-icon
-              >
-              Support Us
-            </v-btn>
-            <v-btn text class="mx-2 text-white" @click="openDialog('linkedin')">
-              <v-icon left color="blue-darken-3" size="30">mdi-linkedin</v-icon>
-              Connect
-            </v-btn>
-            <v-btn text class="mx-2 text-white" @click="openDialog('login')">
-              <v-icon left color="green-lighten-2" size="30">mdi-login</v-icon>
-              Login
-            </v-btn>
-            <v-badge
-              v-if="store.cartItems && store.cartItems.length > 0"
-              :content="store.cartItems.length"
-              color="error"
-              location="top right"
-            >
-              <v-btn
-                icon
-                variant="text"
-                size="small"
-                class="rounded-circle bg-grey-lighten-3"
-                @click.stop="openDialog('cart')"
-              >
-                <v-icon>mdi-cart-arrow-down</v-icon>
-              </v-btn>
-            </v-badge>
-            <v-btn
-              v-else
-              icon
-              variant="text"
-              size="small"
-              class="rounded-circle bg-grey-lighten-3"
-              @click.stop="openDialog('cart')"
-            >
-              <v-icon>mdi-cart-arrow-down</v-icon>
-            </v-btn>
-          </div>
-        </div>
-      </v-container> -->
       <v-container class="d-flex align-center" fluid>
         <div class="d-none d-md-flex align-center flex-grow-1">
-          <v-btn text class="mx-2 text-white" to="/homepage">Home</v-btn>
-          <v-btn text class="mx-2 text-white" @click="openDialog('youtube')">
+          <v-btn text class="mx-2 text-white" to="/">Home</v-btn>
+          <v-btn text class="mx-2 text-white" to="/tutorials">
             <v-icon left color="red-accent-4" size="30">mdi-youtube</v-icon>
             Tutorials
           </v-btn>
-          <v-btn text class="mx-2 text-white" @click="openDialog('hand_love')">
+          <v-btn text class="mx-2 text-white" to="/support_us">
             <v-icon left color="pink-lighten-2" size="30"
               >mdi-hand-heart</v-icon
             >
             Support Us
-          </v-btn>
-          <v-btn text class="mx-2 text-white" @click="openDialog('linkedin')">
-            <v-icon left color="blue-darken-3" size="30">mdi-linkedin</v-icon>
-            Connect
           </v-btn>
           <v-btn text class="mx-2 text-white" @click="openDialog('login')">
             <v-icon left color="green-lighten-2" size="30">mdi-login</v-icon>
@@ -153,13 +90,7 @@
           <v-list-item-title>Home</v-list-item-title>
         </v-list-item>
         <v-divider color="white" />
-        <v-list-item
-          @click="
-            openDialog('youtube');
-            drawer = false;
-          "
-          class="text-white"
-        >
+        <v-list-item to="/tutorials" @click="drawer = false" class="text-white">
           <template v-slot:prepend>
             <div style="min-width: 32px">
               <v-icon color="red-accent-4" icon="mdi-youtube" />
@@ -169,10 +100,8 @@
         </v-list-item>
         <v-divider color="white" />
         <v-list-item
-          @click="
-            openDialog('hand_love');
-            drawer = false;
-          "
+          to="/support_us"
+          @click="drawer = false"
           class="text-white"
         >
           <template v-slot:prepend>
@@ -250,312 +179,6 @@
     <v-dialog v-model="loginDialog" max-width="500px">
       <Login />
     </v-dialog>
-
-    <!-- =================== TUTORIALS DIALOG =================== -->
-    <v-dialog v-model="videoDialog" max-width="950px" scrollable>
-      <v-card rounded="xl" elevation="24" class="video-tutorial-card">
-        <v-card-title
-          class="bg-red-darken-2 text-white d-flex align-center py-5 px-6"
-        >
-          <v-icon class="mr-3" size="32">mdi-youtube</v-icon>
-          <span class="text-h6 font-weight-bold">Video Tutorials</span>
-          <v-spacer />
-          <v-btn
-            icon
-            size="small"
-            variant="text"
-            @click="
-              videoDialog = false;
-              currentVideo = null;
-            "
-          >
-            <v-icon color="white">mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
-
-        <v-divider />
-
-        <v-card-text class="pa-4 pa-sm-6">
-          <!-- ===== Currently Playing Video ===== -->
-          <v-expand-transition>
-            <v-sheet
-              v-if="currentVideo"
-              class="mb-6 rounded-lg overflow-hidden"
-              elevation="4"
-            >
-              <!-- Player header bar -->
-              <div class="bg-grey-darken-3 pa-3 d-flex align-center">
-                <v-icon color="red" class="mr-2">mdi-youtube</v-icon>
-                <span
-                  class="text-white font-weight-medium text-truncate flex-grow-1"
-                >
-                  {{ currentVideo.detail }}
-                </span>
-                <!-- Open in YouTube tab -->
-                <v-btn
-                  icon
-                  size="small"
-                  variant="text"
-                  :href="getYoutubeUrl(currentVideo.video)"
-                  class="mr-1"
-                >
-                  <v-icon color="grey-lighten-1">mdi-open-in-new</v-icon>
-                </v-btn>
-                <v-btn
-                  icon
-                  size="small"
-                  variant="text"
-                  @click="currentVideo = null"
-                >
-                  <v-icon color="white">mdi-close</v-icon>
-                </v-btn>
-              </div>
-
-              <!-- Player area: loading / error / iframe -->
-              <div style="position: relative">
-                <!-- Loading overlay -->
-                <div
-                  v-if="playerLoading"
-                  class="d-flex flex-column align-center justify-center bg-grey-darken-4"
-                  style="height: 300px"
-                >
-                  <v-progress-circular indeterminate color="red" size="56" />
-                  <p class="mt-4 text-white text-body-2">ກຳລັງໂຫລດວິດີໂອ...</p>
-                </div>
-
-                <!-- Error state -->
-                <div
-                  v-else-if="playerError"
-                  class="d-flex flex-column align-center justify-center bg-grey-darken-4 pa-6"
-                  style="height: 300px"
-                >
-                  <v-icon size="64" color="red-lighten-2"
-                    >mdi-video-off-outline</v-icon
-                  >
-                  <p class="mt-3 text-white text-body-1 font-weight-bold">
-                    ບໍ່ສາມາດໂຫລດວິດີໂອໄດ້
-                  </p>
-                  <p class="text-grey text-caption text-center mt-1">
-                    ອາດຈະເກີດຈາກເຄືອຂ່າຍ ຫຼື YouTube ຖືກບລັອກໃນເຂດນີ້
-                  </p>
-                  <div class="d-flex gap-2 mt-4 flex-wrap justify-center">
-                    <!-- Retry -->
-                    <v-btn
-                      color="grey"
-                      variant="tonal"
-                      prepend-icon="mdi-refresh"
-                      @click="playVideo(currentVideo)"
-                    >
-                      ລອງໃໝ່
-                    </v-btn>
-                    <!-- Open in YouTube -->
-                    <v-btn
-                      color="red"
-                      variant="flat"
-                      prepend-icon="mdi-youtube"
-                      :href="getYoutubeUrl(currentVideo.video)"
-                    >
-                      ເປີດໃນ YouTube
-                    </v-btn>
-                  </div>
-                </div>
-
-                <!-- Actual iframe — hidden while loading, shown after load -->
-                <v-responsive
-                  v-show="!playerLoading && !playerError"
-                  :aspect-ratio="16 / 9"
-                >
-                  <iframe
-                    :key="currentVideo.video"
-                    width="100%"
-                    height="100%"
-                    :src="getEmbedUrl(currentVideo.video)"
-                    frameborder="0"
-                    allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-                    style="display: block"
-                    @load="onPlayerLoaded"
-                    @error="onPlayerError"
-                  />
-                </v-responsive>
-              </div>
-
-              <!-- Bottom fallback bar -->
-              <div
-                class="bg-grey-darken-4 pa-2 d-flex align-center justify-end"
-              >
-                <span class="text-caption text-grey mr-3">ວິດີໂອບໍ່ສະແດງ?</span>
-                <v-btn
-                  color="red"
-                  size="x-small"
-                  variant="flat"
-                  :href="getYoutubeUrl(currentVideo.video)"
-                  prepend-icon="mdi-youtube"
-                >
-                  ເປີດໃນ YouTube
-                </v-btn>
-              </div>
-            </v-sheet>
-          </v-expand-transition>
-
-          <!-- ===== List Loading State ===== -->
-          <v-row v-if="videoLoading" class="text-center py-10">
-            <v-col cols="12">
-              <v-progress-circular indeterminate color="red" size="56" />
-              <p class="mt-4 text-body-1 text-grey">ກຳລັງໂຫລດວິດີໂອ...</p>
-            </v-col>
-          </v-row>
-
-          <!-- ===== List Error State ===== -->
-          <v-row v-else-if="videoError" class="text-center py-10">
-            <v-col cols="12">
-              <v-icon size="64" color="error">mdi-alert-circle-outline</v-icon>
-              <p class="mt-4 text-body-1 text-error">{{ videoError }}</p>
-              <v-btn
-                color="red"
-                variant="tonal"
-                prepend-icon="mdi-refresh"
-                class="mt-4"
-                @click="fetchGuidelineVideos"
-              >
-                ລອງໃໝ່
-              </v-btn>
-            </v-col>
-          </v-row>
-
-          <!-- ===== Empty State ===== -->
-          <v-row
-            v-else-if="guidelineVideos.length === 0"
-            class="text-center py-10"
-          >
-            <v-col cols="12">
-              <v-icon size="64" color="grey-lighten-1"
-                >mdi-video-off-outline</v-icon
-              >
-              <p class="mt-4 text-body-1 text-grey">ບໍ່ມີວິດີໂອໃນຂະນະນີ້</p>
-              <v-btn
-                color="red"
-                variant="tonal"
-                prepend-icon="mdi-refresh"
-                class="mt-4"
-                @click="fetchGuidelineVideos"
-              >
-                ໂຫລດໃໝ່
-              </v-btn>
-            </v-col>
-          </v-row>
-
-          <!-- ===== Video Grid ===== -->
-          <v-row v-else>
-            <v-col
-              v-for="(video, idx) in guidelineVideos"
-              :key="video.id || idx"
-              cols="12"
-              sm="6"
-              md="4"
-            >
-              <v-card
-                elevation="3"
-                rounded="lg"
-                hover
-                class="cursor-pointer"
-                style="overflow: hidden"
-                @click="playVideo(video)"
-              >
-                <!-- Placeholder with inline styles to guarantee rendering -->
-                <div
-                  style="
-                    height: 160px;
-                    background: linear-gradient(
-                      135deg,
-                      #1a1a2e 0%,
-                      #c0392b 60%,
-                      #922b21 100%
-                    );
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                  "
-                >
-                  <div
-                    style="
-                      width: 64px;
-                      height: 64px;
-                      border-radius: 50%;
-                      background: rgba(255, 255, 255, 0.15);
-                      border: 3px solid rgba(255, 255, 255, 0.6);
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                    "
-                  >
-                    <v-icon size="36" color="white">mdi-play</v-icon>
-                  </div>
-                  <span
-                    style="color: rgba(255, 255, 255, 0.8); font-size: 12px"
-                  >
-                    ກົດເພື່ອເບິ່ງ
-                  </span>
-                </div>
-
-                <v-card-text class="pa-3">
-                  <div
-                    class="text-subtitle-2 font-weight-bold"
-                    style="white-space: normal; line-height: 1.4"
-                  >
-                    {{ video.detail }}
-                  </div>
-                  <div class="d-flex align-center justify-space-between mt-2">
-                    <div class="d-flex align-center">
-                      <v-icon size="x-small" color="red" class="mr-1"
-                        >mdi-youtube</v-icon
-                      >
-                      <span class="text-caption text-grey">YouTube</span>
-                    </div>
-                    <v-btn
-                      size="x-small"
-                      variant="text"
-                      color="red"
-                      :href="getYoutubeUrl(video.video)"
-                      @click.stop
-                      prepend-icon="mdi-open-in-new"
-                    >
-                      ເປີດ
-                    </v-btn>
-                  </div>
-                </v-card-text>
-              </v-card>
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
-
-    <!-- SUPPORT US DIALOG -->
-    <v-dialog v-model="handLoveDialog" max-width="850px" scrollable>
-      <v-card rounded="xl" elevation="24">
-        <v-card-title
-          class="bg-deep-purple-darken-2 text-white d-flex align-center py-5 px-6"
-        >
-          <v-icon class="mr-3" size="32">mdi-gift</v-icon>
-          <span class="text-h6 font-weight-bold">Donation Projects</span>
-          <v-spacer />
-          <v-btn
-            icon
-            size="small"
-            variant="text"
-            @click="handLoveDialog = false"
-          >
-            <v-icon color="white">mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
-        <v-card-text>
-          <Handlove />
-        </v-card-text>
-      </v-card>
-    </v-dialog>
-
     <!-- HISTORY DIALOG -->
     <v-dialog v-model="historyDialog" max-width="850px" scrollable>
       <v-card rounded="xl" elevation="24">

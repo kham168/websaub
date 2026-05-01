@@ -25,4 +25,12 @@ export default defineNuxtPlugin(() => {
     }),
     { global: true } // global middleware
   );
+
+  addRouteMiddleware(
+    "guest",
+    defineNuxtRouteMiddleware((to) => {
+      // Allow access — no auth required for guest pages
+      return;
+    })
+  );
 });

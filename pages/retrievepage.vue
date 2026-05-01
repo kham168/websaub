@@ -50,7 +50,7 @@
         >
           <v-overlay
             contained
-            model-value="true"
+            :model-value="true"
             persistent
             class="align-center justify-center"
             scrim="black"
@@ -58,10 +58,12 @@
           >
             <div class="text-center text-white px-4">
               <h1 class="text-h3 font-weight-black mb-2 d-none d-sm-block">
-                ບໍລິການລົດແທັກຊີ່
+                {{ channelStore.channelName || "ບໍລິການ" }}
               </h1>
               <p class="text-h6 font-weight-light">
-                ສະດວກ, ວ່ອງໄວ, ແລະ ປອດໄພທຸກການເດີນທາງ
+                {{
+                  channelStore.detail || "ສະດວກ, ວ່ອງໄວ, ແລະ ປອດໄພທຸກການເດີນທາງ"
+                }}
               </p>
             </div>
           </v-overlay>
@@ -70,10 +72,11 @@
     </section>
 
     <v-container class="position-relative">
-      <!-- <v-card rounded="xl"  class="pa-0 pa-md-6 border-thin"> -->
       <div class="d-flex align-center mb-4">
         <v-icon color="primary" class="mr-2">mdi-magnify</v-icon>
-        <h2 class="text-h6 font-weight-bold">ຄົ້ນຫາລົດແທັກຊີ່</h2>
+        <h2 class="text-h6 font-weight-bold">
+          ຄົ້ນຫາ {{ channelStore.channelName || "" }}
+        </h2>
       </div>
 
       <v-row dense>
@@ -133,12 +136,11 @@
           </v-btn>
         </v-col>
       </v-row>
-      <!-- </v-card> -->
     </v-container>
 
     <v-container>
       <!-- Loading State -->
-      <div v-if="loading" class="text-center py-16">
+      <div v-if="loadings" class="text-center py-16">
         <v-progress-circular
           indeterminate
           color="primary"
@@ -149,15 +151,13 @@
       </div>
 
       <template v-else>
-        <!-- Not Found State — shows when district selected but no results -->
+        <!-- Not Found — district selected but no results -->
         <div
-          v-if="filteredData.length === 0 && selectedDistrict"
+          v-if="channels.length === 0"
           class="text-center py-16"
         >
           <v-icon size="80" color="grey-lighten-2">mdi-car-search</v-icon>
-          <p class="text-h6 text-grey mt-4">
-            ບໍ່ພົບລົດແທັກຊີ່ໃນເມືອງທີ່ທ່ານເລືອກ
-          </p>
+          <p class="text-h6 text-grey mt-4">ບໍ່ພົບຂໍ້ມູນໃນເມືອງທີ່ທ່ານເລືອກ</p>
           <p class="text-body-2 text-grey-lighten-1 mt-2">
             ກະລຸນາລອງເລືອກເມືອງອື່ນ ຫຼື ຄົ້ນຫາດ້ວຍຄຳອື່ນ
           </p>
@@ -172,9 +172,9 @@
           </v-btn>
         </div>
 
-        <!-- Not Found State — shows when search query has no results -->
+        <!-- Not Found — search query has no results -->
         <div
-          v-else-if="filteredData.length === 0 && searchQuery"
+          v-else-if="channels.length === 0"
           class="text-center py-16"
         >
           <v-icon size="80" color="grey-lighten-2">mdi-magnify-close</v-icon>
@@ -198,7 +198,7 @@
         <!-- Results Grid -->
         <v-row v-else>
           <v-col
-            v-for="(taxi, index) in filteredData"
+            v-for="(item, index) in channels"
             :key="index"
             cols="12"
             sm="6"
@@ -215,14 +215,14 @@
                   style="height: 220px"
                 >
                   <v-img
-                    :src="taxi.image[0]"
+                    :src="item.image[0]"
                     height="220"
                     cover
                     class="transition-swing"
                     :style="{
                       transform: isHovering ? 'scale(1.05)' : 'scale(1)',
                     }"
-                    @click="openZoom(taxi, 0)"
+                    @click="openZoom(item, 0)"
                   >
                     <template v-slot:placeholder>
                       <v-skeleton-loader type="image" height="220" />
@@ -236,7 +236,7 @@
                     variant="flat"
                     size="small"
                   >
-                    {{ Number(taxi.price1 || 0).toLocaleString() }} ₭
+                    {{ Number(item.price1 || 0).toLocaleString() }} ₭
                   </v-chip>
                 </div>
               </v-hover>
@@ -247,7 +247,7 @@
                     class="text-h6 font-weight-bold text-truncate"
                     style="max-width: 70%"
                   >
-                    {{ taxi.name }}
+                    {{ item.dormantalname || item.name || "—" }}
                   </h3>
                   <v-icon color="grey-lighten-1">mdi-shield-check</v-icon>
                 </div>
@@ -257,14 +257,16 @@
                     >mdi-phone-outline</v-icon
                   >
                   <span class="text-body-2 font-weight-medium">{{
-                    taxi.tel
+                    item.tel
                   }}</span>
                 </div>
 
                 <v-divider class="mb-3" />
 
                 <p class="text-caption text-grey-darken-1 line-clamp-2">
-                  {{ taxi.detail || "ບໍ່ມີລາຍລະອຽດເພີ່ມເຕີມ" }}
+                  {{
+                    item.moredetail || item.detail || "ບໍ່ມີລາຍລະອຽດເພີ່ມເຕີມ"
+                  }}
                 </p>
               </v-card-text>
 
@@ -274,7 +276,7 @@
                   color="primary"
                   rounded="lg"
                   class="flex-grow-1 text-none"
-                  @click="openZoom(taxi, 0)"
+                  @click="openZoom(item, 0)"
                 >
                   ລາຍລະອຽດ
                 </v-btn>
@@ -284,7 +286,7 @@
                   rounded="lg"
                   class="flex-grow-1 text-none ml-2"
                   prepend-icon="mdi-whatsapp"
-                  @click="openWhatsApp(taxi)"
+                  @click="openWhatsApp(item)"
                 >
                   WhatsApp
                 </v-btn>
@@ -292,58 +294,88 @@
             </v-card>
           </v-col>
         </v-row>
+
+        <!-- Pagination -->
+        <div
+          v-if="pagination && pagination.totalPages > 1"
+          class="d-flex justify-center mt-8"
+        >
+          <v-pagination
+            v-model="currentPage"
+            :length="pagination.totalPages"
+            rounded="lg"
+            @update:model-value="onPageChange"
+          />
+        </div>
       </template>
 
       <v-divider class="my-12" />
 
-      <!-- <div v-if="topData && topData.length > 0" class="mt-12">
-        <div class="d-flex align-center mb-6">
-          <div class="bg-primary rounded-circle pa-1 mr-3">
-            <v-icon color="white" size="small">mdi-star</v-icon>
-          </div>
-          <h2 class="text-h5 font-weight-bold">ແນະນຳເບຣນດອື່ນໆ</h2>
-        </div>
-        <TopDataCard :topData="topData" />
-      </div> -->
       <div v-if="topData && topData.length > 0" class="mt-12">
-        <div class="d-flex align-center mb-6">
-          <div class="bg-primary rounded-circle pa-1 mr-3">
-            <v-icon color="white" size="small">mdi-star</v-icon>
-          </div>
-          <h2 class="text-h5 font-weight-bold">ແນະນຳເບຣນດອື່ນໆ</h2>
+  <!-- Title Section -->
+  <div class="d-flex align-center mb-6">
+    <div class="bg-primary rounded-circle pa-1 mr-3">
+      <v-icon color="white" size="small">mdi-star</v-icon>
+    </div>
+    <h2 class="text-h5 font-weight-bold">ແນະນຳເບຣນດອື່ນໆ</h2>
+  </div>
 
-          <!-- Scroll buttons -->
-          <v-spacer />
-          <v-btn
-            icon
-            size="small"
-            variant="outlined"
-            class="mr-1"
-            @click="scrollBrands(-1)"
-          >
-            <v-icon>mdi-chevron-left</v-icon>
-          </v-btn>
-          <v-btn icon size="small" variant="outlined" @click="scrollBrands(1)">
-            <v-icon>mdi-chevron-right</v-icon>
-          </v-btn>
-        </div>
+  <!-- Slider Container -->
+  <div 
+  v-if="topData && topData.length > 0" 
+  class="mt-12 position-relative section-container"
+  @mouseenter="stopAutoSlide"
+  @mouseleave="startAutoSlide"
+>
+  <!-- Title Section -->
+  <div class="d-flex align-center mb-6">
+    <div class="bg-primary rounded-circle pa-1 mr-3">
+      <v-icon color="white" size="small">mdi-star</v-icon>
+    </div>
+    <h2 class="text-h5 font-weight-bold">ແນະນຳເບຣນດອື່ນໆ</h2>
+  </div>
 
-        <!-- Scrollable row -->
-        <div
-          ref="brandsTrack"
-          class="d-flex ga-4 pb-2"
-          style="
-            overflow-x: auto;
-            scroll-behavior: smooth;
-            scrollbar-width: none;
-            cursor: grab;
-          "
-        >
-          <TopDataCard :topData="topData" />
-        </div>
-      </div>
+  <!-- Slider Wrapper -->
+  <div 
+  class="position-relative slider-wrapper"
+  @mouseenter="stopAutoSlide"
+  @mouseleave="startAutoSlide"
+>
+  <!-- Left Button: Transparent Glass Style -->
+  <v-btn
+    icon
+    class="nav-btn left-btn"
+    @click="scrollBrands(-1)"
+  >
+    <v-icon color="black">mdi-chevron-left</v-icon>
+  </v-btn>
+
+  <div
+    ref="brandsTrack"
+    class="brands-scroll-container d-flex ga-4"
+  >
+    <!-- Pass your data here -->
+    <TopDataCard :topData="topData" />
+    
+    <!-- CLONE: To make it look infinite, we repeat the first few items -->
+    <!-- If your TopDataCard handles a list, you might need to pass the first 3 items again -->
+    <TopDataCard :topData="topData.slice(0, 3)" class="cloned-items" />
+  </div>
+
+  <!-- Right Button -->
+  <v-btn
+    icon
+    class="nav-btn right-btn"
+    @click="scrollBrands(1)"
+  >
+    <v-icon color="black">mdi-chevron-right</v-icon>
+  </v-btn>
+</div>
+</div>
+</div>
     </v-container>
 
+    <!-- Comment Dialog -->
     <v-dialog
       v-model="commentDialog"
       max-width="450"
@@ -380,12 +412,14 @@
             rounded="lg"
             class="mt-4"
             @click="submitComment"
-            >ສົ່ງຂໍ້ມູນ</v-btn
           >
+            ສົ່ງຂໍ້ມູນ
+          </v-btn>
         </v-card-text>
       </v-card>
     </v-dialog>
 
+    <!-- Zoom Dialog -->
     <v-dialog
       v-model="zoomDialog"
       max-width="1200"
@@ -397,14 +431,13 @@
           style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
         >
           <v-avatar color="white" size="40" class="mr-3 d-none d-sm-flex">
-            <v-icon color="primary" size="24">mdi-car-side</v-icon>
+            <v-icon color="primary" size="24">mdi-image-outline</v-icon>
           </v-avatar>
-
           <div class="flex-grow-1 min-width-0">
             <h3
               class="text-body-1 text-sm-h5 font-weight-bold text-white text-truncate"
             >
-              {{ zoomItem.name }}
+              {{ zoomItem.dormantalname || zoomItem.name || "—" }}
             </h3>
             <div class="d-flex align-center mt-1 ga-1 ga-sm-2 flex-wrap">
               <v-chip color="success" variant="flat" size="small">
@@ -423,7 +456,6 @@
               </v-chip>
             </div>
           </div>
-
           <v-btn
             icon
             @click="zoomDialog = false"
@@ -449,29 +481,26 @@
         >
           <template v-slot:prev="{ props }">
             <v-btn
-              icon
               v-bind="props"
               :size="smAndDown ? 'small' : 'large'"
               elevation="4"
               class="bg-white"
             >
-              <v-icon :size="smAndDown ? 18 : 32" color="grey-darken-2">
-                mdi-chevron-left
-              </v-icon>
+              <v-icon :size="smAndDown ? 18 : 32" color="grey-darken-2"
+                >mdi-chevron-left</v-icon
+              >
             </v-btn>
           </template>
-
           <template v-slot:next="{ props }">
             <v-btn
-              icon
               v-bind="props"
               :size="smAndDown ? 'small' : 'large'"
               elevation="4"
               class="bg-white"
             >
-              <v-icon :size="smAndDown ? 18 : 32" color="grey-darken-2">
-                mdi-chevron-right
-              </v-icon>
+              <v-icon :size="smAndDown ? 18 : 32" color="grey-darken-2"
+                >mdi-chevron-right</v-icon
+              >
             </v-btn>
           </template>
 
@@ -480,7 +509,7 @@
             :key="`zoom-${i}`"
           >
             <v-img
-              :src="img.startsWith('http') ? img : imageBaseUrl + img"
+              :src="img.startsWith('http') ? img : img"
               :height="carouselHeight"
               contain
               class="rounded-xl bg-grey-darken-4"
@@ -504,7 +533,7 @@
                   class="text-white font-weight-bold opacity-80"
                 >
                   <v-icon start size="small">mdi-image-multiple</v-icon>
-                  {{ i + 1 }} / {{ zoomItem.image?.length || 0 }}
+                  {{ i }} / {{ zoomItem.image?.length || 0 }}
                 </v-chip>
               </div>
 
@@ -523,7 +552,6 @@
                     {{ isZoomPlaying ? "mdi-pause" : "mdi-play" }}
                   </v-icon>
                 </v-btn>
-
                 <div class="d-flex align-center ga-1">
                   <v-icon
                     v-for="(_, dotIndex) in zoomItem.image"
@@ -534,7 +562,6 @@
                     mdi-circle
                   </v-icon>
                 </div>
-
                 <div style="width: 32px" />
               </div>
             </v-img>
@@ -577,244 +604,273 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { useDisplay } from "vuetify";
+// ນຳໃຊ້ Composable ທີ່ເຮົາສ້າງໄວ້
+import { useGetChannelById } from "~/composables/useRetrieveByid";
 
 const { smAndDown } = useDisplay();
-const { allitems, fetchTaxi, video1, channelimage, loading, topData } =
-  useTaxi();
 
-const props = defineProps({
-  store: { type: Object, default: () => ({}) },
+// ─── Configuration ──────────────────────────────────────────────────────────
+// ປ່ຽນເປັນ URL ຂອງ Server ຖ້າຕ້ອງການ Deploy
+// const BASE_URL = "https://service.tsheb.la/api"; 
+const BASE_URL = "http://localhost:5151/api";
+
+// ─── Setup Composable ───────────────────────────────────────────────────────
+// ດຶງເຄື່ອງມື ແລະ ຂໍ້ມູນອອກມາຈາກ Composable
+const {
+  channels,
+  topData,
+  pagination,
+  qr,
+  channelimage,
+  video1,
+  loadings,
+  errors,
+  fetchChannelById
+} = useGetChannelById();
+
+// ─── Local State ────────────────────────────────────────────────────────────
+const channelStore = ref({
+  channelId: null,
+  channelName: "",
+  channelimage: [],
+  video1: "",
+  detail: "",
+  qr: "",
 });
 
-const imageBaseUrl = "https://service.tsheb.la/";
+const route=useRoute();
 const filteredData = ref([]);
 const baseData = ref([]);
+const currentPage = ref(1);
+
 const searchQuery = ref("");
 const provinces = ref([]);
 const districtsForSelectedProvince = ref([]);
 const selectedProvince = ref(null);
 const selectedDistrict = ref(null);
+
+// UI States
 const commentDialog = ref(false);
 const telephone = ref("");
 const comment = ref("");
-
 const zoomDialog = ref(false);
 const zoomItem = ref({});
 const zoomSlide = ref(0);
 const isZoomPlaying = ref(true);
-
 const isMuted = ref(true);
-const selectedChannel = ref({ video1: "", channelimage: "" });
+// const brandsTrack = ref(null);
 
+// ─── Computed Properties ────────────────────────────────────────────────────
 const carouselHeight = computed(() => (smAndDown.value ? 280 : 550));
 
-const openCommentDialog = () => {
-  telephone.value = "";
-  comment.value = "";
-  commentDialog.value = true;
-};
-
-const submitComment = () => {
-  if (!telephone.value || !comment.value) {
-    alert("ກະລຸນາໃສ່ຂໍ້ມູນໃຫ້ຄົບຖ້ວນ");
-    return;
-  }
-  console.log("Sending Inquiry:", {
-    title: telephone.value,
-    detail: comment.value,
-  });
-  commentDialog.value = false;
-};
-
-const toggleZoomAutoplay = () => {
-  isZoomPlaying.value = !isZoomPlaying.value;
-};
-
-const openZoom = (item, index = 0) => {
-  zoomItem.value = item;
-  zoomSlide.value = index;
-  zoomDialog.value = true;
-};
-
-function extractYoutubeID(url) {
-  if (!url) return "";
-  const match = url.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|watch\?v=|shorts\/))([\w-]+)/
-  );
-  return match ? match[1] : "";
-}
-
 const bannerMode = computed(() => {
-  const v = selectedChannel.value.video1 || video1.value;
-  const i = selectedChannel.value.channelimage || channelimage.value;
-  if (v) return "video";
-  if (i) return "image";
+  if (channelStore.value.video1) return "video";
+  if (channelStore.value.channelimage?.length > 0) return "image";
   return "none";
 });
 
 const bannerImages = computed(() => {
-  const data = selectedChannel.value.channelimage || channelimage.value;
-  if (!data) return [];
-  return Array.isArray(data) ? data : [data];
+  const data = channelStore.value.channelimage;
+  return Array.isArray(data) ? data : (data ? [data] : []);
 });
 
 const bannerVideoSrc = computed(() => {
-  const rawUrl = selectedChannel.value.video1 || video1.value;
-  const id = extractYoutubeID(rawUrl);
+  const id = extractYoutubeID(channelStore.value.video1);
   if (!id) return "";
-  return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=${
-    isMuted.value ? 1 : 0
-  }&loop=1&playlist=${id}&rel=0`;
+  return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=${isMuted.value ? 1 : 0}&loop=1&playlist=${id}&rel=0`;
 });
 
-function processTaxiItems(raw) {
-  return (raw || []).map((item) => ({
-    ...item,
-    image: Array.isArray(item.image)
-      ? item.image
-      : [item.image || "placeholder.jpg"],
-    showDetails: false,
-  }));
+// ─── Helpers ────────────────────────────────────────────────────────────────
+function extractYoutubeID(url) {
+  if (!url) return "";
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|watch\?v=|shorts\/))([\w-]+)/);
+  return match ? match[1] : "";
 }
 
-// Reset all filters back to default
+const syncFromComposable = () => {
+  console.log("🔄 Syncing UI state...");
+  if (!channels.value) return;
+
+  const processed = channels.value.map((item) => ({
+    ...item,
+    image: Array.isArray(item.image) ? item.image : [item.image || "placeholder.jpg"],
+  }));
+
+  baseData.value = processed;
+  filteredData.value = processed;
+  console.log("✅ UI Updated with", processed.length, "items");
+};
+
+// ─── Actions ────────────────────────────────────────────────────────────────
+const onPageChange = async (page) => {
+  if (!channelStore.value.channelId) return;
+  await fetchChannelById(channelStore.value.channelId, page - 1);
+  syncFromComposable();
+};
+
+const queryByLocation = async (districtId) => {
+  if (!selectedProvince.value || !districtId) return;
+  
+  // ດຶງຂໍ້ມູນໃໝ່ ຫຼື ກັ່ນຕອງຈາກຂໍ້ມູນທີ່ມີ
+  const filtered = baseData.value.filter(
+    (item) => String(item.districtId || item.districtid || "") === String(districtId)
+  );
+  filteredData.value = filtered;
+};
+
 const resetFilter = () => {
   selectedProvince.value = null;
   selectedDistrict.value = null;
   searchQuery.value = "";
-  baseData.value = processTaxiItems(allitems.value);
-  filteredData.value = processTaxiItems(allitems.value);
+  filteredData.value = baseData.value;
 };
 
-const queryByLocation = async (districtId) => {
-  const dId = districtId || selectedDistrict.value;
-  if (!selectedProvince.value || !dId) return;
-
-  loading.value = true;
-  searchQuery.value = "";
-
-  try {
-    const url = `https://service.tsheb.la/api/taxi/selectByDistrictId?districtId=${dId}&page=0&limit=100`;
-    const res = await fetch(url, { method: "GET" });
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-    const result = await res.json();
-    const finalData = result.data || result;
-    const processed = processTaxiItems(
-      Array.isArray(finalData) ? finalData : []
-    );
-    baseData.value = processed;
-    filteredData.value = processed;
-  } catch (e) {
-    console.error("queryByLocation error:", e);
-    // Show empty on error so user sees not-found state
-    baseData.value = [];
-    filteredData.value = [];
-  } finally {
-    loading.value = false;
-  }
-};
-
+// ─── Lifecycle ──────────────────────────────────────────────────────────────
 onMounted(async () => {
-  if (props.store && Object.keys(props.store).length > 0) {
-    selectedChannel.value = props.store;
+  console.log("🚀 Page Initialization...");
+
+  console.log("📡 Fetching data for channel:", channelStore.value.channelId);
+  // 1. ດຶງຂໍ້ມູນເບື້ອງຕົ້ນຈາກ History State
+  const routeState = history.state?.store;
+  if (routeState?.channelId) {
+    channelStore.value = { ...channelStore.value, ...routeState };
   }
 
-  await fetchTaxi();
-  const processed = processTaxiItems(allitems.value);
-  baseData.value = processed;
-  filteredData.value = processed;
+  // 2. ເອີ້ນໃຊ້ Composable ເພື່ອດຶງຂໍ້ມູນຈາກ API
+  // if (!channelStore.value.channelId) {
+    console.log("📡 Fetching data for channel00000:", route.query.channelId);
+    await fetchChannelById(route.query.channelId, 0);
+    console.log("📡  data for channel000007777:", channels.value);
+    
+    // ອັບເດດຂໍ້ມູນ Banner/QR ຖ້າ API ມີຂໍ້ມູນໃໝ່ກວ່າ
+    // if (video1.value) channelStore.value.video1 = video1.value;
+    // if (qr.value) channelStore.value.qr = qr.value;
+    // if (channelimage.value) {
+    //   channelStore.value.channelimage = Array.isArray(channelimage.value) 
+    //     ? channelimage.value 
+    //     : [channelimage.value];
+    // }
+    
+    // syncFromComposable();
+  // }
 
+  // 3. ໂຫຼດລາຍຊື່ແຂວງ
   try {
-    const res = await fetch("https://service.tsheb.la/api/province/selectall");
-    if (!res.ok) throw new Error("Failed to fetch provinces");
+    const res = await fetch(`${BASE_URL}/province/selectall`);
     const pData = await res.json();
     provinces.value = (pData.data || pData).map((p) => ({
       code: p.provinceid,
       name: p.province,
     }));
-  } catch (e) {}
+  } catch (e) {
+    console.error("❌ Province fetch error:", e);
+  }
 });
+const openZoom=(item,index)=>{
+  zoomItem.value=item;
+  zoomSlide.value=index;
+  zoomDialog.value=true;
+  console.log("🔍 Zooming into item:", item);
+  
+}
+const toggleZoomAutoplay=()=>{
+  isZoomPlaying.value=!isZoomPlaying.value;
+}
+const openCommentDialog=()=>{
+  commentDialog.value=true;
+}
 
-// Watch province change → load districts
+// ─── Watchers ───────────────────────────────────────────────────────────────
 watch(selectedProvince, async (id) => {
   selectedDistrict.value = null;
   districtsForSelectedProvince.value = [];
-  baseData.value = processTaxiItems(allitems.value);
-  filteredData.value = processTaxiItems(allitems.value);
-  searchQuery.value = "";
-
-  if (!id) return;
+  if (!id) {
+    filteredData.value = baseData.value;
+    return;
+  }
 
   try {
-    const url = `https://service.tsheb.la/api/district/selectByProvinceId?provinceId=${id}`;
-    const res = await fetch(url, {
-      method: "GET",
-      headers: { Accept: "application/json" },
-    });
-
-    if (!res.ok) return;
-
+    const res = await fetch(`${BASE_URL}/district/selectByProvinceId?provinceId=${id}`);
     const dData = await res.json();
-    const rawList = dData.data || dData;
-
-    if (Array.isArray(rawList)) {
-      districtsForSelectedProvince.value = rawList.map((item) => ({
-        title: item.district,
-        value: item.districtid,
-      }));
-    }
+    districtsForSelectedProvince.value = (dData.data || dData).map((item) => ({
+      title: item.district,
+      value: item.districtid,
+    }));
   } catch (e) {
-    console.error("Province watch error:", e);
+    console.error("❌ District fetch error:", e);
   }
 });
 
-// Watch district change → fetch taxis for that district
-watch(selectedDistrict, (newDistrict) => {
-  if (newDistrict && selectedProvince.value) {
-    queryByLocation(newDistrict);
-  }
+watch(selectedDistrict, (newVal) => {
+  if (newVal) queryByLocation(newVal);
 });
 
-// Watch search query → filter from baseData
 watch(searchQuery, (q) => {
-  if (!q || q.trim() === "") {
+  if (!q) {
     filteredData.value = baseData.value;
     return;
   }
   const lower = q.toLowerCase().trim();
   filteredData.value = baseData.value.filter(
     (item) =>
-      (item.name && item.name.toLowerCase().includes(lower)) ||
-      (item.tel &&
-        item.tel.replace(/\D/g, "").includes(lower.replace(/\D/g, "")))
+      (item.dormantalname || item.name || "").toLowerCase().includes(lower) ||
+      (item.tel && item.tel.includes(lower))
   );
 });
 
-const callPhone = (tel) => {
-  if (tel) window.location.href = `tel:${tel.replace(/\D/g, "")}`;
-};
+// Debug logs
+watch(errors, (err) => { if (err) console.error("🚨 Composable Error:", err); });
 
-const openWhatsApp = (item) => {
-  if (!item?.tel) return;
-  let cleanNumber = item.tel.replace(/\D/g, "");
-  if (cleanNumber.startsWith("0")) cleanNumber = cleanNumber.substring(1);
-  const encodedMessage = encodeURIComponent("ສະບາຍດີ");
-  window.open(
-    `https://wa.me/856${cleanNumber}?text=${encodedMessage}`,
-    "_blank"
-  );
-};
-
+//slide auto
 const brandsTrack = ref(null);
+const autoSlideInterval = ref(null);
 
-const scrollBrands = (dir) => {
-  if (brandsTrack.value) {
-    brandsTrack.value.scrollLeft += dir * 220;
+const scrollBrands = (direction) => {
+  const container = brandsTrack.value;
+  if (!container) return;
+
+  const cardWidth = 320; // Adjust to your actual card width + gap
+  const currentScroll = container.scrollLeft;
+  const maxScroll = container.scrollWidth - container.clientWidth;
+
+  if (direction === 1) {
+    // If we are at the very end, jump to start instantly then slide
+    if (currentScroll >= maxScroll - 5) {
+      container.scrollTo({ left: 0, behavior: 'instant' });
+      // Small timeout to allow the 'instant' jump to settle before sliding
+      setTimeout(() => {
+        container.scrollBy({ left: cardWidth, behavior: 'smooth' });
+      }, 10);
+    } else {
+      container.scrollBy({ left: cardWidth, behavior: 'smooth' });
+    }
+  } else {
+    // Left direction logic
+    if (currentScroll <= 5) {
+      container.scrollTo({ left: maxScroll, behavior: 'instant' });
+      setTimeout(() => {
+        container.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+      }, 10);
+    } else {
+      container.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+    }
   }
 };
+
+const startAutoSlide = () => {
+  autoSlideInterval.value = setInterval(() => {
+    scrollBrands(1);
+  }, 3000); // Faster slide for a smoother feel
+};
+
+const stopAutoSlide = () => {
+  if (autoSlideInterval.value) clearInterval(autoSlideInterval.value);
+};
+
+onMounted(() => startAutoSlide());
+onUnmounted(() => stopAutoSlide());
 </script>
+
 
 <style scoped>
 :deep(.v-carousel__controls .v-btn),
@@ -830,9 +886,6 @@ const scrollBrands = (dir) => {
 :deep(.v-carousel__controls .v-btn:hover),
 :deep(.v-window__controls .v-btn:hover) {
   background-color: rgba(0, 0, 0, 0.6) !important;
-}
-.z-index-2 {
-  z-index: 2;
 }
 .transition-swing {
   transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -860,14 +913,61 @@ const scrollBrands = (dir) => {
   border: 1px solid rgba(0, 0, 0, 0.05) !important;
 }
 @media (max-width: 600px) {
-  .mt-n16 {
-    margin-top: 30px !important;
-  }
   .text-h3 {
     font-size: 1.75rem !important;
   }
 }
 .d-flex[style*="overflow-x"]::-webkit-scrollbar {
   display: none;
+}
+</style>
+<style scoped>
+.slider-wrapper {
+  overflow: hidden; /* Keeps buttons from causing horizontal page scroll */
+  padding: 0 10px;
+}
+
+.brands-scroll-container {
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  display: flex;
+  padding-bottom: 20px;
+}
+
+.brands-scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Glassmorphism Navigation */
+.nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.left-btn {
+  left: 20px;
+}
+
+.right-btn {
+  right: 20px;
+}
+
+/* Hover Effect */
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  scale: 1.05;
+}
+
+/* Ensure cards don't shrink */
+:deep(.v-card) {
+  flex: 0 0 auto;
+  width: 300px; /* Adjust this to match your design */
 }
 </style>
