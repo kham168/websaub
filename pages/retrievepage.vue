@@ -1,6 +1,7 @@
 <template>
   <v-container fluid class="pa-0 bg-grey-lighten-4">
     <section class="position-relative">
+      <!-- No media -->
       <v-sheet
         v-if="bannerMode === 'none'"
         height="400"
@@ -9,10 +10,11 @@
       >
         <div class="text-center">
           <v-icon size="80" color="grey-darken-2">mdi-image-off-outline</v-icon>
-          <p class="text-h6 text-grey-darken-1 mt-4">ບໍ່ມີສື່ສຳລັບສະແດງ</p>
+          <p class="text-h6 text-grey-darken-1 mt-4">{{ t("no_media") }}</p>
         </div>
       </v-sheet>
 
+      <!-- Video banner -->
       <div
         v-else-if="bannerMode === 'video'"
         class="position-relative"
@@ -35,6 +37,7 @@
         </v-btn>
       </div>
 
+      <!-- Image carousel banner -->
       <v-carousel
         v-else-if="bannerMode === 'image'"
         height="450"
@@ -58,7 +61,7 @@
           >
             <div class="text-center text-white px-4">
               <h1 class="text-h3 font-weight-black mb-2 d-none d-sm-block">
-                {{ channelStore.channelName || "ບໍລິການ" }}
+                {{ channelStore.channelName || t("ask_question") }}
               </h1>
               <p class="text-h6 font-weight-light">
                 {{
@@ -71,11 +74,12 @@
       </v-carousel>
     </section>
 
+    <!-- ── Search Bar ────────────────────────────────────────────────── -->
     <v-container class="position-relative">
       <div class="d-flex align-center mb-4">
         <v-icon color="primary" class="mr-2">mdi-magnify</v-icon>
         <h2 class="text-h6 font-weight-bold">
-          ຄົ້ນຫາ {{ channelStore.channelName || "" }}
+          {{ t("search_label") }} {{ channelStore.channelName || "" }}
         </h2>
       </div>
 
@@ -84,7 +88,7 @@
           <v-select
             v-model="selectedProvince"
             :items="provinces"
-            label="ເລືອກແຂວງ"
+            :label="t('select_province')"
             item-title="name"
             item-value="code"
             variant="filled"
@@ -98,21 +102,21 @@
           <v-select
             v-model="selectedDistrict"
             :items="districtsForSelectedProvince"
-            label="ເລືອກເມືອງ"
+            :label="t('select_district')"
             variant="filled"
             rounded="lg"
             prepend-inner-icon="mdi-map-outline"
             density="comfortable"
             flat
             :no-data-text="
-              !selectedProvince ? 'ກະລຸນາເລືອກແຂວງກ່ອນ' : 'ບໍ່ມີຂໍ້ມູນ'
+              !selectedProvince ? t('select_province_first') : t('no_data')
             "
           />
         </v-col>
         <v-col cols="12" sm="6" md="4">
           <v-text-field
             v-model="searchQuery"
-            label="ຄົ້ນຫາຕາມຊື່ ຫຼື ເບີໂທ..."
+            :label="t('search_placeholder')"
             variant="filled"
             rounded="lg"
             prepend-inner-icon="mdi-magnify"
@@ -132,14 +136,15 @@
             prepend-icon="mdi-chat-question"
             class="text-none font-weight-bold"
           >
-            ສອບຖາມ
+            {{ t("ask_question") }}
           </v-btn>
         </v-col>
       </v-row>
     </v-container>
 
+    <!-- ── Product Grid ──────────────────────────────────────────────── -->
     <v-container>
-      <!-- Loading State -->
+      <!-- Loading -->
       <div v-if="loadings" class="text-center py-16">
         <v-progress-circular
           indeterminate
@@ -147,19 +152,16 @@
           size="64"
           width="6"
         />
-        <p class="mt-4 text-grey">ກຳລັງໂຫລດຂໍ້ມູນ...</p>
+        <p class="mt-4 text-grey">{{ t("loading") }}</p>
       </div>
 
       <template v-else>
-        <!-- Not Found — district selected but no results -->
-        <div
-          v-if="channels.length === 0"
-          class="text-center py-16"
-        >
+        <!-- Empty state -->
+        <div v-if="filteredData.length === 0" class="text-center py-16">
           <v-icon size="80" color="grey-lighten-2">mdi-car-search</v-icon>
-          <p class="text-h6 text-grey mt-4">ບໍ່ພົບຂໍ້ມູນໃນເມືອງທີ່ທ່ານເລືອກ</p>
+          <p class="text-h6 text-grey mt-4">{{ t("not_found") }}</p>
           <p class="text-body-2 text-grey-lighten-1 mt-2">
-            ກະລຸນາລອງເລືອກເມືອງອື່ນ ຫຼື ຄົ້ນຫາດ້ວຍຄຳອື່ນ
+            {{ t("not_found_hint") }}
           </p>
           <v-btn
             class="mt-6"
@@ -168,37 +170,13 @@
             rounded="lg"
             @click="resetFilter"
           >
-            ລ້າງການຄົ້ນຫາ
+            {{ t("clear_search") }}
           </v-btn>
         </div>
 
-        <!-- Not Found — search query has no results -->
-        <div
-          v-else-if="channels.length === 0"
-          class="text-center py-16"
-        >
-          <v-icon size="80" color="grey-lighten-2">mdi-magnify-close</v-icon>
-          <p class="text-h6 text-grey mt-4">
-            ບໍ່ພົບຜົນການຄົ້ນຫາສຳລັບ "{{ searchQuery }}"
-          </p>
-          <p class="text-body-2 text-grey-lighten-1 mt-2">
-            ກະລຸນາລອງຄົ້ນຫາດ້ວຍຊື່ ຫຼື ເບີໂທອື່ນ
-          </p>
-          <v-btn
-            class="mt-6"
-            color="primary"
-            variant="outlined"
-            rounded="lg"
-            @click="resetFilter"
-          >
-            ລ້າງການຄົ້ນຫາ
-          </v-btn>
-        </div>
-
-        <!-- Results Grid -->
         <v-row v-else>
           <v-col
-            v-for="(item, index) in channels"
+            v-for="(item, index) in filteredData"
             :key="index"
             cols="12"
             sm="6"
@@ -208,11 +186,12 @@
               rounded="xl"
               class="taxi-card h-100 d-flex flex-column border-thin overflow-hidden"
             >
+              <!-- Image → opens gallery -->
               <v-hover v-slot="{ isHovering, props }">
                 <div
                   v-bind="props"
                   class="overflow-hidden position-relative"
-                  style="height: 220px"
+                  style="height: 220px; cursor: zoom-in"
                 >
                   <v-img
                     :src="item.image[0]"
@@ -222,13 +201,34 @@
                     :style="{
                       transform: isHovering ? 'scale(1.05)' : 'scale(1)',
                     }"
-                    @click="openZoom(item, 0)"
+                    @click="openGallery(item, 0)"
                   >
                     <template v-slot:placeholder>
                       <v-skeleton-loader type="image" height="220" />
                     </template>
                   </v-img>
+
+                  <!-- Image count badge -->
                   <v-chip
+                    v-if="item.image.length > 1"
+                    position="absolute"
+                    location="top left"
+                    class="ma-3"
+                    color="black"
+                    variant="flat"
+                    size="x-small"
+                    style="opacity: 0.75"
+                  >
+                    <v-icon start size="12">mdi-image-multiple</v-icon>
+                    {{ item.image.length }}
+                  </v-chip>
+
+                  <!-- Price badge — only numeric prices -->
+                  <v-chip
+                    v-if="
+                      isNumericPrice(getItemPrice2(item)) ||
+                      isNumericPrice(getItemPrice1(item))
+                    "
                     position="absolute"
                     location="top right"
                     class="ma-3 font-weight-bold"
@@ -236,51 +236,204 @@
                     variant="flat"
                     size="small"
                   >
-                    {{ Number(item.price1 || 0).toLocaleString() }} ₭
+                    <span
+                      v-if="
+                        isNumericPrice(getItemPrice1(item)) &&
+                        isNumericPrice(getItemPrice2(item)) &&
+                        parsePrice(getItemPrice1(item)) >
+                          parsePrice(getItemPrice2(item))
+                      "
+                      class="text-decoration-line-through opacity-70 mr-1 text-caption"
+                    >
+                      {{ parsePrice(getItemPrice1(item)).toLocaleString() }}
+                    </span>
+                    {{
+                      isNumericPrice(getItemPrice2(item))
+                        ? parsePrice(getItemPrice2(item)).toLocaleString()
+                        : parsePrice(getItemPrice1(item)).toLocaleString()
+                    }}
+                    ₭
                   </v-chip>
                 </div>
               </v-hover>
 
+              <!-- Card body -->
               <v-card-text class="pa-4 flex-grow-1">
-                <div class="d-flex justify-space-between align-start mb-2">
+                <!-- Name -->
+                <div
+                  v-if="getItemName(item)"
+                  class="d-flex justify-space-between align-start mb-2"
+                >
                   <h3
                     class="text-h6 font-weight-bold text-truncate"
                     style="max-width: 70%"
                   >
-                    {{ item.dormantalname || item.name || "—" }}
+                    {{ getItemName(item) }}
                   </h3>
                   <v-icon color="grey-lighten-1">mdi-shield-check</v-icon>
                 </div>
 
-                <div class="d-flex align-center mb-3">
-                  <v-icon size="small" color="primary" class="mr-1"
-                    >mdi-phone-outline</v-icon
+                <!-- Numeric prices -->
+                <v-list-item
+                  v-if="
+                    isNumericPrice(getItemPrice1(item)) ||
+                    isNumericPrice(getItemPrice2(item))
+                  "
+                  class="px-0"
+                >
+                  <template v-slot:prepend>
+                    <v-icon color="success">mdi-cash-multiple</v-icon>
+                  </template>
+                  <v-list-item-title>{{ t("price_label") }}</v-list-item-title>
+                  <v-list-item-subtitle class="mt-1">
+                    <div class="d-flex align-center ga-2 flex-wrap">
+                      <span
+                        v-if="
+                          isNumericPrice(getItemPrice1(item)) &&
+                          isNumericPrice(getItemPrice2(item)) &&
+                          parsePrice(getItemPrice1(item)) >
+                            parsePrice(getItemPrice2(item))
+                        "
+                        class="text-body-2 text-red text-decoration-line-through"
+                      >
+                        {{ parsePrice(getItemPrice1(item)).toLocaleString() }} ₭
+                      </span>
+                      <span
+                        v-if="isNumericPrice(getItemPrice2(item))"
+                        class="text-h6"
+                      >
+                        {{ parsePrice(getItemPrice2(item)).toLocaleString() }} ₭
+                      </span>
+                      <span
+                        v-else-if="isNumericPrice(getItemPrice1(item))"
+                        class="text-h6"
+                      >
+                        {{ parsePrice(getItemPrice1(item)).toLocaleString() }} ₭
+                      </span>
+                      <v-chip
+                        v-if="
+                          isNumericPrice(getItemPrice1(item)) &&
+                          isNumericPrice(getItemPrice2(item)) &&
+                          parsePrice(getItemPrice1(item)) >
+                            parsePrice(getItemPrice2(item))
+                        "
+                        color="red"
+                        size="x-small"
+                        variant="flat"
+                        class="font-weight-bold"
+                      >
+                        {{ t("discount") }} -{{
+                          Math.round(
+                            (1 -
+                              parsePrice(getItemPrice2(item)) /
+                                parsePrice(getItemPrice1(item))) *
+                              100
+                          )
+                        }}%
+                      </v-chip>
+                    </div>
+                  </v-list-item-subtitle>
+                </v-list-item>
+
+                <!-- Text prices (non-numeric like "ແຊັດຖາມ") -->
+                <div
+                  v-else-if="getItemPrice1(item) || getItemPrice2(item)"
+                  class="d-flex flex-column ga-1 mt-2 mb-2"
+                >
+                  <div
+                    v-if="getItemPrice1(item)"
+                    class="d-flex align-start ga-2"
                   >
-                  <span class="text-body-2 font-weight-medium">{{
-                    item.tel
-                  }}</span>
+                    <v-icon size="16" color="success" class="mt-1"
+                      >mdi-cash</v-icon
+                    >
+                    <span class="text-caption text-grey-darken-2 line-clamp-2">
+                      {{ getItemPrice1(item) }}
+                    </span>
+                  </div>
+                  <div
+                    v-if="
+                      getItemPrice2(item) &&
+                      getItemPrice2(item) !== getItemPrice1(item)
+                    "
+                    class="d-flex align-start ga-2"
+                  >
+                    <v-icon size="16" color="primary" class="mt-1"
+                      >mdi-information-outline</v-icon
+                    >
+                    <span class="text-caption text-grey-darken-2 line-clamp-2">
+                      {{ getItemPrice2(item) }}
+                    </span>
+                  </div>
                 </div>
 
-                <v-divider class="mb-3" />
+                <v-divider class="my-3" />
 
-                <p class="text-caption text-grey-darken-1 line-clamp-2">
-                  {{
-                    item.moredetail || item.detail || "ບໍ່ມີລາຍລະອຽດເພີ່ມເຕີມ"
-                  }}
+                <!-- Detail -->
+                <p
+                  v-if="getItemDetail(item)"
+                  class="text-caption text-grey-darken-1 line-clamp-2"
+                >
+                  {{ getItemDetail(item) }}
                 </p>
               </v-card-text>
 
+              <!-- Card actions -->
               <v-card-actions class="px-4 pb-4 pt-0">
                 <v-btn
                   variant="outlined"
                   color="primary"
                   rounded="lg"
                   class="flex-grow-1 text-none"
-                  @click="openZoom(item, 0)"
+                  prepend-icon="mdi-information-outline"
+                  @click="openDetail(item)"
                 >
-                  ລາຍລະອຽດ
+                  {{ t("detail_btn") }}
                 </v-btn>
+
+                <template v-if="item.typestatus === '1'">
+                  <div
+                    v-if="cart[item.id]"
+                    class="d-flex align-center ga-2 ml-2 flex-grow-1"
+                  >
+                    <v-btn
+                      icon="mdi-minus"
+                      size="small"
+                      variant="outlined"
+                      color="primary"
+                      @click.stop="decrementQty(item.id)"
+                    />
+                    <span class="text-h6 font-weight-bold px-2">{{
+                      cart[item.id]
+                    }}</span>
+                    <v-btn
+                      icon="mdi-plus"
+                      size="small"
+                      variant="flat"
+                      color="primary"
+                      @click.stop="incrementQty(item.id)"
+                    />
+                  </div>
+                  <v-btn
+                    v-else
+                    color="primary"
+                    variant="flat"
+                    rounded="lg"
+                    class="flex-grow-1 text-none ml-2"
+                    prepend-icon="mdi-cart-plus"
+                    @click="addToCart(item)"
+                  >
+                    <span
+                      class="text-truncate d-inline-block"
+                      style="max-width: 100px"
+                    >
+                      {{ t("add_to_cart") }}
+                    </span>
+                  </v-btn>
+                </template>
+
                 <v-btn
+                  v-else
                   color="success"
                   variant="flat"
                   rounded="lg"
@@ -311,71 +464,394 @@
 
       <v-divider class="my-12" />
 
+      <!-- Brands Slider -->
       <div v-if="topData && topData.length > 0" class="mt-12">
-  <!-- Title Section -->
-  <div class="d-flex align-center mb-6">
-    <div class="bg-primary rounded-circle pa-1 mr-3">
-      <v-icon color="white" size="small">mdi-star</v-icon>
-    </div>
-    <h2 class="text-h5 font-weight-bold">ແນະນຳເບຣນດອື່ນໆ</h2>
-  </div>
-
-  <!-- Slider Container -->
-  <div 
-  v-if="topData && topData.length > 0" 
-  class="mt-12 position-relative section-container"
-  @mouseenter="stopAutoSlide"
-  @mouseleave="startAutoSlide"
->
-  <!-- Title Section -->
-  <div class="d-flex align-center mb-6">
-    <div class="bg-primary rounded-circle pa-1 mr-3">
-      <v-icon color="white" size="small">mdi-star</v-icon>
-    </div>
-    <h2 class="text-h5 font-weight-bold">ແນະນຳເບຣນດອື່ນໆ</h2>
-  </div>
-
-  <!-- Slider Wrapper -->
-  <div 
-  class="position-relative slider-wrapper"
-  @mouseenter="stopAutoSlide"
-  @mouseleave="startAutoSlide"
->
-  <!-- Left Button: Transparent Glass Style -->
-  <v-btn
-    icon
-    class="nav-btn left-btn"
-    @click="scrollBrands(-1)"
-  >
-    <v-icon color="black">mdi-chevron-left</v-icon>
-  </v-btn>
-
-  <div
-    ref="brandsTrack"
-    class="brands-scroll-container d-flex ga-4"
-  >
-    <!-- Pass your data here -->
-    <TopDataCard :topData="topData" />
-    
-    <!-- CLONE: To make it look infinite, we repeat the first few items -->
-    <!-- If your TopDataCard handles a list, you might need to pass the first 3 items again -->
-    <TopDataCard :topData="topData.slice(0, 3)" class="cloned-items" />
-  </div>
-
-  <!-- Right Button -->
-  <v-btn
-    icon
-    class="nav-btn right-btn"
-    @click="scrollBrands(1)"
-  >
-    <v-icon color="black">mdi-chevron-right</v-icon>
-  </v-btn>
-</div>
-</div>
-</div>
+        <div class="d-flex align-center mb-4 px-2">
+          <div class="bg-primary rounded-circle pa-1 mr-3">
+            <v-icon color="white" size="small">mdi-star</v-icon>
+          </div>
+          <h2 class="text-h5 font-weight-bold">
+            {{ t("recommended_brands") }}
+          </h2>
+        </div>
+        <TopDataCard :topData="topData" />
+      </div>
     </v-container>
 
-    <!-- Comment Dialog -->
+    <!-- ── Gallery Dialog ────────────────────────────────────────────── -->
+    <v-dialog
+      v-model="galleryDialog"
+      max-width="960"
+      transition="dialog-transition"
+    >
+      <v-card
+        rounded="xl"
+        color="grey-darken-4"
+        elevation="24"
+        class="overflow-hidden"
+      >
+        <div class="d-flex align-center justify-space-between pa-3 pa-sm-4">
+          <div class="d-flex align-center ga-2 min-width-0">
+            <v-icon color="white" size="20">mdi-image-multiple</v-icon>
+            <span class="text-white font-weight-bold text-body-1 text-truncate">
+              {{ getItemName(galleryItem) || t("no_media") }}
+            </span>
+          </div>
+          <div class="d-flex align-center ga-2 flex-shrink-0">
+            <v-chip
+              color="grey-darken-2"
+              variant="flat"
+              size="small"
+              class="text-white"
+            >
+              {{ gallerySlide + 1 }} / {{ galleryItem.image?.length || 0 }}
+            </v-chip>
+            <v-btn
+              icon
+              size="small"
+              variant="text"
+              color="white"
+              @click="galleryDialog = false"
+            >
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </div>
+        </div>
+
+        <v-carousel
+          v-model="gallerySlide"
+          :height="galleryHeight"
+          hide-delimiters
+          show-arrows
+          class="gallery-carousel"
+        >
+          <template v-slot:prev="{ props }">
+            <v-btn
+              v-bind="props"
+              icon
+              size="large"
+              elevation="6"
+              class="gallery-nav-btn"
+            >
+              <v-icon size="30" color="grey-darken-3">mdi-chevron-left</v-icon>
+            </v-btn>
+          </template>
+          <template v-slot:next="{ props }">
+            <v-btn
+              v-bind="props"
+              icon
+              size="large"
+              elevation="6"
+              class="gallery-nav-btn"
+            >
+              <v-icon size="30" color="grey-darken-3">mdi-chevron-right</v-icon>
+            </v-btn>
+          </template>
+          <v-carousel-item
+            v-for="(img, i) in galleryItem.image"
+            :key="`g-${i}`"
+          >
+            <v-img
+              :src="img"
+              :height="galleryHeight"
+              contain
+              class="bg-grey-darken-4"
+            >
+              <template v-slot:placeholder>
+                <v-row class="fill-height ma-0" align="center" justify="center">
+                  <v-progress-circular indeterminate color="white" size="48" />
+                </v-row>
+              </template>
+            </v-img>
+          </v-carousel-item>
+        </v-carousel>
+
+        <div
+          v-if="galleryItem.image && galleryItem.image.length > 1"
+          class="thumbnail-strip pa-3 d-flex ga-2 justify-center"
+        >
+          <div
+            v-for="(img, i) in galleryItem.image"
+            :key="`t-${i}`"
+            class="thumbnail-wrapper"
+            :class="{ 'thumbnail-active': gallerySlide === i }"
+            @click="gallerySlide = i"
+          >
+            <v-img
+              :src="img"
+              width="64"
+              height="64"
+              cover
+              class="rounded-lg"
+              style="cursor: pointer"
+            />
+          </div>
+        </div>
+      </v-card>
+    </v-dialog>
+
+    <!-- ── Detail Dialog ─────────────────────────────────────────────── -->
+    <v-dialog
+      v-model="detailDialog"
+      max-width="700"
+      transition="dialog-bottom-transition"
+      scrollable
+    >
+      <v-card rounded="xl" elevation="24">
+        <div
+          class="pa-4 pa-sm-6 d-flex align-center"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+        >
+          <div class="flex-grow-1 min-width-0">
+            <h3 class="text-h6 font-weight-bold text-white text-truncate">
+              {{ getItemName(detailItem) || t("detail_btn") }}
+            </h3>
+          </div>
+          <v-btn
+            icon
+            size="small"
+            variant="text"
+            color="white"
+            @click="detailDialog = false"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </div>
+
+        <v-card-text class="pa-0">
+          <v-carousel
+            v-if="detailItem.image && detailItem.image.length > 0"
+            v-model="detailSlide"
+            :height="detailCarouselHeight"
+            hide-delimiters
+            show-arrows
+            cycle
+            interval="4000"
+          >
+            <v-carousel-item
+              v-for="(img, i) in detailItem.image"
+              :key="`di-${i}`"
+            >
+              <v-img
+                :src="img"
+                :height="detailCarouselHeight"
+                contain
+                class="bg-grey-darken-4"
+                @click="openGalleryFromDetail(i)"
+              />
+            </v-carousel-item>
+          </v-carousel>
+
+          <div class="pa-4 pa-sm-6">
+            <v-list lines="two" class="pa-0 mb-6">
+              <!-- Numeric price -->
+              <v-list-item
+                v-if="
+                  isNumericPrice(getItemPrice1(detailItem)) ||
+                  isNumericPrice(getItemPrice2(detailItem))
+                "
+                class="px-0"
+              >
+                <template v-slot:prepend>
+                  <v-icon color="success">mdi-cash-multiple</v-icon>
+                </template>
+                <v-list-item-title>{{
+                  t("detail_dialog_title")
+                }}</v-list-item-title>
+                <v-list-item-subtitle class="mt-1">
+                  <div class="d-flex align-center ga-2 flex-wrap">
+                    <span
+                      v-if="
+                        isNumericPrice(getItemPrice1(detailItem)) &&
+                        isNumericPrice(getItemPrice2(detailItem)) &&
+                        parsePrice(getItemPrice1(detailItem)) >
+                          parsePrice(getItemPrice2(detailItem))
+                      "
+                      class="text-body-2 text-red text-decoration-line-through"
+                    >
+                      {{
+                        parsePrice(getItemPrice1(detailItem)).toLocaleString()
+                      }}
+                      ₭
+                    </span>
+                    <span
+                      v-if="isNumericPrice(getItemPrice2(detailItem))"
+                      class="text-h6"
+                    >
+                      {{
+                        parsePrice(getItemPrice2(detailItem)).toLocaleString()
+                      }}
+                      ₭
+                    </span>
+                    <span
+                      v-else-if="isNumericPrice(getItemPrice1(detailItem))"
+                      class="text-h6"
+                    >
+                      {{
+                        parsePrice(getItemPrice1(detailItem)).toLocaleString()
+                      }}
+                      ₭
+                    </span>
+                    <v-chip
+                      v-if="
+                        isNumericPrice(getItemPrice1(detailItem)) &&
+                        isNumericPrice(getItemPrice2(detailItem)) &&
+                        parsePrice(getItemPrice1(detailItem)) >
+                          parsePrice(getItemPrice2(detailItem))
+                      "
+                      color="red"
+                      size="x-small"
+                      variant="flat"
+                      class="font-weight-bold"
+                    >
+                      {{ t("discount") }} -{{
+                        Math.round(
+                          (1 -
+                            parsePrice(getItemPrice2(detailItem)) /
+                              parsePrice(getItemPrice1(detailItem))) *
+                            100
+                        )
+                      }}%
+                    </v-chip>
+                  </div>
+                </v-list-item-subtitle>
+              </v-list-item>
+
+              <!-- Text price -->
+              <v-list-item
+                v-else-if="
+                  getItemPrice1(detailItem) || getItemPrice2(detailItem)
+                "
+                class="px-0"
+              >
+                <template v-slot:prepend>
+                  <v-icon color="success">mdi-cash</v-icon>
+                </template>
+                <v-list-item-title>{{
+                  t("detail_dialog_title")
+                }}</v-list-item-title>
+                <v-list-item-subtitle class="mt-1">
+                  <div class="d-flex flex-column ga-1">
+                    <span v-if="getItemPrice1(detailItem)" class="text-body-2">
+                      {{ getItemPrice1(detailItem) }}
+                    </span>
+                    <span
+                      v-if="
+                        getItemPrice2(detailItem) &&
+                        getItemPrice2(detailItem) !== getItemPrice1(detailItem)
+                      "
+                      class="text-body-2 text-grey-darken-1"
+                    >
+                      {{ getItemPrice2(detailItem) }}
+                    </span>
+                  </div>
+                </v-list-item-subtitle>
+              </v-list-item>
+
+              <v-divider class="my-2" />
+
+              <v-list-item class="px-0">
+                <template v-slot:prepend>
+                  <v-icon color="grey">mdi-office-building</v-icon>
+                </template>
+
+                <v-list-item-title>{{ t("type_text") }}</v-list-item-title>
+                <v-list-item-subtitle
+                  class="text-body-2 text-grey-darken-2 mt-1"
+                  style="white-space: normal; line-height: 1.6"
+                >
+                  {{ getItemType(detailItem) }}
+                </v-list-item-subtitle>
+              </v-list-item>
+              <!-- Description -->
+              <v-list-item class="px-0" v-if="getItemDetail(detailItem)">
+                <template v-slot:prepend>
+                  <v-icon color="grey">mdi-text-box-outline</v-icon>
+                </template>
+
+                <v-list-item-title>{{ t("detail_desc") }}</v-list-item-title>
+                <v-list-item-subtitle
+                  class="text-body-2  mt-1"
+                >
+                  {{ getItemDetail(detailItem) }}
+                </v-list-item-subtitle>
+              </v-list-item>
+            </v-list>
+
+            <v-row dense>
+              <v-col cols="6">
+                <v-btn
+                  color="primary"
+                  variant="flat"
+                  block
+                  rounded="lg"
+                  prepend-icon="mdi-phone"
+                  @click="callPhone(detailItem.tel)"
+                >
+                  {{ t("call_btn") }}
+                </v-btn>
+              </v-col>
+              <v-col cols="6">
+                <v-btn
+                  color="success"
+                  variant="flat"
+                  block
+                  rounded="lg"
+                  prepend-icon="mdi-whatsapp"
+                  @click="openWhatsApp(detailItem)"
+                >
+                  WhatsApp
+                </v-btn>
+              </v-col>
+
+              <v-col
+                cols="12"
+                class="mt-2"
+                v-if="detailItem.typestatus === '1'"
+              >
+                <div
+                  v-if="cart[detailItem.id]"
+                  class="d-flex align-center justify-center ga-6 border rounded-lg pa-1"
+                  style="min-height: 48px"
+                >
+                  <v-btn
+                    icon="mdi-minus"
+                    size="small"
+                    variant="text"
+                    color="primary"
+                    @click.stop="decrementQty(detailItem.id)"
+                  />
+                  <span class="text-h6 font-weight-bold">{{
+                    cart[detailItem.id]
+                  }}</span>
+                  <v-btn
+                    icon="mdi-plus"
+                    size="small"
+                    variant="text"
+                    color="primary"
+                    @click.stop="incrementQty(detailItem.id)"
+                  />
+                </div>
+                <v-btn
+                  v-else
+                  color="orange-darken-2"
+                  variant="flat"
+                  block
+                  size="large"
+                  rounded="lg"
+                  prepend-icon="mdi-cart-plus"
+                  @click="addToCart(detailItem)"
+                >
+                  {{ t("add_to_cart") }}
+                </v-btn>
+              </v-col>
+            </v-row>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
+    <!-- ── Comment Dialog ────────────────────────────────────────────── -->
     <v-dialog
       v-model="commentDialog"
       max-width="450"
@@ -383,24 +859,24 @@
     >
       <v-card rounded="xl">
         <v-toolbar color="primary" flat>
-          <v-toolbar-title class="font-weight-bold"
-            >ສົ່ງຂໍ້ຄວາມສອບຖາມ</v-toolbar-title
-          >
-          <v-btn icon @click="commentDialog = false"
-            ><v-icon>mdi-close</v-icon></v-btn
-          >
+          <v-toolbar-title class="font-weight-bold">{{
+            t("comment_dialog_title")
+          }}</v-toolbar-title>
+          <v-btn icon @click="commentDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
         </v-toolbar>
         <v-card-text class="pa-6">
           <v-text-field
             v-model="telephone"
-            label="ຫົວຂໍ້ສອບຖາມ"
+            :label="t('comment_subject')"
             variant="outlined"
             rounded="lg"
             class="mb-2"
           />
           <v-textarea
             v-model="comment"
-            label="ລາຍລະອຽດ"
+            :label="t('comment_detail')"
             variant="outlined"
             rounded="lg"
             rows="4"
@@ -413,189 +889,9 @@
             class="mt-4"
             @click="submitComment"
           >
-            ສົ່ງຂໍ້ມູນ
+            {{ t("comment_submit") }}
           </v-btn>
         </v-card-text>
-      </v-card>
-    </v-dialog>
-
-    <!-- Zoom Dialog -->
-    <v-dialog
-      v-model="zoomDialog"
-      max-width="1200"
-      transition="dialog-transition"
-    >
-      <v-card rounded="xl" elevation="24">
-        <v-card-title
-          class="pa-4 pa-sm-6 d-flex align-center"
-          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-        >
-          <v-avatar color="white" size="40" class="mr-3 d-none d-sm-flex">
-            <v-icon color="primary" size="24">mdi-image-outline</v-icon>
-          </v-avatar>
-          <div class="flex-grow-1 min-width-0">
-            <h3
-              class="text-body-1 text-sm-h5 font-weight-bold text-white text-truncate"
-            >
-              {{ zoomItem.dormantalname || zoomItem.name || "—" }}
-            </h3>
-            <div class="d-flex align-center mt-1 ga-1 ga-sm-2 flex-wrap">
-              <v-chip color="success" variant="flat" size="small">
-                <v-icon start size="small">mdi-cash</v-icon>
-                {{ Number(zoomItem.price1 || 0).toLocaleString() }} ₭
-              </v-chip>
-              <v-chip
-                color="white"
-                variant="flat"
-                size="small"
-                style="cursor: pointer"
-                @click="callPhone(zoomItem.tel)"
-              >
-                <v-icon start size="small" color="primary">mdi-phone</v-icon>
-                {{ zoomItem.tel }}
-              </v-chip>
-            </div>
-          </div>
-          <v-btn
-            icon
-            @click="zoomDialog = false"
-            size="small"
-            variant="text"
-            color="white"
-            class="ml-2 flex-shrink-0"
-          >
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
-
-        <v-divider />
-
-        <v-carousel
-          v-model="zoomSlide"
-          :height="carouselHeight"
-          hide-delimiters
-          show-arrows
-          cycle
-          interval="4000"
-          class="rounded-xl elevation-8"
-        >
-          <template v-slot:prev="{ props }">
-            <v-btn
-              v-bind="props"
-              :size="smAndDown ? 'small' : 'large'"
-              elevation="4"
-              class="bg-white"
-            >
-              <v-icon :size="smAndDown ? 18 : 32" color="grey-darken-2"
-                >mdi-chevron-left</v-icon
-              >
-            </v-btn>
-          </template>
-          <template v-slot:next="{ props }">
-            <v-btn
-              v-bind="props"
-              :size="smAndDown ? 'small' : 'large'"
-              elevation="4"
-              class="bg-white"
-            >
-              <v-icon :size="smAndDown ? 18 : 32" color="grey-darken-2"
-                >mdi-chevron-right</v-icon
-              >
-            </v-btn>
-          </template>
-
-          <v-carousel-item
-            v-for="(img, i) in zoomItem.image"
-            :key="`zoom-${i}`"
-          >
-            <v-img
-              :src="img.startsWith('http') ? img : img"
-              :height="carouselHeight"
-              contain
-              class="rounded-xl bg-grey-darken-4"
-            >
-              <template v-slot:placeholder>
-                <v-row class="fill-height ma-0" align="center" justify="center">
-                  <v-progress-circular
-                    indeterminate
-                    color="primary"
-                    size="64"
-                    width="6"
-                  />
-                </v-row>
-              </template>
-
-              <div class="d-flex justify-end pa-2 pa-sm-3">
-                <v-chip
-                  color="black"
-                  variant="flat"
-                  :size="smAndDown ? 'small' : 'default'"
-                  class="text-white font-weight-bold opacity-80"
-                >
-                  <v-icon start size="small">mdi-image-multiple</v-icon>
-                  {{ i }} / {{ zoomItem.image?.length || 0 }}
-                </v-chip>
-              </div>
-
-              <div
-                class="position-absolute w-100 d-flex align-center justify-space-between pa-2 pa-sm-3"
-                style="bottom: 0"
-              >
-                <v-btn
-                  icon
-                  size="small"
-                  elevation="2"
-                  class="bg-white"
-                  @click.stop="toggleZoomAutoplay"
-                >
-                  <v-icon size="18" color="grey-darken-2">
-                    {{ isZoomPlaying ? "mdi-pause" : "mdi-play" }}
-                  </v-icon>
-                </v-btn>
-                <div class="d-flex align-center ga-1">
-                  <v-icon
-                    v-for="(_, dotIndex) in zoomItem.image"
-                    :key="dotIndex"
-                    :size="dotIndex === i ? 10 : 7"
-                    :color="dotIndex === i ? 'white' : 'grey-lighten-1'"
-                  >
-                    mdi-circle
-                  </v-icon>
-                </div>
-                <div style="width: 32px" />
-              </div>
-            </v-img>
-          </v-carousel-item>
-        </v-carousel>
-
-        <v-divider />
-
-        <v-card-actions
-          class="pa-4 pa-sm-6 justify-center ga-2 ga-sm-4 flex-wrap"
-        >
-          <v-btn
-            color="primary"
-            :size="$vuetify.display.smAndDown ? 'large' : 'x-large'"
-            @click="callPhone(zoomItem.tel)"
-            prepend-icon="mdi-phone"
-            elevation="2"
-            :block="$vuetify.display.smAndDown"
-            class="px-4 px-sm-8"
-          >
-            ໂທຫາ
-          </v-btn>
-          <v-btn
-            color="success"
-            :size="$vuetify.display.smAndDown ? 'large' : 'x-large'"
-            @click="openWhatsApp(zoomItem)"
-            prepend-icon="mdi-whatsapp"
-            elevation="2"
-            :block="$vuetify.display.smAndDown"
-            class="px-4 px-sm-8"
-          >
-            ຕິດຕໍ່ທາງ WhatsApp
-          </v-btn>
-        </v-card-actions>
       </v-card>
     </v-dialog>
   </v-container>
@@ -604,118 +900,182 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { useDisplay } from "vuetify";
-// ນຳໃຊ້ Composable ທີ່ເຮົາສ້າງໄວ້
 import { useGetChannelById } from "~/composables/useRetrieveByid";
+import { useProductSellStore } from "@/stores/index";
 
 const { smAndDown } = useDisplay();
+const BASE_URL = "https://service.tsheb.la/api";
 
-// ─── Configuration ──────────────────────────────────────────────────────────
-// ປ່ຽນເປັນ URL ຂອງ Server ຖ້າຕ້ອງການ Deploy
-// const BASE_URL = "https://service.tsheb.la/api"; 
-const BASE_URL = "http://localhost:5151/api";
-
-// ─── Setup Composable ───────────────────────────────────────────────────────
-// ດຶງເຄື່ອງມື ແລະ ຂໍ້ມູນອອກມາຈາກ Composable
 const {
   channels,
   topData,
   pagination,
   qr,
-  channelimage,
+  imageadvert,
   video1,
   loadings,
   errors,
-  fetchChannelById
+  fetchChannelById,
 } = useGetChannelById();
 
-// ─── Local State ────────────────────────────────────────────────────────────
+const { currentLang, t, langs } = useLanguage();
+const store = useProductSellStore();
+const route = useRoute();
+
+// ── State ─────────────────────────────────────────────────────────────────────
 const channelStore = ref({
   channelId: null,
   channelName: "",
-  channelimage: [],
+  imageadvert: [],
   video1: "",
   detail: "",
   qr: "",
 });
 
-const route=useRoute();
 const filteredData = ref([]);
 const baseData = ref([]);
 const currentPage = ref(1);
-
 const searchQuery = ref("");
 const provinces = ref([]);
 const districtsForSelectedProvince = ref([]);
 const selectedProvince = ref(null);
 const selectedDistrict = ref(null);
+const cart = ref({});
 
-// UI States
+const galleryDialog = ref(false);
+const galleryItem = ref({ image: [] });
+const gallerySlide = ref(0);
+
+const detailDialog = ref(false);
+const detailItem = ref({ image: [] });
+const detailSlide = ref(0);
+
 const commentDialog = ref(false);
 const telephone = ref("");
 const comment = ref("");
-const zoomDialog = ref(false);
-const zoomItem = ref({});
-const zoomSlide = ref(0);
-const isZoomPlaying = ref(true);
 const isMuted = ref(true);
-// const brandsTrack = ref(null);
 
-// ─── Computed Properties ────────────────────────────────────────────────────
-const carouselHeight = computed(() => (smAndDown.value ? 280 : 550));
+// ── Computed ──────────────────────────────────────────────────────────────────
+const galleryHeight = computed(() => (smAndDown.value ? 300 : 520));
+const detailCarouselHeight = computed(() => (smAndDown.value ? 240 : 380));
 
 const bannerMode = computed(() => {
   if (channelStore.value.video1) return "video";
-  if (channelStore.value.channelimage?.length > 0) return "image";
+  if (channelStore.value.imageadvert?.length > 0) return "image";
   return "none";
 });
 
 const bannerImages = computed(() => {
-  const data = channelStore.value.channelimage;
-  return Array.isArray(data) ? data : (data ? [data] : []);
+  const data = channelStore.value.imageadvert;
+  return Array.isArray(data) ? data : data ? [data] : [];
 });
 
 const bannerVideoSrc = computed(() => {
   const id = extractYoutubeID(channelStore.value.video1);
   if (!id) return "";
-  return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=${isMuted.value ? 1 : 0}&loop=1&playlist=${id}&rel=0`;
+  return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=${
+    isMuted.value ? 1 : 0
+  }&loop=1&playlist=${id}&rel=0`;
 });
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ── Universal field helpers ───────────────────────────────────────────────────
+const getItemName = (item) =>
+  item?.creamname ||
+  item?.dormantalname ||
+  item?.housename ||
+  item?.productname ||
+  item?.name ||
+  "";
+
+const getItemDetail = (item) => item?.detail || item?.moredetail || "";
+const getItemType = (item) => item?.type || item?.types || "";
+
+const getItemPrice1 = (item) => item?.price1 || item?.Price1 || "";
+
+const getItemPrice2 = (item) =>
+  item?.price2 || item?.Price2 || item?.price || "";
+
+const isNumericPrice = (val) => {
+  if (!val) return false;
+  const cleaned = String(val)
+    .replace(/[,.\s]/g, "")
+    .replace(/kip$/i, "");
+  return !isNaN(Number(cleaned)) && Number(cleaned) > 0;
+};
+
+const parsePrice = (val) => {
+  if (!val) return 0;
+  const cleaned = String(val).replace(/[,\s]/g, "").replace(/kip$/i, "");
+  return Number(cleaned) || 0;
+};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function extractYoutubeID(url) {
   if (!url) return "";
-  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|watch\?v=|shorts\/))([\w-]+)/);
+  const match = url.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|watch\?v=|shorts\/))([\w-]+)/
+  );
   return match ? match[1] : "";
 }
 
-const syncFromComposable = () => {
-  console.log("🔄 Syncing UI state...");
-  if (!channels.value) return;
+function hasValidQr(value) {
+  return typeof value === "string" && value.trim().length > 0;
+}
 
+function hasValidPrice(price) {
+  if (price === null || price === undefined) return false;
+  const str = String(price).trim();
+  return str !== "" && str !== "undefined" && !isNaN(Number(str));
+}
+
+const syncFromComposable = () => {
+  if (!channels.value) return;
+  const channelQr = hasValidQr(qr.value) ? qr.value : null;
   const processed = channels.value.map((item) => ({
     ...item,
-    image: Array.isArray(item.image) ? item.image : [item.image || "placeholder.jpg"],
+    image: Array.isArray(item.image)
+      ? item.image
+      : [item.image || "placeholder.jpg"],
+    qr: hasValidQr(item.qr) ? item.qr : channelQr,
   }));
-
   baseData.value = processed;
   filteredData.value = processed;
-  console.log("✅ UI Updated with", processed.length, "items");
 };
 
-// ─── Actions ────────────────────────────────────────────────────────────────
+// ── Dialog helpers ────────────────────────────────────────────────────────────
+function openGallery(item, startIndex = 0) {
+  galleryItem.value = item;
+  gallerySlide.value = startIndex;
+  galleryDialog.value = true;
+}
+function openGalleryFromDetail(index) {
+  galleryItem.value = detailItem.value;
+  gallerySlide.value = index;
+  galleryDialog.value = true;
+}
+function openDetail(item) {
+  detailItem.value = item;
+  detailSlide.value = 0;
+  detailDialog.value = true;
+}
+function openCommentDialog() {
+  commentDialog.value = true;
+}
+
+// ── Pagination ────────────────────────────────────────────────────────────────
 const onPageChange = async (page) => {
   if (!channelStore.value.channelId) return;
   await fetchChannelById(channelStore.value.channelId, page - 1);
   syncFromComposable();
 };
 
-const queryByLocation = async (districtId) => {
+// ── Filtering ─────────────────────────────────────────────────────────────────
+const queryByLocation = (districtId) => {
   if (!selectedProvince.value || !districtId) return;
-  
-  // ດຶງຂໍ້ມູນໃໝ່ ຫຼື ກັ່ນຕອງຈາກຂໍ້ມູນທີ່ມີ
-  const filtered = baseData.value.filter(
-    (item) => String(item.districtId || item.districtid || "") === String(districtId)
+  filteredData.value = baseData.value.filter(
+    (item) =>
+      String(item.districtId || item.districtid || "") === String(districtId)
   );
-  filteredData.value = filtered;
 };
 
 const resetFilter = () => {
@@ -725,36 +1085,96 @@ const resetFilter = () => {
   filteredData.value = baseData.value;
 };
 
-// ─── Lifecycle ──────────────────────────────────────────────────────────────
-onMounted(async () => {
-  console.log("🚀 Page Initialization...");
+// ── WhatsApp / Phone ──────────────────────────────────────────────────────────
+const callPhone = (tel) => {
+  if (tel) window.location.href = `tel:${tel}`;
+};
 
-  console.log("📡 Fetching data for channel:", channelStore.value.channelId);
-  // 1. ດຶງຂໍ້ມູນເບື້ອງຕົ້ນຈາກ History State
+const openWhatsApp = (item) => {
+  let tel = (item.tel || "").replace(/\D/g, "");
+  if (tel.startsWith("20") && tel.length === 10) tel = "856" + tel;
+  if (tel) window.open(`https://wa.me/${tel}`, "_blank");
+  else console.error("No phone number available for this item");
+};
+
+// ── Cart ──────────────────────────────────────────────────────────────────────
+const addToCart = (product) => {
+  const selectedPrice =
+    product.price2 !== 0 &&
+    product.price2 !== null &&
+    product.price2 !== undefined
+      ? product.price2
+      : product.price1;
+
+  const cartItem = {
+    ...product,
+    quantity: 1,
+    unit: "ອັນ",
+    price: selectedPrice,
+    qr: qr.value,
+  };
+  store.addToCart(cartItem);
+  cart.value[product.id || product.itemid] = 1;
+};
+
+const incrementQty = (productId) => {
+  const cartItem = store.cartItems?.find((item) => item.id === productId);
+  const product = baseData.value?.find((p) => p.id === productId);
+  if (!product) return;
+  const newQty = (cartItem ? cartItem.quantity : 0) + 1;
+  const price =
+    product.price2 !== 0 && product.price2 !== null
+      ? product.price2
+      : product.price1;
+  store.updateCart({
+    ...(cartItem || product),
+    quantity: newQty,
+    price,
+    id: productId,
+  });
+  cart.value[productId] = newQty;
+};
+
+const decrementQty = (productId) => {
+  const cartItem = store.cartItems?.find((item) => item.id === productId);
+  if (!cartItem) return;
+  const newQty = cartItem.quantity - 1;
+  if (newQty > 0) {
+    const product = baseData.value?.find((p) => p.id === productId);
+    const price =
+      product && product.price2 !== 0 && product.price2 !== null
+        ? product.price2
+        : product?.price1;
+    store.updateCart({ ...cartItem, quantity: newQty, price });
+    cart.value[productId] = newQty;
+  } else {
+    store.removeFromCart(productId);
+    delete cart.value[productId];
+  }
+};
+
+// ── Comment ───────────────────────────────────────────────────────────────────
+const submitComment = () => {
+  commentDialog.value = false;
+  telephone.value = "";
+  comment.value = "";
+};
+
+// ── Lifecycle ─────────────────────────────────────────────────────────────────
+onMounted(async () => {
   const routeState = history.state?.store;
   if (routeState?.channelId) {
     channelStore.value = { ...channelStore.value, ...routeState };
   }
 
-  // 2. ເອີ້ນໃຊ້ Composable ເພື່ອດຶງຂໍ້ມູນຈາກ API
-  // if (!channelStore.value.channelId) {
-    console.log("📡 Fetching data for channel00000:", route.query.channelId);
-    await fetchChannelById(route.query.channelId, 0);
-    console.log("📡  data for channel000007777:", channels.value);
-    
-    // ອັບເດດຂໍ້ມູນ Banner/QR ຖ້າ API ມີຂໍ້ມູນໃໝ່ກວ່າ
-    // if (video1.value) channelStore.value.video1 = video1.value;
-    // if (qr.value) channelStore.value.qr = qr.value;
-    // if (channelimage.value) {
-    //   channelStore.value.channelimage = Array.isArray(channelimage.value) 
-    //     ? channelimage.value 
-    //     : [channelimage.value];
-    // }
-    
-    // syncFromComposable();
-  // }
+  await fetchChannelById(route.query.channelId, 0);
 
-  // 3. ໂຫຼດລາຍຊື່ແຂວງ
+  if (video1?.value) channelStore.value.video1 = video1.value;
+  if (imageadvert?.value) channelStore.value.imageadvert = imageadvert.value;
+  if (qr?.value) channelStore.value.qr = qr.value;
+
+  syncFromComposable();
+
   try {
     const res = await fetch(`${BASE_URL}/province/selectall`);
     const pData = await res.json();
@@ -766,21 +1186,8 @@ onMounted(async () => {
     console.error("❌ Province fetch error:", e);
   }
 });
-const openZoom=(item,index)=>{
-  zoomItem.value=item;
-  zoomSlide.value=index;
-  zoomDialog.value=true;
-  console.log("🔍 Zooming into item:", item);
-  
-}
-const toggleZoomAutoplay=()=>{
-  isZoomPlaying.value=!isZoomPlaying.value;
-}
-const openCommentDialog=()=>{
-  commentDialog.value=true;
-}
 
-// ─── Watchers ───────────────────────────────────────────────────────────────
+// ── Watchers ──────────────────────────────────────────────────────────────────
 watch(selectedProvince, async (id) => {
   selectedDistrict.value = null;
   districtsForSelectedProvince.value = [];
@@ -788,9 +1195,10 @@ watch(selectedProvince, async (id) => {
     filteredData.value = baseData.value;
     return;
   }
-
   try {
-    const res = await fetch(`${BASE_URL}/district/selectByProvinceId?provinceId=${id}`);
+    const res = await fetch(
+      `${BASE_URL}/district/selectByProvinceId?provinceId=${id}`
+    );
     const dData = await res.json();
     districtsForSelectedProvince.value = (dData.data || dData).map((item) => ({
       title: item.district,
@@ -813,66 +1221,18 @@ watch(searchQuery, (q) => {
   const lower = q.toLowerCase().trim();
   filteredData.value = baseData.value.filter(
     (item) =>
-      (item.dormantalname || item.name || "").toLowerCase().includes(lower) ||
+      getItemName(item).toLowerCase().includes(lower) ||
       (item.tel && item.tel.includes(lower))
   );
 });
 
-// Debug logs
-watch(errors, (err) => { if (err) console.error("🚨 Composable Error:", err); });
-
-//slide auto
-const brandsTrack = ref(null);
-const autoSlideInterval = ref(null);
-
-const scrollBrands = (direction) => {
-  const container = brandsTrack.value;
-  if (!container) return;
-
-  const cardWidth = 320; // Adjust to your actual card width + gap
-  const currentScroll = container.scrollLeft;
-  const maxScroll = container.scrollWidth - container.clientWidth;
-
-  if (direction === 1) {
-    // If we are at the very end, jump to start instantly then slide
-    if (currentScroll >= maxScroll - 5) {
-      container.scrollTo({ left: 0, behavior: 'instant' });
-      // Small timeout to allow the 'instant' jump to settle before sliding
-      setTimeout(() => {
-        container.scrollBy({ left: cardWidth, behavior: 'smooth' });
-      }, 10);
-    } else {
-      container.scrollBy({ left: cardWidth, behavior: 'smooth' });
-    }
-  } else {
-    // Left direction logic
-    if (currentScroll <= 5) {
-      container.scrollTo({ left: maxScroll, behavior: 'instant' });
-      setTimeout(() => {
-        container.scrollBy({ left: -cardWidth, behavior: 'smooth' });
-      }, 10);
-    } else {
-      container.scrollBy({ left: -cardWidth, behavior: 'smooth' });
-    }
-  }
-};
-
-const startAutoSlide = () => {
-  autoSlideInterval.value = setInterval(() => {
-    scrollBrands(1);
-  }, 3000); // Faster slide for a smoother feel
-};
-
-const stopAutoSlide = () => {
-  if (autoSlideInterval.value) clearInterval(autoSlideInterval.value);
-};
-
-onMounted(() => startAutoSlide());
-onUnmounted(() => stopAutoSlide());
+watch(errors, (err) => {
+  if (err) console.error("🚨 Composable Error:", err);
+});
 </script>
 
-
 <style scoped>
+/* ── Banner ─────────────────────────────────────────────────────────── */
 :deep(.v-carousel__controls .v-btn),
 :deep(.v-window__controls .v-btn) {
   background-color: rgba(0, 0, 0, 0.1) !important;
@@ -887,6 +1247,8 @@ onUnmounted(() => stopAutoSlide());
 :deep(.v-window__controls .v-btn:hover) {
   background-color: rgba(0, 0, 0, 0.6) !important;
 }
+
+/* ── Cards ───────────────────────────────────────────────────────────── */
 .transition-swing {
   transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
@@ -904,70 +1266,54 @@ onUnmounted(() => stopAutoSlide());
   transform: translateY(-8px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
 }
+.border-thin {
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
 .blur-btn {
   background: rgba(255, 255, 255, 0.2) !important;
   backdrop-filter: blur(10px);
   color: white !important;
 }
-.border-thin {
-  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+
+/* ── Gallery ─────────────────────────────────────────────────────────── */
+.gallery-carousel :deep(.v-window__controls) {
+  padding: 0 8px;
 }
+.gallery-nav-btn {
+  background: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3) !important;
+  transition: transform 0.15s, background 0.15s;
+}
+.gallery-nav-btn:hover {
+  background: white !important;
+  transform: scale(1.1);
+}
+.thumbnail-strip {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.thumbnail-strip::-webkit-scrollbar {
+  display: none;
+}
+.thumbnail-wrapper {
+  flex-shrink: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2.5px solid transparent;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.thumbnail-wrapper:hover {
+  transform: scale(1.06);
+}
+.thumbnail-active {
+  border-color: #1976d2 !important;
+  transform: scale(1.1) !important;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .text-h3 {
     font-size: 1.75rem !important;
   }
-}
-.d-flex[style*="overflow-x"]::-webkit-scrollbar {
-  display: none;
-}
-</style>
-<style scoped>
-.slider-wrapper {
-  overflow: hidden; /* Keeps buttons from causing horizontal page scroll */
-  padding: 0 10px;
-}
-
-.brands-scroll-container {
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  scrollbar-width: none;
-  display: flex;
-  padding-bottom: 20px;
-}
-
-.brands-scroll-container::-webkit-scrollbar {
-  display: none;
-}
-
-/* Glassmorphism Navigation */
-.nav-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 5;
-  background: rgba(255, 255, 255, 0.4) !important;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.left-btn {
-  left: 20px;
-}
-
-.right-btn {
-  right: 20px;
-}
-
-/* Hover Effect */
-.nav-btn:hover {
-  background: rgba(255, 255, 255, 0.9) !important;
-  scale: 1.05;
-}
-
-/* Ensure cards don't shrink */
-:deep(.v-card) {
-  flex: 0 0 auto;
-  width: 300px; /* Adjust this to match your design */
 }
 </style>

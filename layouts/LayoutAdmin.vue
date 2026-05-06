@@ -1187,7 +1187,7 @@ const logout = () => {
   localStorage.removeItem("user");
 
   setTimeout(() => {
-    navigateTo("/homepage");
+    navigateTo("/");
   }, 50);
 };
 import { useDisplay } from "vuetify";

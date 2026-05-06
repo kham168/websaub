@@ -13,7 +13,7 @@ export default defineNuxtPlugin(() => {
       const isAdminRoute = to.path.startsWith("/admin");
 
       if (!token && isAdminRoute) {
-        return navigateTo("/homepage"); // prevent access to admin
+        return navigateTo("/"); // prevent access to admin
       }
 
       if (token && !isAdminRoute) {

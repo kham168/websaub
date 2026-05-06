@@ -37,7 +37,7 @@ export default defineNuxtRouteMiddleware((to) => {
 
   // User logged in
   if (token) {
-    if (!isAdminRoute && (to.path === "/" || to.path === "/homepage")) {
+    if (!isAdminRoute && (to.path === "/" )) {
       return navigateTo("/admin");
     }
   }

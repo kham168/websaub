@@ -1,173 +1,154 @@
 <template>
   <v-card class="whatsapp-dialog">
-    <v-card-title class="text-h5 d-flex align-center pa-6 bg-success">
-      <v-icon color="white" size="40" class="mr-3">mdi-whatsapp</v-icon>
-      <span class="text-white">Send Order to WhatsApp</span>
-      <v-spacer></v-spacer>
+    <v-card-title class="text-h6 d-flex align-center pa-4 bg-success">
+      <v-icon color="white" size="28" class="mr-2 flex-shrink-0">mdi-whatsapp</v-icon>
+      <span class="text-white text-truncate">{{ t("whatsapp_title") }}</span>
+      <v-spacer />
       <v-btn icon size="small" variant="text" @click="$emit('close')">
         <v-icon color="white">mdi-close</v-icon>
       </v-btn>
     </v-card-title>
-    <v-divider></v-divider>
-    <v-card-text class="px-4 py-6" style="max-height: 600px">
-      <div class="text-body-1 mb-4 text-center">
-        Review your order details before sending to WhatsApp.
+
+    <v-divider />
+
+    <v-card-text class="px-3 py-4" style="max-height: 70vh; overflow-y: auto;">
+      <div class="text-body-2 mb-3 text-center text-grey-darken-1">
+        {{ t("review_order") }}
       </div>
 
       <!-- Customer Information -->
-      <v-sheet class="pa-4 mb-4 bg-blue-grey-lighten-5 rounded" elevation="1">
-        <div class="text-subtitle-2 mb-3 font-weight-bold d-flex align-center">
-          <v-icon color="primary" class="mr-2">mdi-account-circle</v-icon>
-          Customer Information
+      <v-sheet class="pa-3 mb-3 bg-blue-grey-lighten-5 rounded" elevation="1">
+        <div class="text-caption mb-2 font-weight-bold d-flex align-center">
+          <v-icon color="primary" size="16" class="mr-1">mdi-account-circle</v-icon>
+          {{ t("customer_info") }}
         </div>
         <v-row dense>
-          <v-col cols="12" sm="4">
-            <div class="text-caption text-grey-darken-2">Name of Customer</div>
-            <div class="text-body-2 font-weight-medium">
-              {{ checkoutData.custName }}
+          <v-col cols="6">
+            <div class="text-caption text-grey-darken-2">{{ t("cust_name_label") }}</div>
+            <div class="text-caption font-weight-medium text-truncate">
+              {{ checkoutData.custName || "-" }}
             </div>
           </v-col>
-          <v-col cols="12" sm="4">
-            <div class="text-caption text-grey-darken-2">Phone Number</div>
-            <div class="text-body-2 font-weight-medium">
-              {{ checkoutData.phoneNumber }}
+          <v-col cols="6">
+            <div class="text-caption text-grey-darken-2">{{ t("phone_number_label") }}</div>
+            <div class="text-caption font-weight-medium text-truncate">
+              {{ checkoutData.phoneNumber || "-" }}
             </div>
           </v-col>
-          <v-col cols="12" sm="4">
-            <div class="text-caption text-grey-darken-2">Shipping Company</div>
-            <div class="text-body-2 font-weight-medium">
-              {{ checkoutData.shippingCompany }}
+          <v-col cols="6">
+            <div class="text-caption text-grey-darken-2">{{ t("shipping_company_label") }}</div>
+            <div class="text-caption font-weight-medium text-truncate">
+              {{ checkoutData.shippingCompany || "-" }}
             </div>
           </v-col>
-          <v-col cols="12" sm="4">
-            <div class="text-caption text-grey-darken-2">Delivery Address</div>
-            <div class="text-body-2 font-weight-medium">
-              {{ checkoutData.address }}
+          <v-col cols="6">
+            <div class="text-caption text-grey-darken-2">{{ t("delivery_address_label") }}</div>
+            <div class="text-caption font-weight-medium text-truncate">
+              {{ checkoutData.address || "-" }}
             </div>
           </v-col>
           <v-col v-if="checkoutData.notes" cols="12">
-            <v-divider class="my-2"></v-divider>
-            <div class="text-caption text-grey-darken-2">Notes</div>
-            <div class="text-body-2 font-weight-medium">
+            <v-divider class="my-1" />
+            <div class="text-caption text-grey-darken-2">{{ t("notes_label") }}</div>
+            <div class="text-caption font-weight-medium text-truncate">
               {{ checkoutData.notes }}
             </div>
           </v-col>
         </v-row>
       </v-sheet>
-      <!-- <div>
-            <v-img :src="store.cartItems[0].qrimage" class="" contain width="150" height="150"></v-img>
-          </div> -->
-      <div>
-        <!-- Image that triggers the popup -->
 
-        <!-- {{ qr }} -->
+      <!-- QR Code -->
+      <div class="mb-3">
         <v-img
-          :src="store?.cartItems[0]?.qr??'/favicon.ico'"
-          class="cursor-pointer"
+          :src="store?.cartItems[0]?.qr ?? '/favicon.ico'"
+          class="cursor-pointer rounded"
           contain
-          width="150"
-          height="150"
+          width="100"
+          height="100"
           @click="dialog = true"
-        ></v-img>
-        <!-- <v-img
-          v-if="props.qr"
-          :src="props.qr"
-          class="cursor-pointer"
-          contain
-          width="150"
-          height="150"
-          @click="dialog = true"
-        /> -->
-
-        <!-- Popup dialog -->
-        <v-dialog v-model="dialog" max-width="350">
+        />
+        <v-dialog v-model="dialog" max-width="320">
           <v-card class="pa-0" elevation="2">
-            <!-- <v-card-title class="text-h6">QR Code</v-card-title> -->
-            <!-- <v-card-text class="text-center"> -->
-            <v-img :src="store.cartItems[0].qr" contain></v-img>
-            <!-- </v-card-text> -->
-            <!-- <v-card-actions class="justify-end">
-                  <v-btn text @click="dialog = false">Close</v-btn>
-                </v-card-actions> -->
+            <v-img :src="store.cartItems[0].qr" contain />
           </v-card>
         </v-dialog>
       </div>
+
       <!-- Order Details (Grouped) -->
-      <div class="mb-4">
-        <div v-for="(items, tel) in cartGroup" :key="tel" class="mb-8">
-          <v-sheet class="pa-4 bg-grey-lighten-4 rounded" elevation="2">
-            <div
-              class="text-subtitle-1 mb-3 font-weight-bold d-flex align-center justify-space-between bg-primary pa-3 rounded"
-            >
-              <span class="text-white">
-                <v-icon color="white" class="mr-2">mdi-receipt</v-icon>
-                Your Order — {{ tel }}
-              </span>
-              <span class="text-white">
-                <v-icon color="white" class="mr-1">mdi-package-variant</v-icon>
-                {{ items.length }} items
-              </span>
+      <div class="mb-3">
+        <div v-for="(items, tel) in cartGroup" :key="tel" class="mb-4">
+          <v-sheet class="pa-3 bg-grey-lighten-4 rounded" elevation="2">
+
+            <!-- Group header -->
+            <div class="d-flex align-center justify-space-between bg-primary pa-2 rounded mb-2">
+              <div class="d-flex align-center min-width-0">
+                <v-icon color="white" size="16" class="mr-1 flex-shrink-0">mdi-receipt</v-icon>
+                <span class="text-white text-caption font-weight-bold text-truncate">
+                  {{ t("your_order") }} — {{ tel }}
+                </span>
+              </div>
+              <div class="d-flex align-center flex-shrink-0 ml-2">
+                <v-icon color="white" size="14" class="mr-1">mdi-package-variant</v-icon>
+                <span class="text-white text-caption">{{ items.length }} {{ t("items") }}</span>
+              </div>
             </div>
-            <v-divider class="mb-3"></v-divider>
+
+            <v-divider class="mb-2" />
 
             <!-- Items -->
             <v-card
               v-for="(item, index) in items"
               :key="item.id + index"
-              class="mb-3 product-preview-card"
+              class="mb-2 product-preview-card"
               elevation="1"
             >
-              <div class="d-flex pa-3">
+              <div class="d-flex pa-2 ga-2">
+                <!-- Image -->
                 <v-img
                   :src="item.image?.[0] || ''"
-                  width="70"
-                  height="120"
+                  width="60"
+                  height="80"
                   contain
                   class="rounded flex-shrink-0"
                 />
-                <div class="ml-3 flex-grow-1">
-                  <div class="text-subtitle-2 font-weight-bold mb-1">
+
+                <!-- Info -->
+                <div class="flex-grow-1 min-width-0">
+                  <!-- Name -->
+                  <div class="text-caption font-weight-bold mb-1 text-truncate">
                     {{ item.creamname || item.name }}
                   </div>
+
+                  <!-- Detail with 2-line clamp -->
                   <div
                     v-if="item.detail"
-                    class="text-caption text-grey-darken-1 mb-2"
+                    class="text-caption text-grey-darken-1 mb-1"
+                    style="overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;"
                   >
                     {{ item.detail }}
                   </div>
-                  <div
-                    v-if="item.Price2 != 0 || item.Price2 != null"
-                    class="d-flex justify-space-between"
-                  >
-                    <span class="text-body-2">
-                      Full-Price:
-                      <del class="text-grey">{{
-                        formatPrice(item.Price1)
-                      }}</del>
-                    </span>
+
+                  <!-- price1 strikethrough -->
+                  <div v-if="toNum(item.price1) > 0" class="text-caption text-grey-darken-1">
+                    <del>{{ formatPrice(item.price1) }}</del>
                   </div>
-                  <div class="d-flex justify-space-between">
-                    <span class="text-body-2">
-                      Price:
-                      <strong>{{ formatPrice(item.price) }}</strong>
+
+                  <!-- Selling price + qty row -->
+                  <div class="d-flex align-center justify-space-between mt-1 flex-wrap ga-1">
+                    <span class="text-caption">
+                      {{ t("price") }}:
+                      <strong class="text-success">{{ formatPrice(getItemPrice(item)) }}</strong>
                     </span>
-                    <v-chip size="small" color="primary" variant="flat">
-                      Qty: {{ item.quantity }} {{ item.unit || "ອັນ" }}
+                    <v-chip size="x-small" color="primary" variant="flat">
+                      x{{ item.quantity }} {{ item.unit || "ອັນ" }}
                     </v-chip>
                   </div>
+
+                  <!-- Subtotal -->
                   <div class="text-right mt-1">
-                    <span class="text-caption text-grey-darken-2"
-                      >Subtotal:</span
-                    >
-                    <span
-                      class="text-body-2 font-weight-bold text-primary ml-1"
-                    >
-                      {{
-                        formatPrice(
-                          (item.Price3 || item.price || item.Price1) *
-                            item.quantity
-                        )
-                      }}
+                    <span class="text-caption text-grey-darken-2">{{ t("subtotal") }}: </span>
+                    <span class="text-caption font-weight-bold text-primary">
+                      {{ formatPrice(getItemPrice(item) * (item.quantity || 1)) }}
                     </span>
                   </div>
                 </div>
@@ -175,79 +156,89 @@
             </v-card>
 
             <!-- Upload Slip -->
-            <v-divider class="my-4"></v-divider>
-            <div class="mb-2 text-subtitle-2 font-weight-bold">
-              <v-icon class="mr-2" color="success">mdi-upload</v-icon>
-              Upload Payment Slip ({{ tel }})
+            <v-divider class="my-3" />
+            <div class="mb-1 text-caption font-weight-bold">
+              <v-icon size="16" class="mr-1" color="success">mdi-upload</v-icon>
+              {{ t("upload_slip") }} ({{ tel }})
             </div>
             <v-file-input
               v-model="slipUploads[tel]"
               accept="image/*"
-              placeholder="Upload slip image"
+              :placeholder="t('upload_slip_placeholder')"
               prepend-icon="mdi-image"
               show-size
+              density="compact"
+              hide-details
+              class="mb-2"
               @change="previewSlip(tel)"
-            ></v-file-input>
+            />
             <v-img
               v-if="slipPreview[tel]"
               :src="slipPreview[tel]"
-              height="200"
-              class="rounded mt-3"
+              height="160"
+              class="rounded mt-2"
               cover
-            ></v-img>
+            />
             <v-btn
               v-if="slipPreview[tel]"
               color="red"
               variant="text"
-              class="mt-2"
+              size="small"
+              class="mt-1 px-0"
               @click="removeSlip(tel)"
             >
-              <v-icon class="mr-2">mdi-trash-can</v-icon>
-              Remove Slip
+              <v-icon size="16" class="mr-1">mdi-trash-can</v-icon>
+              {{ t("remove_slip") }}
             </v-btn>
           </v-sheet>
         </div>
       </div>
 
-      <!-- Grand Total -->
-      <v-sheet class="pa-4 bg-deep-purple-lighten-5 rounded" elevation="3">
+      <!-- Grand Total — computed from cartGroup directly so it's always correct -->
+      <v-sheet class="pa-3 bg-deep-purple-lighten-5 rounded" elevation="3">
         <div class="d-flex justify-space-between align-center">
           <div>
-            <div class="text-h6 font-weight-bold">Grand Total</div>
+            <div class="text-body-2 font-weight-bold">{{ t("grand_total") }}</div>
             <div class="text-caption text-grey-darken-1">
-              {{ cartCount || 0 }} total items
+              {{ totalCartCount }} {{ t("total_items") }}
             </div>
           </div>
-          <span class="text-h5 font-weight-bold text-deep-purple">
-            {{ formatPrice(totalPrice || 0) }}
+          <span class="text-h6 font-weight-bold text-deep-purple">
+            {{ formatPrice(computedTotal) }}
           </span>
         </div>
       </v-sheet>
     </v-card-text>
-    <v-divider></v-divider>
-    <v-card-actions class="pa-6">
-      <v-row dense>
-        <v-col cols="12" sm="6">
+
+    <v-divider />
+
+    <v-card-actions class="pa-3">
+      <v-row dense no-gutters>
+        <v-col cols="6" class="pr-1">
           <v-btn
             color="grey-darken-1"
             variant="outlined"
             block
-            size="x-large"
+            size="large"
             prepend-icon="mdi-close-circle"
+            class="text-none"
             @click="$emit('close')"
-            >Close</v-btn
           >
+            {{ t("close") }}
+          </v-btn>
         </v-col>
-        <v-col cols="12" sm="6">
+        <v-col cols="6" class="pl-1">
           <v-btn
             color="success"
             variant="flat"
             block
-            size="x-large"
+            size="large"
             prepend-icon="mdi-whatsapp"
+            class="text-none"
             @click="sendToWhatsApp"
-            >Send to WhatsApp</v-btn
           >
+            {{ t("send_whatsapp") }}
+          </v-btn>
         </v-col>
       </v-row>
     </v-card-actions>
@@ -257,129 +248,148 @@
 <script setup>
 import Swal from "sweetalert2";
 import { ref, computed } from "vue";
+
 const { insertOrder, orderID } = useCustomerOrder();
 const store = useProductSellStore();
+const { t } = useLanguage();
 
-// Props
+// ── Props ─────────────────────────────────────────────────────────────────────
 const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-  checkoutData: {
-    type: Object,
-    required: true,
-  },
-  cartGroup: {
-    type: Object,
-    required: true,
-  },
-  totalItems: {
-    type: Number,
-    default: 0,
-  },
-  totalPrice: {
-    type: Number,
-    default: 0,
-  },
-  qr: {
-    type: String,
-    default: "",
-  },
-  cartCount: {
-    type: Number,
-    default: 0,
-  },
+  modelValue:   { type: Boolean, default: false },
+  checkoutData: { type: Object,  required: true },
+  cartGroup:    { type: Object,  required: true },
+  totalItems:   { type: Number,  default: 0 },
+  totalPrice:   { type: Number,  default: 0 },
+  qr:           { type: String,  default: "" },
+  cartCount:    { type: Number,  default: 0 },
 });
 
-// Emits
 const emit = defineEmits(["update:modelValue", "send", "close"]);
 
-// Local state
+// ── Local state ───────────────────────────────────────────────────────────────
+const dialog     = ref(false);
 const slipUploads = ref({});
 const slipPreview = ref({});
 
-// Computed
 const isOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit("update:modelValue", value),
 });
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+// Strip non-numeric chars: "40000kip" → 40000
+const toNum = (val) => {
+  if (val === null || val === undefined || val === "") return 0;
+  const cleaned = String(val).replace(/[^0-9.]/g, "");
+  const n = Number(cleaned);
+  return isNaN(n) ? 0 : n;
+};
+
+// Format with commas + KIP
+const formatPrice = (val) => {
+  const n = toNum(val);
+  if (n === 0) return "0 KIP";
+  return n.toLocaleString() + " KIP";
+};
+
+// Price priority: price3 → price2 → price → price1
+const getItemPrice = (item) => {
+  if (toNum(item.price3) > 0) return toNum(item.price3);
+  if (toNum(item.price2) > 0) return toNum(item.price2);
+  if (toNum(item.price)  > 0) return toNum(item.price);
+  if (toNum(item.price1) > 0) return toNum(item.price1);
+  return 0;
+};
+
+// ── Computed totals from cartGroup directly (never relies on store.totalPrice) ─
+const computedTotal = computed(() => {
+  let total = 0;
+  for (const items of Object.values(props.cartGroup)) {
+    for (const item of items) {
+      total += getItemPrice(item) * (item.quantity || 1);
+    }
+  }
+  return total;
+});
+
+const totalCartCount = computed(() => {
+  let count = 0;
+  for (const items of Object.values(props.cartGroup)) {
+    for (const item of items) {
+      count += item.quantity || 1;
+    }
+  }
+  return count;
+});
+
+// ── Slip helpers ──────────────────────────────────────────────────────────────
 const previewSlip = (tel) => {
   const file = slipUploads.value[tel];
-  if (!file) {
-    slipPreview.value[tel] = null;
-    return;
-  }
-  slipPreview.value[tel] = URL.createObjectURL(file);
+  slipPreview.value[tel] = file ? URL.createObjectURL(file) : null;
 };
 
 const removeSlip = (tel) => {
   slipUploads.value[tel] = null;
   slipPreview.value[tel] = null;
 };
-const formatCartForWhatsAppGroup = (tel, items, orderID) => {
-  let text = `Your Order — ${orderID}\n`;
+
+// ── WhatsApp message builder ──────────────────────────────────────────────────
+const formatCartForWhatsAppGroup = (tel, items, id) => {
+  let text = `${t("your_order")} — ${id}\n`;
 
   items.forEach((item) => {
-    // image.value = item.image?.[0];
     text += `\n${item.creamname || item.name}\n`;
     if (item.detail) text += `${item.detail}\n`;
-    text += `Qty: ${item.quantity} ${item.unit || "ອັນ"}\n`;
+    text += `${t("qty")}: ${item.quantity} ${item.unit || "ອັນ"}\n`;
 
-    const price = item.Price3 || item.price || item.Price1;
-    const subtotal = price * item.quantity;
+    if (toNum(item.price1) > 0) {
+      text += `${t("full_price")}: ${formatPrice(item.price1)}\n`;
+    }
 
-    text += `Price: ${price}, Subtotal: ${subtotal}\n`;
+    const price    = getItemPrice(item);
+    const subtotal = price * (item.quantity || 1);
+    text += `${t("price")}: ${formatPrice(price)}, ${t("subtotal")}: ${formatPrice(subtotal)}\n`;
   });
 
-  if (slipUploads.value[tel]) {
-    text += `\nPayment Slip uploaded: Yes\n`;
-  } else {
-    text += `\nPayment Slip uploaded: No\n`;
-  }
+  text += slipUploads.value[tel]
+    ? `\n${t("slip_yes")}\n`
+    : `\n${t("slip_no")}\n`;
 
-  // -----------------------------------
-  // ✔ ADD CLICKABLE LINK FOR WHATSAPP
-  // -----------------------------------
-  const orderLink = `https://yourdomain.com/order?orderID=${orderID}`;
-  text += `\nView Order Details: ${orderLink}\n`;
+  text += `\n${t("view_order")}: https://yourdomain.com/order?orderID=${id}\n`;
 
   return encodeURIComponent(text);
 };
 
+// ── Send flow ─────────────────────────────────────────────────────────────────
 const sendToWhatsApp = async () => {
-  let response;
-
-  const channel=store.cartItems[0].channel;
+  const channel = store.cartItems[0].channel;
 
   try {
     const firstSlip = Object.values(slipUploads.value).find(
       (slip) => slip !== null && slip !== undefined
     );
-    const slipPayload = firstSlip ? { file: firstSlip } : null;
 
-    response = await insertOrder(
+    const response = await insertOrder(
       props.checkoutData,
       props.cartGroup,
-      slipPayload,
+      firstSlip ? { file: firstSlip } : null,
       channel
     );
 
     if (!response || response.success !== true) {
       Swal.fire({
         icon: "error",
-        title: "Order Failed",
-        text: response?.message || "Failed to save order. Please try again.",
+        title: t("order_failed"),
+        text: response?.message || t("order_failed"),
       });
       return;
     }
 
     await Swal.fire({
       icon: "success",
-      title: "Order Created Successfully!",
-      text: `Order ID: ${orderID.value}`,
-      timer: 200,
+      title: t("order_success"),
+      text: `${t("order_id")}: ${orderID.value}`,
+      timer: 2000,
       showConfirmButton: false,
     });
 
@@ -388,42 +398,39 @@ const sendToWhatsApp = async () => {
         const message = formatCartForWhatsAppGroup(tel, items, orderID.value);
         window.open(`https://wa.me/856${tel}?text=${message}`, "_blank");
       }
-    } catch (whatsappError) {}
+    } catch (whatsappError) {
+      console.error("WhatsApp open error:", whatsappError);
+    }
 
     try {
       store.clearCart();
-    } catch (clearError) {}
+    } catch (clearError) {
+      console.error("Clear cart error:", clearError);
+    }
 
     slipUploads.value = {};
     slipPreview.value = {};
 
     emit("send");
-
     close();
   } catch (error) {
     Swal.fire({
       icon: "error",
-      title: "Unexpected Error",
-      text: `${
-        error?.message || "An error occurred"
-      }. The order may have been saved.`,
-      confirmButtonText: "Close Dialog",
-    }).then(() => {
-      close();
-    });
+      title: t("unexpected_error"),
+      text: `${error?.message || t("unexpected_error")}. The order may have been saved.`,
+      confirmButtonText: t("close_dialog"),
+    }).then(() => close());
   }
 };
 
+// ── Close ─────────────────────────────────────────────────────────────────────
 const close = () => {
-  console.log("🔵 Closing dialog");
   try {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
-
     emit("close");
     emit("update:modelValue", false);
-    console.log("✅ Dialog closed successfully");
   } catch (closeError) {
     console.error("❌ Error closing dialog:", closeError);
   }
@@ -432,21 +439,17 @@ const close = () => {
 
 <style scoped>
 .whatsapp-dialog {
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
 }
-
 .product-preview-card {
   transition: all 0.2s ease;
   border-left: 3px solid transparent;
 }
-
 .product-preview-card:hover {
   border-left-color: #25d366;
 }
-@media (max-width: 600px) {
-  .v-card-text {
-    max-height: 500px !important;
-  }
+.min-width-0 {
+  min-width: 0;
 }
 </style>

@@ -99,23 +99,17 @@ const props = defineProps({
 
 const router = useRouter();
 
+
+// const selectItem = (item) => {
+//   window.scrollTo({ top: 0, behavior: "smooth" });
+//   // 👇 navigate using item.id as a query param
+//   router.push({ path: "/channel", query: { channelId: item.channel }} );
 const selectItem = (item) => {
   window.scrollTo({ top: 0, behavior: "smooth" });
-  const route = getRoute(item);
-  if (route) router.push(route);
+  router.push({
+    path: "/retrievepage",
+    query: { channelId: item.channel }, // "d45", "t19", "l51"
+  });
 };
-
-const getRoute = (item) => {
-  const channelRoutes = {
-    1: "/muag_cream/home_muagcreams",
-    2: "/hoob_xauj/home_hoobXauj",
-    3: "/tsev_xauj/home_tsevXauj",
-    4: "/muag_alaij_khoTsheb/home_alaij",
-    5: "/muag_av/home_muagav",
-    6: "/muag_tshuaj/home_muagtshuaj",
-    7: "/taxi/home_taxi",
-    8: "/muas/home_muas",
-  };
-  return channelRoutes[item.channel] || null;
-};
+// };
 </script>
