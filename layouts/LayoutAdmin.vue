@@ -768,6 +768,11 @@
             @save="saveUserFromChild"
           />
         </div>
+        <!-- ======================Function AddCategory==================== -->
+        <div v-if="activeTab === 'category'">
+          <!-- Header Section -->
+          <Category/>
+        </div>
         <!-- ====================== odersDetails Component ====================== -->
         <div v-if="activeTab === 'ordersDetail'">
           <OrderDetail
@@ -828,6 +833,7 @@ import HistoryAllSellProduct from "~/components/AdminLayout/HistoryAllSellProduc
 import { useOrderPaddingStore } from "~/stores/orderCount";
 import { useProductOrderSellStore } from "~/stores/orderDetailCount";
 import { useSelectProduct } from "~/composables/useSelcetProduct";
+import Category from "~/components/AdminLayout/Category.vue";
 
 const sellStore = useProductOrderSellStore();
 
@@ -898,6 +904,7 @@ const menuItems = computed(() => {
     list = [
       { id: "dashboard", name: "ໜ້າຫລັກ", icon: "mdi-view-dashboard" },
       { id: "sales", name: "ລາຍງານການຂາຍ", icon: "mdi-chart-line" },
+      { id: "category", name: "ໝວດໝູ່ສິນຄ້າ", icon: "mdi-chart-line" },
       { id: "products", name: "ເພີ່ມສິນຄ້າ", icon: "mdi-package-variant" },
       { id: "orders", name: "ລາຍການສັ່ງຊື້", icon: "mdi-clock-outline" },
       { id: "ordersDetail", name: "ລາຍການຈັດສົ່ງ", icon: "mdi-cart" },

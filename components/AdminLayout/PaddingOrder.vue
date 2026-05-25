@@ -474,7 +474,7 @@ const orders = computed(() =>
     shipping: order.shipping,
     custtel: order.custtel,
     custname: order.custname,
-    paymentimage: order.paymentimage ? "ມີການຊໍາລະແລ້ວ" : "ຍັງບໍ່ມີການຊໍາລະ",
+    paymentimage: order.paymentimage ? "ມີການຊໍາລະແລ້ວ" : "ຈ່າຍປາຍທາງ",
     sellstatus: order.sellstatus === 0 ? " ເບິ່ງແລ້ວ" : "ຍັງບໍ່ໄດ້ເບິ່ງ",
     actionStatus: order.sellstatus === 0 ? "pending" : "ຈັດສົ່ງສຳເລັດ",
     productdetail: order.productdetail,
@@ -512,9 +512,9 @@ const totalPaid = computed(
 );
 
 const getPaymentImageColor = (status) =>
-  status === "ຍັງບໍ່ມີການຊໍາລະ" ? "text-red" : "text-green";
+  status === "ຈ່າຍປາຍທາງ" ? "text-red" : "text-green";
 const getPaymentColor = (status) =>
-  status === "ຍັງບໍ່ມີການຊໍາລະ" ? "red" : "green";
+  status === "ຈ່າຍປາຍທາງ" ? "red" : "green";
 const getActionColor = (status) =>
   status.includes("ຍັງບໍ່ໄດ້ເບິ່ງ") ? "red" : "green";
 
@@ -528,7 +528,7 @@ const openDetailsDialog = (orderId) => {
     created: formatDate(order.cdate),
     delivery: order.delivery,
     phone: order.custtel,
-    paymentMethod: order.paymentimage ? "ມີການຊໍາລະແລ້ວ" : "ຍັງບໍ່ມີການຊໍາລະ",
+    paymentMethod: order.paymentimage ? "ມີການຊໍາລະແລ້ວ" : "ຈ່າຍປາຍທາງ",
     paymentImage: order.paymentimage || null,
     deliveryInfo: order.shipping,
     actionStatus: order.sellstatus === 0 ? "ເບິ່ງແລ້ວ" : "ຍັງບໍ່ໄດ້ເບິ່ງ",

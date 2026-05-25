@@ -462,18 +462,26 @@
         </div>
       </template>
 
-      <v-divider class="my-12" />
-
-      <!-- Brands Slider -->
+      <v-divider class="my-8" />
       <div v-if="topData && topData.length > 0" class="mt-12">
         <div class="d-flex align-center mb-4 px-2">
           <div class="bg-primary rounded-circle pa-1 mr-3">
-            <v-icon color="white" size="small">mdi-star</v-icon>
+            <v-icon color="white" size="">mdi-star</v-icon>
           </div>
-          <h2 class="text-h5 font-weight-bold">
+          <h2
+            class="text-h6 font-weight-bold"
+            style="
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              max-width: 100%;
+            "
+          >
             {{ t("recommended_brands") }}
           </h2>
+          >
         </div>
+
         <TopDataCard :topData="topData" />
       </div>
     </v-container>
@@ -770,9 +778,7 @@
                 </template>
 
                 <v-list-item-title>{{ t("detail_desc") }}</v-list-item-title>
-                <v-list-item-subtitle
-                  class="text-body-2  mt-1"
-                >
+                <v-list-item-subtitle class="text-body-2 mt-1">
                   {{ getItemDetail(detailItem) }}
                 </v-list-item-subtitle>
               </v-list-item>
@@ -896,7 +902,6 @@
     </v-dialog>
   </v-container>
 </template>
-
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { useDisplay } from "vuetify";
@@ -989,9 +994,7 @@ const getItemName = (item) =>
 
 const getItemDetail = (item) => item?.detail || item?.moredetail || "";
 const getItemType = (item) => item?.type || item?.types || "";
-
 const getItemPrice1 = (item) => item?.price1 || item?.Price1 || "";
-
 const getItemPrice2 = (item) =>
   item?.price2 || item?.Price2 || item?.price || "";
 
@@ -1042,22 +1045,51 @@ const syncFromComposable = () => {
   filteredData.value = processed;
 };
 
+// ── API Search (single source of truth) ──────────────────────────────────────
+async function searchChannelData({ districtId = "", detail = "" } = {}) {
+  const channelId = route.query.channelId || channelStore.value.channelId;
+  if (!channelId) return;
+  try {
+    const url = `${BASE_URL}/all/searchDataAll?channelId=${channelId}&detail=${encodeURIComponent(
+      detail
+    )}&dId=${districtId}&vId=`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const raw = data.data || data;
+    const channelQr = hasValidQr(qr.value) ? qr.value : null;
+    filteredData.value = Array.isArray(raw)
+      ? raw.map((item) => ({
+          ...item,
+          image: Array.isArray(item.image)
+            ? item.image
+            : [item.image || "placeholder.jpg"],
+          qr: hasValidQr(item.qr) ? item.qr : channelQr,
+        }))
+      : [];
+  } catch (e) {
+    console.error("❌ Search data fetch error:", e);
+  }
+}
+
 // ── Dialog helpers ────────────────────────────────────────────────────────────
 function openGallery(item, startIndex = 0) {
   galleryItem.value = item;
   gallerySlide.value = startIndex;
   galleryDialog.value = true;
 }
+
 function openGalleryFromDetail(index) {
   galleryItem.value = detailItem.value;
   gallerySlide.value = index;
   galleryDialog.value = true;
 }
+
 function openDetail(item) {
   detailItem.value = item;
   detailSlide.value = 0;
   detailDialog.value = true;
 }
+
 function openCommentDialog() {
   commentDialog.value = true;
 }
@@ -1069,15 +1101,7 @@ const onPageChange = async (page) => {
   syncFromComposable();
 };
 
-// ── Filtering ─────────────────────────────────────────────────────────────────
-const queryByLocation = (districtId) => {
-  if (!selectedProvince.value || !districtId) return;
-  filteredData.value = baseData.value.filter(
-    (item) =>
-      String(item.districtId || item.districtid || "") === String(districtId)
-  );
-};
-
+// ── Reset filter ──────────────────────────────────────────────────────────────
 const resetFilter = () => {
   selectedProvince.value = null;
   selectedDistrict.value = null;
@@ -1153,13 +1177,6 @@ const decrementQty = (productId) => {
   }
 };
 
-// ── Comment ───────────────────────────────────────────────────────────────────
-const submitComment = () => {
-  commentDialog.value = false;
-  telephone.value = "";
-  comment.value = "";
-};
-
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 onMounted(async () => {
   const routeState = history.state?.store;
@@ -1188,13 +1205,18 @@ onMounted(async () => {
 });
 
 // ── Watchers ──────────────────────────────────────────────────────────────────
+
+// Province: load districts + reset district + search with no dId
 watch(selectedProvince, async (id) => {
   selectedDistrict.value = null;
   districtsForSelectedProvince.value = [];
+
   if (!id) {
     filteredData.value = baseData.value;
+    searchQuery.value = "";
     return;
   }
+
   try {
     const res = await fetch(
       `${BASE_URL}/district/selectByProvinceId?provinceId=${id}`
@@ -1207,30 +1229,55 @@ watch(selectedProvince, async (id) => {
   } catch (e) {
     console.error("❌ District fetch error:", e);
   }
+
+  await searchChannelData({ detail: searchQuery.value ?? "" });
 });
 
-watch(selectedDistrict, (newVal) => {
-  if (newVal) queryByLocation(newVal);
+// District: search with dId (or clear back to province-level)
+watch(selectedDistrict, async (districtId) => {
+  await searchChannelData({
+    districtId: districtId ?? "",
+    detail: searchQuery.value ?? "",
+  });
 });
 
-watch(searchQuery, (q) => {
-  if (!q) {
-    filteredData.value = baseData.value;
-    return;
-  }
-  const lower = q.toLowerCase().trim();
-  filteredData.value = baseData.value.filter(
-    (item) =>
-      getItemName(item).toLowerCase().includes(lower) ||
-      (item.tel && item.tel.includes(lower))
-  );
+// Search box: debounced API call with current district
+let searchTimer = null;
+watch(searchQuery, (val) => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    await searchChannelData({
+      districtId: selectedDistrict.value ?? "",
+      detail: val ?? "",
+    });
+  }, 400);
 });
 
 watch(errors, (err) => {
   if (err) console.error("🚨 Composable Error:", err);
 });
-</script>
+// ---------- comnent ----
+const submitComment = () => {
+  if (!telephone.value && !comment.value) return;
 
+  const WHATSAPP_NUMBER = "2076376363";
+
+  const message = [
+    telephone.value ? `📞 ${t("comment_subject")}: ${telephone.value}` : "",
+    comment.value   ? `💬 ${t("comment_detail")}: ${comment.value}`   : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  window.open(url, "_blank");
+
+  // Reset & close
+  commentDialog.value = false;
+  telephone.value = "";
+  comment.value = "";
+};
+</script>
 <style scoped>
 /* ── Banner ─────────────────────────────────────────────────────────── */
 :deep(.v-carousel__controls .v-btn),
@@ -1314,6 +1361,38 @@ watch(errors, (err) => {
 @media (max-width: 600px) {
   .text-h3 {
     font-size: 1.75rem !important;
+  }
+}
+
+/* slide topData */
+@media (max-width: 959px) {
+  .mobile-slider {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 12px;
+    padding: 10px 8px 20px 8px;
+    scrollbar-width: none; /* Hides scrollbar on Firefox */
+  }
+
+  .mobile-slider::-webkit-scrollbar {
+    display: none; /* Hides scrollbar on Chrome/Safari */
+  }
+
+  /* 
+     Ensures the items inside TopDataCard don't shrink 
+     and stay a consistent width while sliding 
+  */
+  :deep(.v-card) {
+    min-width: 280px;
+    scroll-snap-align: start;
+  }
+}
+
+/* Desktop Styling: Normal Grid */
+@media (min-width: 960px) {
+  .desktop-grid {
+    display: block; /* Standard layout for your existing TopDataCard grid */
   }
 }
 </style>

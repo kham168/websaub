@@ -48,7 +48,7 @@ export const useLanguage = () => {
 
       // Comment dialog
       comment_dialog_title: "Send an Enquiry",
-      comment_subject: "Subject",
+      comment_subject: "Title",
       comment_detail: "Details",
       comment_submit: "Submit",
 
@@ -69,7 +69,7 @@ export const useLanguage = () => {
       notes: "Additional Notes (Optional)",
       notes_placeholder: "Any special delivery instructions?",
       cancel: "Cancel",
-      confirm_order: "Confirm Order",
+      confirm_order: "Confirm ",
       // whatsapp
       whatsapp_title: "Send Order to WhatsApp",
       review_order: "Review your order details before sending to WhatsApp.",
@@ -91,6 +91,7 @@ export const useLanguage = () => {
       grand_total: "Grand Total",
       total_items: "total items",
       close: "Close",
+      
       send_whatsapp: "Send to WhatsApp",
       order_failed: "Order Failed",
       order_success: "Order Created Successfully!",

@@ -687,7 +687,7 @@ const orders = computed(() =>
     delivery: order.delivery,
     shipping: order.shipping,
     custtel: order.custtel,
-    paymentimage: order.paymentimage ? "ມີການຊໍາລະແລ້ວ" : "ຍັງບໍ່ມີການຊໍາລະ",
+    paymentimage: order.paymentimage ? "ມີການຊໍາລະແລ້ວ" : "ຈ່າຍປາຍທາງ",
     sellstatus: order.sellstatus,
     productdetail: order.productdetail,
   }))
@@ -707,7 +707,7 @@ const actionOptions = [
 ];
 
 const OptionsPay = [
-  { label: "ຍັງບໍ່ມີການຊໍາລະ", value: 0 },
+  { label: "ຈ່າຍປາຍທາງ", value: 0 },
   { label: "ຈັດສົ່ງສຳເລັດ", value: 1 },
   { label: "ຍົກເລີກ", value: 2 },
 ];
@@ -792,7 +792,7 @@ const openDetailsDialog = (orderId) => {
 const getPaymentStatusLabel = (sellstatus) => {
   console.log(sellstatus);
   const statusMap = {
-    0: "ຍັງບໍ່ມີການຊໍາລະ",
+    0: "ຈ່າຍປາຍທາງ",
     1: "ເງີນໂອນ",
     2: "ຈ່າຍປາຍທາງ",
     3: "ມີການຊໍາລະແລ້ວ",
@@ -800,7 +800,7 @@ const getPaymentStatusLabel = (sellstatus) => {
   return statusMap[sellstatus];
 };
 const actionOptionsPayment = [
-  { label: "ຍັງບໍ່ມີການຊໍາລະ", value: 0 },
+  { label: "ຈ່າຍປາຍທາງ", value: 0 },
   { label: "ເງີນໂອນ", value: 1 },
   { label: "ຈ່າຍປາຍທາງ", value: 2 },
   // { label: "ມີການຊໍາລະແລ້ວ", value: 3 },

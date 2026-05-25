@@ -30,6 +30,7 @@
         </div>
       </div>
 
+      <!-- CLOSE BUTTON -->
       <v-btn
         icon
         size="small"
@@ -45,7 +46,6 @@
     <!-- FORM -->
     <v-card-text class="px-8 py-6">
       <v-form ref="loginForm" v-model="loginFormValid">
-        <!-- Username -->
         <v-text-field
           v-model="loginData.tel"
           label="tel *"
@@ -60,7 +60,6 @@
           @input="telError = ''"
         />
 
-        <!-- Password -->
         <v-text-field
           v-model="loginData.password"
           label="Password *"
@@ -74,8 +73,7 @@
           class="mb-3"
           :rules="[
             (v) => !!v || 'Password is required',
-            (v) =>
-              (v && v.length >= 6) || 'Password must be at least 6 characters',
+            (v) => (v && v.length >= 6) || 'At least 6 characters',
           ]"
           :error-messages="passwordError"
           @click:append-inner="showPassword = !showPassword"
@@ -96,7 +94,6 @@
 
     <v-divider></v-divider>
 
-    <!-- Submit Button -->
     <v-card-actions class="pa-6">
       <v-btn
         color="primary"
@@ -108,7 +105,7 @@
         @click="handleSubmit"
         class="text-none font-weight-bold submit-btn"
       >
-        <v-icon left>mdi-login</v-icon>
+        <v-icon left class="mr-2">mdi-login</v-icon>
         Login
       </v-btn>
     </v-card-actions>
@@ -117,22 +114,19 @@
 
 <script setup>
 import { ref } from "vue";
-import { useLogin } from "@/composables/useLogin";
 import { useRouter } from "vue-router";
+// Ensure this path is correct for your project structure
+import { useLogin } from "@/composables/useLogin";
 
-// Props & Emits
 const props = defineProps({
   modelValue: Boolean,
 });
+
 const emit = defineEmits(["update:modelValue", "login-success"]);
 
-// Router
 const router = useRouter();
-
-// Composable
 const { login, loading: loginLoading, error } = useLogin();
 
-// Form
 const loginFormValid = ref(false);
 const loginForm = ref(null);
 const showPassword = ref(false);
@@ -145,17 +139,15 @@ const loginData = ref({
   rememberMe: false,
 });
 
-// Close dialog
+// FIXED: Sends signal to parent to close dialog
 const closeLoginDialog = () => {
   emit("update:modelValue", false);
 };
 
-// Submit Login
 const handleSubmit = async () => {
-  const isValid = await loginForm.value.validate();
-  if (!isValid) return;
+  const { valid } = await loginForm.value.validate();
+  if (!valid) return;
 
-  // Clear previous errors
   telError.value = "";
   passwordError.value = "";
 
@@ -164,36 +156,20 @@ const handleSubmit = async () => {
     password: loginData.value.password,
   });
 
-  console.log("Login successful", success);
-
   if (success) {
     emit("login-success");
-    closeLoginDialog();
+    closeLoginDialog(); // Close on success
     router.push("/admin");
   } else {
-    // Check if the error object has specific error information
+    // Error logic
     if (error.value) {
       const errorData = error.value.data || error.value;
-
-      // Check for specific error types from backend
-      if (
-        errorData.field === "tel" ||
-        errorData.message?.includes("tel") ||
-        errorData.message?.includes("Tel")
-      ) {
-        telError.value = errorData.message || "Tel number not found";
-      } else if (
-        errorData.field === "password" ||
-        errorData.message?.includes("password") ||
-        errorData.message?.includes("Password")
-      ) {
-        passwordError.value = errorData.message || "Incorrect password";
+      if (errorData.message?.toLowerCase().includes("tel")) {
+        telError.value = "Tel number not found";
       } else {
-        // If tel is correct but password is wrong, show password error only
         passwordError.value = "Incorrect password";
       }
     } else {
-      // Default: assume password is incorrect (most common case)
       passwordError.value = "Incorrect password";
     }
   }
@@ -201,87 +177,28 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-.login-card {
-  overflow: hidden;
-}
-
+.login-card { overflow: hidden; }
 .bg-gradient-login {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   position: relative;
-  overflow: hidden;
 }
-
-.bg-gradient-login::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.1) 0%,
-    transparent 70%
-  );
-  animation: rotate 20s linear infinite;
-}
-
-@keyframes rotate {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 .submit-btn {
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
-
 .submit-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
-
 .loading-overlay {
   backdrop-filter: blur(4px);
   background-color: rgba(255, 255, 255, 0.9) !important;
 }
-
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  animation: fadeIn 0.3s ease-in;
-}
-
 .loading-text {
   color: #667eea;
   font-size: 18px;
   font-weight: 600;
   animation: pulse 1.5s ease-in-out infinite;
 }
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 </style>
