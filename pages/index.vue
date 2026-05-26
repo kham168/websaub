@@ -7,7 +7,7 @@
         show-arrows
         hide-delimiters
         interval="3000"
-        height="500"
+        height="300"
         class="hero-carousel"
       >
         <v-carousel-item
@@ -79,23 +79,23 @@
       </v-row>
 
       <!-- Categories Cards -->
-      <v-row v-else>
+      <v-row v-else class="pa-2 pa-md-0">
         <v-col
           v-for="(item, index) in channels"
           :key="item.id || index"
-          cols="12"
+          cols="6"
           sm="6"
           md="4"
           lg="3"
           xl="2"
-          class="mb-4"
+          class="mb-2 mb-md-4 pa-1 pa-md-3"
         >
           <v-card
             elevation="2"
             rounded="lg"
             hover
             class="h-100 d-flex flex-column cursor-pointer"
-            :to="`/retrievepage?channelId=${item.id}`"
+            :to="`/channel/${item.id}`"
           >
             <v-img :src="item.image[0]" aspect-ratio="1" cover>
               <template #default>
@@ -127,16 +127,16 @@
               </template>
             </v-img>
 
-            <v-card-text class="pa-4">
-              <h3 class="text-h6 font-weight-bold text-primary">
+            <v-card-text class="pa-2 pa-md-4">
+              <p class="text-subtitle-2 font-weight-bold text-primary card-title">
                 {{ item.channel }}
-              </h3>
-              <p v-if="item.detail" class="text-body-2 text-grey-darken-1 mb-1">
+              </p>
+              <p v-if="item.detail" class="text-caption text-grey-darken-1 mb-0 card-detail">
                 {{ item.detail }}
               </p>
             </v-card-text>
 
-            <v-card-actions class="pa-4 pt-0">
+            <!-- <v-card-actions class="pa-4 pt-0">
               <v-btn
                 block
                 color="primary"
@@ -145,7 +145,7 @@
               >
                 ເບິ່ງລາຍລະອຽດ
               </v-btn>
-            </v-card-actions>
+            </v-card-actions> -->
           </v-card>
         </v-col>
       </v-row>
@@ -155,9 +155,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
 const { channels, fetchChannels, loading, error } = useChannel();
-const router = useRouter();
 const carouselIndex = ref(0);
 const { fetchProfileImages, profileImageitems } = useProfileImage();
 
@@ -177,5 +175,20 @@ onMounted(async () => {
 }
 .hero-carousel :deep(.v-btn--icon:hover) {
   background-color: rgba(25, 118, 210, 1) !important;
+}
+.card-title {
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.card-detail {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 </style>

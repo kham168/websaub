@@ -519,8 +519,6 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useAddUser } from "@/composables/useAddUser";
-import { useGetAllUser } from "@/composables/useGetAllUser";
 
 const { addUser, loading, success, error } = useAddUser();
 const { getAllUser, loadings, errors, fetchAllUser } = useGetAllUser();

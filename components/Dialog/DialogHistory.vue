@@ -379,7 +379,6 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { useSearchCustomer } from "~/composables/useSearchCustomer";
 
 const {
   orders,

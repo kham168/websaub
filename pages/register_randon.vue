@@ -9,7 +9,7 @@
               <v-icon color="white">mdi-arrow-left</v-icon>
             </v-btn>
             <v-toolbar-title class="text-white font-weight-bold">
-              Member Registration
+              Sau npe ua tswv cuab
             </v-toolbar-title>
           </v-toolbar>
   
@@ -18,9 +18,9 @@
             <!-- Header Banner -->
             <v-sheet class="text-center pa-6 bg-deep-purple-darken-4">
               <v-icon size="44" color="purple-lighten-3" class="mb-2">mdi-account-plus</v-icon>
-              <div class="text-h6 font-weight-bold text-white">Create Your Account</div>
+              <div class="text-h6 font-weight-bold text-white">Tsim koj li account</div>
               <div class="text-body-2 text-purple-lighten-3 mt-1">
-                Fill in your details to register
+                Sau koj cov ntaub ntawv kom sau npe
               </div>
             </v-sheet>
   
@@ -34,7 +34,7 @@
                   <v-col cols="12" sm="6">
                     <v-text-field
                       v-model="form.firstName"
-                      label="First Name"
+                      label="sau koj lub npe"
                       placeholder="e.g. Somchai"
                       variant="outlined"
                       density="comfortable"
@@ -43,26 +43,11 @@
                       color="deep-purple"
                     />
                   </v-col>
-  
-                  <!-- Surname -->
-                  <v-col cols="12" sm="6">
-                    <v-text-field
-                      v-model="form.surname"
-                      label="Surname"
-                      placeholder="e.g. Bounmy"
-                      variant="outlined"
-                      density="comfortable"
-                      prepend-inner-icon="mdi-account-outline"
-                      :rules="[required]"
-                      color="deep-purple"
-                    />
-                  </v-col>
-  
                   <!-- Tel -->
                   <v-col cols="12" sm="6">
                     <v-text-field
                       v-model="form.tel"
-                      label="Phone Number"
+                      label="sau koj tus lej xov tooj"
                       placeholder="20########"
                       variant="outlined"
                       density="comfortable"
@@ -78,7 +63,7 @@
                   <v-col cols="12" sm="6">
                     <v-text-field
                       v-model="form.province"
-                      label="Province"
+                      label="sau koj lub xeev"
                       placeholder="e.g. Vientiane"
                       variant="outlined"
                       density="comfortable"
@@ -92,7 +77,7 @@
                   <v-col cols="12" sm="6">
                     <v-text-field
                       v-model="form.district"
-                      label="District"
+                      label="sau koj lub nroog"
                       placeholder="e.g. Chanthabouli"
                       variant="outlined"
                       density="comfortable"
@@ -106,7 +91,7 @@
                   <v-col cols="12" sm="6">
                     <v-text-field
                       v-model="form.village"
-                      label="Village"
+                      label="sau koj lub zos"
                       placeholder="e.g. Ban Phonxay"
                       variant="outlined"
                       density="comfortable"
@@ -122,7 +107,7 @@
   
                       <div class="text-caption text-medium-emphasis font-weight-bold text-uppercase mb-3">
                         <v-icon size="14" class="mr-1">mdi-bell</v-icon>
-                        Subscribe to
+                        koj tau ຕິດຕາມ Dab Tsis xwb?
                       </div>
   
                       <!-- Toggle full width on mobile -->
@@ -154,7 +139,7 @@
                         <div v-if="showTiktok">
                           <v-text-field
                             v-model="form.tiktok"
-                            label="TikTok Username"
+                            label=" sau koj lub npe TikTok "
                             placeholder="your_tiktok"
                             variant="outlined"
                             density="comfortable"
@@ -172,7 +157,7 @@
                         <div v-if="showFacebook">
                           <v-text-field
                             v-model="form.facebook"
-                            label="Facebook Page / Profile"
+                            label=" suau koj lub npe Facebook Page / Profile"
                             placeholder="yourpage"
                             variant="outlined"
                             density="comfortable"
@@ -188,7 +173,7 @@
                   </v-col>
   
                   <!-- Submit -->
-                  <v-col cols="12">
+                  <v-col cols="12" class="pb-4">
                     <v-btn
                       type="submit"
                       block
@@ -200,7 +185,7 @@
                       :loading="loading"
                       class="mt-1"
                     >
-                      Confirm Registration
+                      confirm sau npe
                     </v-btn>
                   </v-col>
   
@@ -274,5 +259,10 @@
   <style scoped>
   .min-height-screen {
     min-height: 100dvh;
+  }
+  @media (max-width: 959px) {
+    .min-height-screen {
+      padding-bottom: 80px !important;
+    }
   }
   </style>

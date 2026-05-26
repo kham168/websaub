@@ -5,31 +5,28 @@ import {
 } from "#app";
 
 export default defineNuxtPlugin(() => {
-  // Add global auth middleware
   addRouteMiddleware(
     "auth",
-    defineNuxtRouteMiddleware((to, from) => {
+    defineNuxtRouteMiddleware((to) => {
       const token = useCookie("token").value;
       const isAdminRoute = to.path.startsWith("/admin");
 
+      // Block unauthenticated access to admin
       if (!token && isAdminRoute) {
-        return navigateTo("/"); // prevent access to admin
+        return navigateTo("/");
       }
 
-      if (token && !isAdminRoute) {
-        return navigateTo("/admin"); // redirect logged-in users to admin
+      // Logged-in user on home "/" → go to admin dashboard
+      if (token && to.path === "/") {
+        return navigateTo("/admin");
       }
-
-      // Otherwise allow navigation
-      return;
     }),
-    { global: true } // global middleware
+    { global: true }
   );
 
   addRouteMiddleware(
     "guest",
-    defineNuxtRouteMiddleware((to) => {
-      // Allow access — no auth required for guest pages
+    defineNuxtRouteMiddleware(() => {
       return;
     })
   );

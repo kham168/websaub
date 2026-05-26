@@ -115,8 +115,6 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-// Ensure this path is correct for your project structure
-import { useLogin } from "@/composables/useLogin";
 
 const props = defineProps({
   modelValue: Boolean,

@@ -16,28 +16,37 @@
           border
           elevation="0"
           @click="selectItem(item)"
-          class="desktop-card"
+          class="desktop-card h-100 d-flex flex-column"
         >
-          <v-img :src="item.image?.[0] || '/favicon.ico'" height="200" cover>
+          <v-img :src="item.image?.[0] || '/favicon.ico'" height="180" cover>
             <template v-slot:placeholder>
               <v-skeleton-loader type="image" />
             </template>
+            <div class="d-flex justify-end pa-2">
+              <v-chip size="x-small" color="primary" variant="flat">
+                <v-icon size="12" start>mdi-store</v-icon>
+                ຍີ່ຫໍ້
+              </v-chip>
+            </div>
           </v-img>
-          <v-card-text class="pa-4">
-            <p class="text-h6 font-weight-bold mb-1 text-truncate">
+          <v-card-text class="pa-3 flex-grow-1">
+            <p class="text-subtitle-1 font-weight-bold mb-0 text-truncate">
               {{ item.name }}
             </p>
+            <p v-if="item.detail" class="text-caption text-grey-darken-1 mt-1 line-clamp-2">
+              {{ item.detail }}
+            </p>
           </v-card-text>
-          <v-card-actions class="pa-4 pt-0">
+          <v-card-actions class="pa-3 pt-0">
             <v-btn
               block
               rounded="lg"
-              color="#e3f2fd"
-              class="text-primary font-weight-bold"
+              color="primary"
               variant="flat"
               append-icon="mdi-arrow-right"
+              size="small"
             >
-              ເບິ່ງເພີ່ມ
+              ເບິ່ງສິນຄ້າ
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -65,48 +74,52 @@
         >
           <v-card
             rounded="xl"
-            class="slide-card"
+            class="slide-card d-flex flex-column"
             elevation="2"
             border
             @click="selectItem(item)"
           >
-            <!-- Image with gradient overlay -->
             <div class="card-img-wrapper">
               <v-img
                 :src="item.image?.[0] || '/favicon.ico'"
-                height="200"
+                height="160"
                 cover
                 class="card-img"
               >
                 <template v-slot:placeholder>
-                  <div class="img-placeholder">
+                  <div class="img-placeholder d-flex align-center justify-center fill-height">
                     <v-icon size="48" color="grey-lighten-1">mdi-image</v-icon>
                   </div>
                 </template>
-                <!-- Gradient overlay at bottom -->
                 <div class="img-gradient" />
+                <div class="d-flex justify-end pa-2">
+                  <v-chip size="x-small" color="primary" variant="flat">
+                    <v-icon size="12" start>mdi-store</v-icon>
+                    ຍີ່ຫໍ້
+                  </v-chip>
+                </div>
               </v-img>
             </div>
 
-            <!-- Card Info -->
-            <v-card-text class="pa-3 pb-1">
+            <v-card-text class="pa-3 pb-1 flex-grow-1">
               <p class="card-name font-weight-bold text-truncate mb-1">
                 {{ item.name }}
               </p>
-             
+              <p v-if="item.detail" class="text-caption text-grey-darken-1 line-clamp-2">
+                {{ item.detail }}
+              </p>
             </v-card-text>
 
             <v-card-actions class="pa-3 pt-1">
               <v-btn
                 block
                 rounded="lg"
-                color="#e3f2fd"
-                class="text-primary font-weight-bold"
+                color="primary"
                 variant="flat"
                 append-icon="mdi-arrow-right"
                 size="small"
               >
-                ເບິ່ງເພີ່ມ
+                ເບິ່ງສິນຄ້າ
               </v-btn>
             </v-card-actions>
           </v-card>
@@ -148,7 +161,7 @@ const scrollRight = () => {
 
 const selectItem = (item) => {
   window.scrollTo({ top: 0, behavior: "smooth" });
-  router.push({ path: "/retrievepage", query: { channelId: item.channel } });
+  router.push(`/channel/${item.channel}`);
 };
 </script>
 
@@ -212,9 +225,21 @@ const selectItem = (item) => {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
 }
 
-/* ── Button color ── */
-:deep(.text-primary.v-btn--variant-flat) {
-  background-color: #e3f2fd !important;
-  color: #1976d2 !important;
+/* ── Card image gradient ── */
+.img-gradient {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(to top, rgba(0,0,0,0.15), transparent);
+}
+
+/* ── line-clamp utility ── */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>

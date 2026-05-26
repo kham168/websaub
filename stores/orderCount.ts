@@ -1,9 +1,6 @@
 import { defineStore } from "pinia";
-import type {
-  CustomerOrderPadding,
-  Pagination,
-} from "~/services/types/selectAllCustomerOrderPadding-type";
-import { SelectAllCustomerOrderPaddingService } from "~/services/api/selectAllCustomerOrderPadding.service";
+import type { CustomerOrderPadding, Pagination } from "~/services/types";
+import { SelectAllCustomerOrderPaddingService } from "~/services/api";
 
 export const useOrderPaddingStore = defineStore("orderPadding", {
   state: () => ({

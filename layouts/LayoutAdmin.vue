@@ -832,7 +832,6 @@ import ProfileDialog from "~/components/AdminLayout/Profile.vue";
 import HistoryAllSellProduct from "~/components/AdminLayout/HistoryAllSellProduct.vue";
 import { useOrderPaddingStore } from "~/stores/orderCount";
 import { useProductOrderSellStore } from "~/stores/orderDetailCount";
-import { useSelectProduct } from "~/composables/useSelcetProduct";
 import Category from "~/components/AdminLayout/Category.vue";
 
 const sellStore = useProductOrderSellStore();

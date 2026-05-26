@@ -13,7 +13,7 @@ export const useLanguage = () => {
     en: {
       // App bar / nav
       home: "Home",
-      tutorials: "Tutorials",
+      tutorials: "Videos",
       support: "Support Us",
       history: "History",
       login: "Login",
@@ -91,7 +91,6 @@ export const useLanguage = () => {
       grand_total: "Grand Total",
       total_items: "total items",
       close: "Close",
-      
       send_whatsapp: "Send to WhatsApp",
       order_failed: "Order Failed",
       order_success: "Order Created Successfully!",
@@ -105,13 +104,12 @@ export const useLanguage = () => {
       cart_empty: "Your cart is empty.",
       continue_shopping: "Continue Shopping",
       total: "Total",
-
     },
 
     lo: {
       // App bar / nav
       home: "ໜ້າຫຼັກ",
-      tutorials: "ວິດີໂອແນະນຳ",
+      tutorials: "ວີດີໂອ",
       support: "ສະໜັບສະໜູນພວກເຮົາ",
       history: "ປະຫວັດການສັ່ງຊື້",
       login: "ເຂົ້າສູ່ລະບົບ",
@@ -206,7 +204,7 @@ export const useLanguage = () => {
     hmn: {
       // App bar / nav
       home: "Chaw Nyob",
-      tutorials: "Kev Kawm",
+      tutorials: "Videos",
       support: "Pab Peb",
       history: "Keeb Kwm",
       login: "Nkag Mus",
@@ -265,8 +263,7 @@ export const useLanguage = () => {
       confirm_order: "Mus Ntxiv",
       // whatsapp
       whatsapp_title: "Xa Kev Txiav Txim Mus WhatsApp",
-      review_order:
-        "Xyuas koj cov ntsiab lus txiav txim ua ntej xa mus WhatsApp.",
+      review_order: "Xyuas koj cov ntsiab lus txiav txim ua ntej xa mus WhatsApp.",
       customer_info: "Cov Ntaub Ntawv Neeg Yuav",
       cust_name_label: "Lub Npe Neeg Yuav",
       phone_number_label: "Xov Tooj",

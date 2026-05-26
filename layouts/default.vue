@@ -1,7 +1,7 @@
 <template>
   <v-app>
-    <!-- APP BAR -->
-    <v-app-bar height="70" flat elevation="1" class="px-4 gradient-app-bar">
+    <!-- APP BAR (desktop only) -->
+    <v-app-bar v-if="mdAndUp" height="70" flat elevation="1" class="gradient-app-bar">
       <v-container
         class="d-flex align-center justify-space-between flex-row-reverse flex-md-row"
         fluid
@@ -65,7 +65,6 @@
           </v-menu>
 
           <v-btn class="mx-2 text-white" to="/register_randon">register </v-btn>
-        
         </div>
 
         <!-- GROUP B: Mobile Menu Icon (Hidden on Desktop) -->
@@ -94,160 +93,126 @@
       </v-container>
     </v-app-bar>
 
-    <!-- NAVIGATION DRAWER -->
+    <!-- ── SIDE DRAWER (compact, right) ─────────────────────────────── -->
     <v-navigation-drawer
       v-model="drawer"
       temporary
       location="right"
-      class="gradient-drawer"
+      width="260"
+      class="drawer-panel"
     >
-      <v-list density="comfortable" class="py-0">
-        <!-- <v-list-item class="pa-4 bg-deep-purple-darken-3">
-          <v-list-item-title class="text-h6 font-weight-bold text-white"
-            >Menu</v-list-item-title
-          >
-        </v-list-item> -->
-        <v-list-item class="pa-2">
-          <!-- ICON SECTION -->
-          <template v-slot:prepend>
-            <div style="min-width: 32px">
-              <v-icon color="white" class="mr-2" size="28"
-                >mdi-cog-outline</v-icon
-              >
-            </div>
-          </template>
+      <!-- Header -->
+      <div class="drawer-header d-flex align-center justify-space-between px-4 py-3">
+        <div class="d-flex align-center ga-2">
+          <v-icon color="white" size="22">mdi-apps</v-icon>
+          <span class="text-subtitle-1 font-weight-bold text-white">Menu</span>
+        </div>
+        <v-btn icon size="x-small" variant="text" color="white" @click="drawer = false">
+          <v-icon size="18">mdi-close</v-icon>
+        </v-btn>
+      </div>
+      <v-divider opacity="0.3" />
 
-          <!-- TITLE SECTION -->
-          <v-list-item-title class="text-h6 font-weight-bold text-white">
-            Menu
+      <!-- Nav items -->
+      <v-list density="compact" class="py-2 px-2">
+        <v-list-item
+          v-for="item in drawerItems"
+          :key="item.label"
+          :to="item.to"
+          :active="item.to ? route.path === item.to : false"
+          active-color="white"
+          rounded="lg"
+          class="drawer-item mb-1"
+          @click="item.action ? item.action() : (drawer = false)"
+        >
+          <template v-slot:prepend>
+            <v-icon :color="item.iconColor || 'white'" size="20">{{ item.icon }}</v-icon>
+          </template>
+          <v-list-item-title class="text-white text-body-2 font-weight-medium">
+            {{ item.label }}
           </v-list-item-title>
-        </v-list-item>
-        <v-divider style="border-color: white" />
-
-        <v-list-item to="/" @click="drawer = false" class="text-white">
-          <template v-slot:prepend>
-            <div style="min-width: 32px"><v-icon icon="mdi-home" /></div>
+          <template v-if="item.badge && store.cartItems.length > 0" v-slot:append>
+            <v-chip size="x-small" color="error" variant="flat">{{ store.cartItems.length }}</v-chip>
           </template>
-          <v-list-item-title>{{ t("home") }}</v-list-item-title>
         </v-list-item>
-
-        <v-list-item to="/tutorials" @click="drawer = false" class="text-white">
-          <template v-slot:prepend>
-            <div style="min-width: 32px">
-              <v-icon icon="mdi-youtube" />
-            </div>
-          </template>
-          <v-list-item-title>{{ t("tutorials") }}</v-list-item-title>
-        </v-list-item>
-
-        <v-list-item
-          to="/support_us"
-          @click="drawer = false"
-          class="text-white"
-        >
-          <template v-slot:prepend>
-            <div style="min-width: 32px">
-              <v-icon icon="mdi-hand-heart" />
-            </div>
-          </template>
-          <v-list-item-title>{{ t("support") }}</v-list-item-title>
-        </v-list-item>
-
-        <v-list-item
-          @click="
-            openDialog('login');
-            drawer = false;
-          "
-          class="text-white"
-        >
-          <template v-slot:prepend>
-            <div style="min-width: 32px">
-              <v-icon color="green-lighten-2">mdi-login</v-icon>
-            </div>
-          </template>
-          <v-list-item-title>{{ t("login") }}</v-list-item-title>
-        </v-list-item>
-        <v-list-item
-          @click="
-            openDialog('cart');
-            drawer = false;
-          "
-          class="text-white"
-        >
-          <template v-slot:prepend>
-            <div style="min-width: 32px">
-              <v-badge
-                v-if="store.cartItems && store.cartItems.length > 0"
-                :content="store.cartItems.length"
-                color="error"
-                overlap
-              >
-                <v-icon>mdi-cart-arrow-down</v-icon>
-              </v-badge>
-              <v-icon v-else>mdi-cart-arrow-down</v-icon>
-            </div>
-          </template>
-          <v-list-item-title>{{ t("cart") }}</v-list-item-title>
-        </v-list-item>
-
-        <v-list-item to="/history" @click="drawer = false" class="text-white">
-          <template v-slot:prepend>
-            <div style="min-width: 32px">
-              <v-icon color="amber" icon="mdi-clipboard-text-clock" />
-            </div>
-          </template>
-          <v-list-item-title>{{ t("history") }}</v-list-item-title>
-        </v-list-item>
-
-        <v-divider class="my-2" style="border-color: white !important" />
-
-        <v-list-group value="Languages">
-          <template v-slot:activator="{ props }">
-            <v-list-item
-              v-bind="props"
-              class="text-white"
-              prepend-icon="mdi-translate"
-              title="Language"
-            >
-              <template v-slot:prepend>
-                <div style="min-width: 32px">
-                  <v-icon color="blue-lighten-2">mdi-translate</v-icon>
-                </div>
-              </template>
-            </v-list-item>
-          </template>
-          <v-list-item
-            v-for="lang in langs"
-            :key="lang.value"
-            @click="currentLang = lang.value"
-            class="text-white pl-10"
-            :active="currentLang === lang.value"
-            :class="{ 'bg-deep-purple-lighten-4': currentLang === lang.value }"
-          >
-            <template v-slot:prepend>
-              <span class="mr-2">{{ lang.flag }}</span>
-            </template>
-            <v-list-item-title>{{ lang.title }}</v-list-item-title>
-            <template v-slot:append>
-              <v-icon
-                v-if="currentLang === lang.value"
-                size="16"
-                color="green-lighten-2"
-              >
-                mdi-check-circle
-              </v-icon>
-            </template>
-          </v-list-item>
-        </v-list-group>
       </v-list>
+
+      <v-divider opacity="0.3" class="mx-3" />
+
+      <!-- Language picker compact -->
+      <div class="px-3 py-2">
+        <p class="text-caption text-white opacity-60 mb-2 pl-1">{{ t("language") || "Language" }}</p>
+        <v-menu location="bottom start">
+          <template #activator="{ props }">
+            <v-btn
+              v-bind="props"
+              variant="outlined"
+              color="white"
+              size="default"
+              rounded="lg"
+              block
+              class="lang-dropdown-btn"
+            >
+              <v-icon start size="20">mdi-translate</v-icon>
+              <span class="mr-1 text-body-1">{{ langs.find(l => l.value === currentLang)?.flag }}</span>
+              <span class="text-body-2 font-weight-medium">{{ langs.find(l => l.value === currentLang)?.title }}</span>
+              <v-icon end size="20">mdi-chevron-down</v-icon>
+            </v-btn>
+          </template>
+          <v-list density="compact" rounded="lg" min-width="160">
+            <v-list-item
+              v-for="lang in langs"
+              :key="lang.value"
+              :active="currentLang === lang.value"
+              active-color="primary"
+              @click="currentLang = lang.value; drawer = false"
+            >
+              <v-list-item-title class="d-flex align-center ga-2">
+                <span>{{ lang.flag }}</span>
+                <span>{{ lang.title }}</span>
+              </v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </div>
     </v-navigation-drawer>
 
-    <!-- MAIN CONTENT -->
+    <!-- ── MAIN CONTENT ──────────────────────────────────────────────── -->
     <v-main class="bg-grey-lighten-3">
-      <v-container fluid class="pa-4">
+      <v-container fluid class="pa-0 pa-md-4 main-content">
         <NuxtPage />
       </v-container>
     </v-main>
+
+    <!-- ── MOBILE BOTTOM NAV ─────────────────────────────────────────── -->
+    <div class="bottom-nav d-md-none">
+      <button class="bottom-nav-item" @click="$router.push('/')">
+        <v-icon :color="route.path === '/' ? '#7e57c2' : '#757575'" size="22">mdi-home</v-icon>
+        <span :class="route.path === '/' ? 'active-label' : 'nav-label'">{{ t("home") }}</span>
+      </button>
+
+      <button class="bottom-nav-item" @click="$router.push('/history')">
+        <v-icon :color="route.path === '/history' ? '#7e57c2' : '#757575'" size="22">mdi-clipboard-text-clock</v-icon>
+        <span :class="route.path === '/history' ? 'active-label' : 'nav-label'">{{ t("history") }}</span>
+      </button>
+
+      <button class="bottom-nav-item bottom-cart-btn" @click="openDialog('cart')">
+        <div class="cart-fab">
+          <v-icon color="white" size="24">mdi-cart-arrow-down</v-icon>
+          <span v-if="store.cartItems.length > 0" class="cart-fab-badge">{{ store.cartItems.length }}</span>
+        </div>
+      </button>
+
+      <button class="bottom-nav-item" @click="$router.push('/tutorials')">
+        <v-icon :color="route.path === '/tutorials' ? '#7e57c2' : '#757575'" size="22">mdi-youtube</v-icon>
+        <span :class="route.path === '/tutorials' ? 'active-label' : 'nav-label'">{{ t("tutorials") }}</span>
+      </button>
+
+      <button class="bottom-nav-item" @click="drawer = !drawer">
+        <v-icon color="#757575" size="22">mdi-menu</v-icon>
+        <span class="nav-label">{{ t("menu") || "Menu" }}</span>
+      </button>
+    </div>
 
     <v-dialog v-model="loginDialog" max-width="500px" persistent>
       <Login v-model="loginDialog" @login-success="handleLoginSuccess" />
@@ -686,7 +651,8 @@
 
 <script setup>
 import { ref, computed, nextTick, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useDisplay } from "vuetify";
+import { useRouter, useRoute } from "vue-router";
 
 definePageMeta({
   middleware: "guest",
@@ -696,10 +662,23 @@ definePageMeta({
 // ============ COMPOSABLES ============
 const store = useProductSellStore();
 const router = useRouter();
+const route = useRoute();
 const { currentLang, t, langs } = useLanguage();
+const { mdAndUp } = useDisplay();
 
 // ============ UI STATE ============
 const drawer = ref(false);
+
+// ============ DRAWER ITEMS ============
+const drawerItems = computed(() => [
+  { label: t("home"),      icon: "mdi-home",                  to: "/",           iconColor: "white" },
+  { label: t("tutorials"), icon: "mdi-youtube",               to: "/tutorials",  iconColor: "#FF5252" },
+  { label: t("support"),   icon: "mdi-hand-heart",            to: "/support_us", iconColor: "#F48FB1" },
+  { label: t("history"),   icon: "mdi-clipboard-text-clock",  to: "/history",    iconColor: "#FFD740" },
+  { label: t("login"),     icon: "mdi-login",                 action: () => { openDialog("login"); drawer.value = false; }, iconColor: "#69F0AE" },
+  { label: "Register",     icon: "mdi-account-plus",          to: "/register_randon", iconColor: "#80D8FF" },
+  { label: t("cart"),      icon: "mdi-cart-arrow-down",       action: () => { openDialog("cart");  drawer.value = false; }, iconColor: "white", badge: true },
+]);
 
 // ============ DIALOG STATES ============
 const cartDialog = ref(false);
@@ -889,37 +868,108 @@ const submitCheckout = () => {
 </script>
 
 <style scoped>
+/* ── App bar ─────────────────────────────────────────────────────────── */
 .gradient-app-bar {
   background: linear-gradient(to right, #42a5f5, #7e57c2);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
-.gradient-drawer {
-  background: linear-gradient(to bottom, #7e57c2, #5e35b1);
+
+/* ── Side drawer ─────────────────────────────────────────────────────── */
+.drawer-panel {
+  background: linear-gradient(160deg, #5c35b1 0%, #3949ab 100%) !important;
 }
-.gradient-drawer .v-list-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+.drawer-header {
+  background: rgba(0,0,0,0.15);
+  min-height: 52px;
 }
+.drawer-item {
+  color: rgba(255,255,255,0.9) !important;
+}
+.drawer-item:hover {
+  background: rgba(255,255,255,0.12) !important;
+}
+.drawer-item.v-list-item--active {
+  background: rgba(255,255,255,0.2) !important;
+}
+.lang-dropdown-btn {
+  border-color: rgba(255,255,255,0.4) !important;
+  text-transform: none !important;
+}
+
+/* ── Bottom navigation bar ───────────────────────────────────────────── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 58px;
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 100;
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  position: relative;
+}
+.nav-label {
+  font-size: 10px;
+  color: #757575;
+  font-weight: 500;
+}
+.active-label {
+  font-size: 10px;
+  color: #7e57c2;
+  font-weight: 700;
+}
+
+/* FAB cart button (center) */
+.bottom-cart-btn { position: relative; }
+.cart-fab {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7e57c2, #42a5f5);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(126,87,194,0.4);
+  margin-top: -14px;
+}
+.cart-fab-badge {
+  position: absolute; top: -4px; right: 8px;
+  background: #f44336; color: #fff;
+  font-size: 10px; font-weight: 700;
+  min-width: 16px; height: 16px;
+  border-radius: 8px; padding: 0 4px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Push page content above bottom nav on mobile */
+.main-content {
+  padding-bottom: 0;
+}
+@media (max-width: 959px) {
+  .main-content { padding-bottom: 70px !important; }
+}
+
+/* ── Misc ────────────────────────────────────────────────────────────── */
 .bg-gradient {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
 }
-.checkout-card {
-  border-radius: 16px;
-  overflow: hidden;
-}
+.checkout-card { border-radius: 16px; overflow: hidden; }
 .confirm-btn {
   background: linear-gradient(135deg, #4caf50 0%, #45a049 100%) !important;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 12px rgba(76,175,80,0.3);
 }
-.rounded-circle {
-  border-radius: 50%;
-}
-.bg-white-opacity {
-  background-color: rgba(255, 255, 255, 0.15) !important;
-}
-.bg-deep-purple-lighten-4 {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-}
-.min-width-0 {
-  min-width: 0;
-}
+.rounded-circle { border-radius: 50%; }
+.min-width-0 { min-width: 0; }
 </style>
